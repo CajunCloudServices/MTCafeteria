@@ -7,14 +7,16 @@ ON CONFLICT (name) DO NOTHING;
 
 -- Password for all users: password123
 INSERT INTO users (email, password_hash, role_id) VALUES
-  ('employee@mtc.local', '$2a$10$M7Q2hWlJ9wQv8x4B.xKx8.JIze8ih/7gToYtL6vhfVqlhK/SXx0wS', (SELECT id FROM roles WHERE name = 'Employee')),
-  ('trainer@mtc.local', '$2a$10$M7Q2hWlJ9wQv8x4B.xKx8.JIze8ih/7gToYtL6vhfVqlhK/SXx0wS', (SELECT id FROM roles WHERE name = 'Lead Trainer')),
-  ('supervisor@mtc.local', '$2a$10$M7Q2hWlJ9wQv8x4B.xKx8.JIze8ih/7gToYtL6vhfVqlhK/SXx0wS', (SELECT id FROM roles WHERE name = 'Supervisor')),
-  ('manager@mtc.local', '$2a$10$M7Q2hWlJ9wQv8x4B.xKx8.JIze8ih/7gToYtL6vhfVqlhK/SXx0wS', (SELECT id FROM roles WHERE name = 'Student Manager')),
-  ('employee2@mtc.local', '$2a$10$M7Q2hWlJ9wQv8x4B.xKx8.JIze8ih/7gToYtL6vhfVqlhK/SXx0wS', (SELECT id FROM roles WHERE name = 'Employee')),
-  ('employee3@mtc.local', '$2a$10$M7Q2hWlJ9wQv8x4B.xKx8.JIze8ih/7gToYtL6vhfVqlhK/SXx0wS', (SELECT id FROM roles WHERE name = 'Employee')),
-  ('employee4@mtc.local', '$2a$10$M7Q2hWlJ9wQv8x4B.xKx8.JIze8ih/7gToYtL6vhfVqlhK/SXx0wS', (SELECT id FROM roles WHERE name = 'Employee'))
-ON CONFLICT (email) DO NOTHING;
+  ('employee@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee')),
+  ('trainer@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Lead Trainer')),
+  ('supervisor@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Supervisor')),
+  ('manager@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Student Manager')),
+  ('employee2@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee')),
+  ('employee3@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee')),
+  ('employee4@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee'))
+ON CONFLICT (email) DO UPDATE SET
+  password_hash = EXCLUDED.password_hash,
+  role_id = EXCLUDED.role_id;
 
 INSERT INTO points (user_id, points) VALUES
   ((SELECT id FROM users WHERE email = 'employee@mtc.local'), 14),
