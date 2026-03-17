@@ -1,0 +1,7 @@
+[
+  {"type":"waitForSelector","selector":"input"},
+  {"type":"fillByLabel","label":"Email","value":"manager@mtc.local"},
+  {"type":"fillByLabel","label":"Password","value":"password123"},
+  {"type":"clickByText","text":"Login"},
+  {"type":"waitForTimeout","ms":2000}
+]

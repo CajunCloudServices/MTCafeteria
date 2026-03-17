@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 3001
+      PORT: 3201
       USE_MOCK_DATA: ${USE_MOCK_DATA:-false}
       JWT_SECRET: ${JWT_SECRET:-replace-with-strong-secret}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/mtc_cafeteria}
@@ -14,7 +14,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${BACKEND_PORT:-3001}:3001"
+      - "${BACKEND_PORT:-3201}:3201"
 
   frontend:
     build:

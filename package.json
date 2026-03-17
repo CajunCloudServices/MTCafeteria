@@ -5,7 +5,11 @@
   "description": "Local tooling for live site screenshots/actions",
   "scripts": {
     "live:screenshot": "node tools/live-site.js screenshot",
-    "live:actions": "node tools/live-site.js actions"
+    "live:actions": "node tools/live-site.js actions",
+    "live:login:manager:html": "node tools/live-site.js actions http://localhost:51336 @tools/live-actions/login-manager-html.json",
+    "live:capture:dashboard": "node tools/live-site.js actions http://localhost:51336 @tools/live-actions/capture-dashboard-selection.json",
+    "mobai:audit:init": "node tools/mobai-audit.js --url http://localhost:51336 --viewport mobile_web",
+    "mobai:audit:init:desktop": "node tools/mobai-audit.js --url http://localhost:51336 --viewport desktop_web"
   },
   "devDependencies": {
     "playwright": "^1.52.0"

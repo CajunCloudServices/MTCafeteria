@@ -1,0 +1,10 @@
+{
+  "version": "0.2",
+  "steps": [
+    {"action": "observe", "context": "native", "include": ["ui_tree"]},
+    {"action": "tap", "predicate": {"text_contains": "Home"}},
+    {"action": "delay", "duration_ms": 400},
+    {"action": "observe", "context": "native", "include": ["ui_tree"]}
+  ],
+  "on_fail": {"strategy": "retry", "max_retries": 1}
+}

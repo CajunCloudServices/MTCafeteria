@@ -15,6 +15,25 @@ CREATE TABLE IF NOT EXISTS points (
   points INT NOT NULL DEFAULT 0
 );
 
+
+CREATE TABLE IF NOT EXISTS point_assignments (
+  id SERIAL PRIMARY KEY,
+  assigned_to_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  assigned_by_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  points_delta INT NOT NULL CHECK (points_delta > 0),
+  assignment_date DATE NOT NULL,
+  reason TEXT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Accepted')),
+  employee_initials VARCHAR(10),
+  employee_confirmed_at TIMESTAMP,
+  manager_notified_at TIMESTAMP,
+  requires_manager_approval BOOLEAN NOT NULL DEFAULT false,
+  manager_approved_by_user_id INT REFERENCES users(id),
+  manager_approved_at TIMESTAMP,
+  assignment_description TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS announcements (
   id SERIAL PRIMARY KEY,
   type VARCHAR(40) NOT NULL,
@@ -82,4 +101,18 @@ CREATE TABLE IF NOT EXISTS supervisor_task_checks (
   checked BOOLEAN NOT NULL DEFAULT false,
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   PRIMARY KEY (meal_type, job_id, task_id)
+);
+
+CREATE TABLE IF NOT EXISTS daily_shift_reports (
+  id SERIAL PRIMARY KEY,
+  report_date DATE NOT NULL,
+  meal_type VARCHAR(40) NOT NULL CHECK (meal_type IN ('Breakfast', 'Lunch', 'Dinner')),
+  track VARCHAR(40) NOT NULL DEFAULT 'Line',
+  status VARCHAR(20) NOT NULL DEFAULT 'Draft' CHECK (status IN ('Draft', 'Submitted')),
+  submitted_by_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  submitted_at TIMESTAMP,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (report_date, meal_type, track, submitted_by_user_id)
 );

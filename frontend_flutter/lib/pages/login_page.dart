@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Standard email/password login used outside pilot mode.
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
@@ -17,6 +18,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  // Seed values keep local demos and development logins fast.
   final _emailController = TextEditingController(text: 'employee@mtc.local');
   final _passwordController = TextEditingController(text: 'password123');
 
@@ -31,60 +33,87 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 440),
+        constraints: const BoxConstraints(maxWidth: 460),
         child: Card(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'MTC Cafeteria Prototype',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 6),
                 const Text(
-                  'Sign in with a role account to view the prototype dashboards.',
+                  'Sign In',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF16385F),
+                    height: 1.05,
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 TextField(
+                  key: const ValueKey('login-email-field'),
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.mail_outline),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  key: const ValueKey('login-password-field'),
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
                   obscureText: true,
                 ),
-                const SizedBox(height: 16),
-                if (widget.error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                if (widget.error != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3F2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFFBF2C1E).withValues(alpha: 0.28),
+                      ),
+                    ),
                     child: Text(
                       widget.error!,
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(
+                        color: Color(0xFFB42318),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                ElevatedButton(
+                ],
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  key: const ValueKey('login-submit-button'),
                   onPressed: widget.isLoading
                       ? null
                       : () => widget.onLogin(
                           _emailController.text.trim(),
                           _passwordController.text,
                         ),
-                  child: widget.isLoading
+                  icon: widget.isLoading
                       ? const SizedBox(
-                          height: 18,
-                          width: 18,
+                          height: 16,
+                          width: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Login'),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Quick test accounts: employee@mtc.local, trainer@mtc.local, supervisor@mtc.local, manager@mtc.local',
+                      : const Icon(Icons.login),
+                  label: Text(widget.isLoading ? 'Signing In...' : 'Login'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             ),

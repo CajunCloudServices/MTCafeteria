@@ -36,6 +36,10 @@ Lightweight prototype focused on organization and clarity for cafeteria workers.
 - `POST /api/supervisor-board/reset`
 - `GET /api/trainer-board`
 - `POST /api/trainer-board/trainees/:traineeUserId/tasks/:taskId/completion`
+- `GET /api/daily-shift-reports/current?meal=Breakfast|Lunch|Dinner`
+- `PUT /api/daily-shift-reports/current`
+- `POST /api/daily-shift-reports/current/submit`
+- `GET /api/daily-shift-reports`
 
 ## Local Run
 ### 1) Backend
@@ -43,7 +47,7 @@ Lightweight prototype focused on organization and clarity for cafeteria workers.
 cd backend
 cp .env.example .env
 npm install
-npm run dev
+PORT=3201 npm run dev
 ```
 
 Notes:
@@ -57,9 +61,44 @@ flutter pub get
 flutter run -d chrome
 ```
 
-Optional API URL override:
+Runtime config (single source):
 ```bash
-flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3001
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3201
+```
+
+Build profiles:
+- `full` (default): all features
+- `pilot`: tested/core features only (advanced modules hidden)
+
+Pilot launch:
+```bash
+flutter run -d chrome \
+  --dart-define=API_BASE_URL=http://localhost:3201 \
+  --dart-define=APP_PROFILE=pilot
+```
+
+Full launch:
+```bash
+flutter run -d chrome \
+  --dart-define=API_BASE_URL=http://localhost:3201 \
+  --dart-define=APP_PROFILE=full
+```
+
+Optional feature overrides (for either profile):
+```bash
+--dart-define=FEATURE_MANAGER_PORTAL=on|off|auto
+--dart-define=FEATURE_POINTS=on|off|auto
+--dart-define=FEATURE_DAILY_SHIFT_REPORTS=on|off|auto
+--dart-define=FEATURE_TRAININGS=on|off|auto
+--dart-define=FEATURE_REFERENCES=on|off|auto
+```
+
+Development bypass (debug-only, visible DEV BYPASS badge):
+```bash
+flutter run -d chrome \
+  --dart-define=API_BASE_URL=http://localhost:3201 \
+  --dart-define=DEV_BYPASS_AUTH=true \
+  --dart-define=APP_MODE=dev
 ```
 
 ## Test Accounts (Mock/Seed)
@@ -113,7 +152,108 @@ If Flutter is unavailable locally and web assets are missing, deploy falls back 
 
 Default exposed ports:
 - Frontend: `8086`
-- Backend API: `3001`
+- Backend API: `3201`
 
 Point your DNS record to the server IP, then browse:
 - `http://<your-domain>:8086`
+
+## Playwright Automation
+Use a dedicated fixed-port profile so Playwright targets a stable URL.
+
+1) Start backend on a fixed port (example: 3201)
+```bash
+cd backend
+PORT=3201 npm run dev
+```
+
+2) Start Flutter test mode
+```bash
+cd frontend_flutter
+flutter run -d chrome --web-port 51336 \
+  --dart-define=API_BASE_URL=http://localhost:3201 \
+  --dart-define=DEV_BYPASS_AUTH=true \
+  --dart-define=APP_MODE=dev
+```
+
+## Canonical Local Launch Matrix
+Backend:
+```bash
+cd backend
+PORT=3201 npm run dev
+```
+
+Flutter web:
+```bash
+cd frontend_flutter
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3201
+```
+
+iOS simulator:
+```bash
+cd frontend_flutter
+flutter run -d ios --dart-define=API_BASE_URL=http://localhost:3201
+```
+
+## Daily Shift Report Payload (Line Supervisor)
+Submit endpoint requires these keys to be non-empty:
+- `count`
+- `late`
+- `sick`
+- `noShows`
+- `deepClean`
+- `seniorCashier`
+- `juniorCashier`
+- `specialtyMealsAttendantAndPlateCount`
+- `oneOnOne`
+- `shiftShoutout`
+- `entreeItemOutage`
+- `productOutage`
+- `productSurplus`
+- `lockersChecked`
+- `maintenanceConcerns`
+- `generalComments`
+- `trainings`
+- `serviceMissionariesPresentForShift`
+- `summaries`
+
+If incomplete, submit returns `400` with:
+- `message: "Daily shift report is incomplete."`
+- `missingFields: string[]`
+
+3) Run automation scripts
+```bash
+npm run live:login:manager:html
+npm run live:capture:dashboard
+npm run live:screenshot -- http://localhost:51336
+```
+
+You can also pass action files directly:
+```bash
+node tools/live-site.js actions http://localhost:51336 @tools/live-actions/login-manager-html.json
+```
+
+## MobAI Audit Harness (Web-First)
+Use MobAI to run repeatable UI audits with structured artifacts.
+
+1) Ensure MobAI bridge is active on your simulator/device and app is open.
+
+2) Initialize a timestamped audit run:
+```bash
+cd /Users/lajicpajam/projects/MTCafeteria
+npm run mobai:audit:init
+```
+
+Desktop profile:
+```bash
+npm run mobai:audit:init:desktop
+```
+
+Artifacts are written to:
+- `artifacts/mobai/<timestamp>/screenshots`
+- `artifacts/mobai/<timestamp>/flow-notes.md`
+- `artifacts/mobai/<timestamp>/issues.json`
+- `artifacts/mobai/<timestamp>/before-after`
+
+Path matrix and issue taxonomy are defined in:
+- `tools/mobai/path-matrix.json`
+- `tools/mobai/issues.schema.json`

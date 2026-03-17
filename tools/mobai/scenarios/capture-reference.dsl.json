@@ -1,0 +1,11 @@
+{
+  "version": "0.2",
+  "steps": [
+    {"action": "tap", "predicate": {"text_contains": "Dashboard"}},
+    {"action": "delay", "duration_ms": 500},
+    {"action": "tap", "predicate": {"text_contains": "View Jobs and Recipes"}},
+    {"action": "delay", "duration_ms": 500},
+    {"action": "observe", "context": "native", "include": ["ui_tree"]}
+  ],
+  "on_fail": {"strategy": "retry", "max_retries": 1}
+}

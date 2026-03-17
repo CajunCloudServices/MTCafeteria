@@ -1,0 +1,88 @@
+section,subsection,item_order,item_type,item_text,rank,feature,current_app_area,value,effort,privacy_security,pilot,reason
+Meta,Description,1,text,This file ranks the app's current features by pilot suitability.,,,,,,,,
+Ranking Criteria,Value,1,text,how useful the feature is during a real shift,,,,,,,,
+Ranking Criteria,Effort,2,text,how much implementation/support/maintenance burden it adds,,,,,,,,
+Ranking Criteria,Privacy/Security,3,text,"how much identity, personnel, or sensitive operational data it touches",,,,,,,,
+Scale,Value,1,text,High / Medium / Low,,,,,,,,
+Scale,Effort,2,text,Low / Medium / High,,,,,,,,
+Scale,Privacy/Security,3,text,Low / Medium / High,,,,,,,,
+Recommendation Summary,Safest pilot built around,1,bullet,line workflow checklists,,,,,,,,
+Recommendation Summary,Safest pilot built around,2,bullet,supervisor checkoff,,,,,,,,
+Recommendation Summary,Safest pilot built around,3,bullet,references,,,,,,,,
+Recommendation Summary,Safest pilot built around,4,bullet,two-minute trainings,,,,,,,,
+Recommendation Summary,Safest pilot built around,5,bullet,dining map,,,,,,,,
+Recommendation Summary,Why,1,text,These are the best first pilot features because they are operationally useful and do not require storing or exposing much personal information.,,,,,,,,
+Recommendation Summary,Keep out of first pilot,1,bullet,login,,,,,,,,
+Recommendation Summary,Keep out of first pilot,2,bullet,points / discipline workflows,,,,,,,,
+Recommendation Summary,Keep out of first pilot,3,bullet,manager approval flows,,,,,,,,
+Recommendation Summary,Keep out of first pilot,4,bullet,profile,,,,,,,,
+Recommendation Summary,Keep out of first pilot,5,bullet,daily shift reports sent to leadership,,,,,,,,
+Recommendation Summary,Why keep out,1,text,"Those features involve personal identity, personnel/disciplinary information, or more formal process ownership.",,,,,,,,
+Ranked Features,Feature,1,ranked_feature,Line worker task flow,1,Line worker task flow,Dashboard > Workflow > Line > Employee/Line Worker,High,Low,Low,Yes,"Core operational need. Helps workers know what to do before, during, and after shift without storing sensitive data."
+Ranked Features,Feature,2,ranked_feature,Supervisor job checkoff,2,Supervisor job checkoff,Dashboard > Workflow > Line > Supervisor > Jobs/Secondaries/Deep Clean,High,Medium,Low,Yes,High shift value. Operational coordination only. No personal data required if pilot mode skips identity.
+Ranked Features,Feature,3,ranked_feature,Reference sheets,3,Reference sheets,Dashboard > References,High,Low,Low,Yes,Very safe. Pure view-only information. Immediate training value.
+Ranked Features,Feature,4,ranked_feature,Find an item / locker lookup,4,Find an item / locker lookup,References > Find an Item,High,Low,Low,Yes,Fast lookup tool with almost no security concern.
+Ranked Features,Feature,5,ranked_feature,Condiments rotation reference,5,Condiments rotation reference,References > Condiments Rotation,High,Low,Low,Yes,Useful and low-risk. Pure operational reference.
+Ranked Features,Feature,6,ranked_feature,Line secondary + checkoff reference,6,Line secondary + checkoff reference,References > Line Secondary + Checkoff,High,Low,Low,Yes,Good support for shift close. No identity required.
+Ranked Features,Feature,7,ranked_feature,Dining map,7,Dining map,References > Dining Map,Medium,Low,Low,Yes,Good onboarding/support feature. Minimal risk.
+Ranked Features,Feature,8,ranked_feature,Two-minute trainings,8,Two-minute trainings,Dashboard hub > Two-minute Trainings,Medium,Low,Low,Yes,Useful training support. Low privacy risk if not tied to individual completion history.
+Ranked Features,Feature,9,ranked_feature,Aloha + Choices reference,9,Aloha + Choices reference,References > Aloha + Choices,Medium,Low,Low,Yes,Useful operational context and low risk.
+Ranked Features,Feature,10,ranked_feature,Kitchen jobs references/recipes,10,Kitchen jobs references/recipes,Dashboard > Workflow > Kitchen Jobs,Medium,Medium,Low,Yes,Good for support and consistency. Still low-risk if used only as reference.
+Ranked Features,Feature,11,ranked_feature,Pilot mode,11,Pilot mode,App profile / config mode,High,Low,Low,Yes,Important for safe testing because it removes login friction and avoids exposing unnecessary identity features.
+Ranked Features,Feature,12,ranked_feature,Lead trainer task flow,12,Lead trainer task flow,Dashboard > Workflow > Line > Lead Trainer,Medium,Medium,Low,Maybe,"Operationally useful, but more complex than worker/supervisor flows. Fine for pilot if stable."
+Ranked Features,Feature,13,ranked_feature,Student manager landing-page announcements,13,Student manager landing-page announcements,Home + manager portal,Medium,Medium,Low,Maybe,"Useful, but requires some content ownership and moderation. Still not very sensitive if limited to general announcements."
+Ranked Features,Feature,14,ranked_feature,Dishroom worker flow,14,Dishroom worker flow,Dashboard > Workflow > Dishroom,Medium,Medium,Low,Later,"Not inherently sensitive, but you said it is not finished. Not a first-pilot candidate yet."
+Ranked Features,Feature,15,ranked_feature,Dishroom lead trainer flow,15,Dishroom lead trainer flow,Dashboard > Workflow > Dishroom Lead Trainer,Medium,Medium,Low,Later,"Same issue as dishroom: low privacy risk, but unfinished and lower immediate priority."
+Ranked Features,Feature,16,ranked_feature,Night custodial flow,16,Night custodial flow,Dashboard > Workflow > Night Custodial,Medium,Medium,Low,Later,"Low privacy risk, but unfinished and not part of the immediate pilot."
+Ranked Features,Feature,17,ranked_feature,Daily shift report drafting,17,Daily shift report drafting,Supervisor flow > Daily Shift Report,Medium,High,Medium,Later,"Operationally useful, but more process-heavy and stores shift-specific submitted records. Better after core workflow testing."
+Ranked Features,Feature,18,ranked_feature,Leadership daily shift report viewing,18,Leadership daily shift report viewing,Dashboard > Daily Shift Reports,Medium,Medium,Medium,Later,"Useful to leadership, but introduces stored reporting records and visibility rules."
+Ranked Features,Feature,19,ranked_feature,Home announcements editing,19,Home announcements editing,Manager portal,Medium,Medium,Medium,Later,"Not highly sensitive, but still introduces permissioned content editing and governance questions."
+Ranked Features,Feature,20,ranked_feature,Role selection by actual user capability,20,Role selection by actual user capability,Dashboard routing / auth-based gating,Medium,Medium,Medium,Later,"Fine in a production tool, but for pilot mode it adds complexity without much benefit."
+Ranked Features,Feature,21,ranked_feature,Login / JWT auth,21,Login / JWT auth,Auth flow,Low,Medium,High,No,Not needed for first pilot if users are just testing flows. Adds identity/security concerns immediately.
+Ranked Features,Feature,22,ranked_feature,Profile tab,22,Profile tab,Profile,Low,Low,Medium,No,Low operational value for first pilot. Mostly identity-adjacent surface area.
+Ranked Features,Feature,23,ranked_feature,Points assignment,23,Points assignment,Dashboard / Student Manager Portal,Medium,High,High,No,This is disciplinary/personnel-related and absolutely raises privacy/governance concerns.
+Ranked Features,Feature,24,ranked_feature,Point approval workflow,24,Point approval workflow,Manager review flow,Medium,High,High,No,"Same issue, plus formal approval process and audit expectations."
+Ranked Features,Feature,25,ranked_feature,Point acknowledgment by employee initials,25,Point acknowledgment by employee initials,Points confirmation flow,Medium,High,High,No,Explicitly identity-related and sensitive. Not appropriate for early pilot testing.
+Ranked Features,Feature,26,ranked_feature,Stored personal point history,26,Stored personal point history,Backend points data,Medium,High,High,No,Highest governance/privacy burden of the current feature set.
+Best Pilot Scope,Home,1,bullet,announcements view only,,,,,,,,
+Best Pilot Scope,Dashboard,1,bullet,line workflow,,,,,,,,
+Best Pilot Scope,Dashboard,2,bullet,supervisor checkoff,,,,,,,,
+Best Pilot Scope,Dashboard,3,bullet,lead trainer flow if stable enough,,,,,,,,
+Best Pilot Scope,Dashboard,4,bullet,kitchen jobs reference flow,,,,,,,,
+Best Pilot Scope,References,1,bullet,line jobs,,,,,,,,
+Best Pilot Scope,References,2,bullet,find an item,,,,,,,,
+Best Pilot Scope,References,3,bullet,condiments rotation,,,,,,,,
+Best Pilot Scope,References,4,bullet,line secondary + checkoff,,,,,,,,
+Best Pilot Scope,References,5,bullet,dining map,,,,,,,,
+Best Pilot Scope,References,6,bullet,aloha + choices,,,,,,,,
+Best Pilot Scope,Two-minute trainings,1,bullet,view-only,,,,,,,,
+Best Pilot Scope,Two-minute trainings,2,bullet,rotating daily training,,,,,,,,
+Best Pilot Scope,Pilot mode,1,bullet,no login,,,,,,,,
+Best Pilot Scope,Pilot mode,2,bullet,no profile,,,,,,,,
+Best Pilot Scope,Pilot mode,3,bullet,no points,,,,,,,,
+Best Pilot Scope,Pilot mode,4,bullet,no manager-only sensitive workflows,,,,,,,,
+Features To Keep Out Of Pilot,Keep out,1,bullet,login tied to real identities,,,,,,,,
+Features To Keep Out Of Pilot,Keep out,2,bullet,profile tied to a specific worker,,,,,,,,
+Features To Keep Out Of Pilot,Keep out,3,bullet,points / discipline workflows,,,,,,,,
+Features To Keep Out Of Pilot,Keep out,4,bullet,approvals and acknowledgments,,,,,,,,
+Features To Keep Out Of Pilot,Keep out,5,bullet,personally attributable reporting history,,,,,,,,
+Features To Keep Out Of Pilot,Keep out,6,bullet,anything that looks like employee discipline tracking,,,,,,,,
+Practical Rollout Order,Pilot V1,1,bullet,line worker tasks,,,,,,,,
+Practical Rollout Order,Pilot V1,2,bullet,supervisor checkoff,,,,,,,,
+Practical Rollout Order,Pilot V1,3,bullet,references,,,,,,,,
+Practical Rollout Order,Pilot V1,4,bullet,two-minute trainings,,,,,,,,
+Practical Rollout Order,Pilot V1,5,bullet,dining map,,,,,,,,
+Practical Rollout Order,Pilot V2,1,bullet,announcements editing,,,,,,,,
+Practical Rollout Order,Pilot V2,2,bullet,lead trainer workflow,,,,,,,,
+Practical Rollout Order,Pilot V2,3,bullet,kitchen jobs and dishroom once stable,,,,,,,,
+Practical Rollout Order,Post-pilot / official review,1,bullet,login,,,,,,,,
+Practical Rollout Order,Post-pilot / official review,2,bullet,daily shift reports,,,,,,,,
+Practical Rollout Order,Post-pilot / official review,3,bullet,role-based stored history,,,,,,,,
+Practical Rollout Order,Post-pilot / official review,4,bullet,points and approvals only if institutionally approved,,,,,,,,
+Recommendation,Treat app primarily as,1,bullet,a shift workflow guide,,,,,,,,
+Recommendation,Treat app primarily as,2,bullet,a supervisor checkoff tool,,,,,,,,
+Recommendation,Treat app primarily as,3,bullet,a training/reference tool,,,,,,,,
+Recommendation,Not as,1,bullet,a personnel tracking system,,,,,,,,
+Recommendation,Not as,2,bullet,a disciplinary system,,,,,,,,
+Recommendation,Not as,3,bullet,an identity-managed internal platform,,,,,,,,
+Recommendation,Outcome,1,text,That will give you the most useful pilot with the least institutional friction.,,,,,,,,

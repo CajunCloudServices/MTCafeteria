@@ -1,0 +1,5 @@
+[
+  {"type":"waitForTimeout","ms":1200},
+  {"type":"clickAt","x":208,"y":748},
+  {"type":"waitForTimeout","ms":1800}
+]

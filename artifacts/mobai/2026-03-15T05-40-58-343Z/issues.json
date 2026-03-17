@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ISS-REF-001",
+    "severity": "major",
+    "type": "readability",
+    "path_id": "H-REFERENCE",
+    "summary": "Aloha/Choices reference content renders as a long dense text block; scanning and section separation are weak.",
+    "evidence": {
+      "screenshot": "screenshots/baseline.png",
+      "note": "Observed in mobile reference view while switching sections."
+    },
+    "repro": "Dashboard -> View Jobs and Recipes (Reference) -> Section: Aloha + Choices",
+    "status": "fixed"
+  },
+  {
+    "id": "ISS-AUTO-001",
+    "severity": "minor",
+    "type": "navigation",
+    "path_id": "G-MENU",
+    "summary": "Automation reliability was limited by missing stable keys on hub/menu controls.",
+    "evidence": {
+      "screenshot": "screenshots/baseline.png",
+      "note": "Resolved by adding stable ValueKey selectors to app menu and dashboard hub buttons."
+    },
+    "repro": "Automated traversal of Dashboard hub and hamburger actions",
+    "status": "fixed"
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "name": "dashboard-hub",
+  "description": "Traverse each dashboard hub action",
+  "path_ids": ["H-WORKFLOW", "H-MANAGER", "H-TRAININGS", "H-POINTS", "H-REFERENCE"],
+  "notes": "Open each hub button, capture screenshot, then return to hub via menu/reset path."
+}

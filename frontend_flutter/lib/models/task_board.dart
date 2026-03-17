@@ -1,3 +1,4 @@
+/// Lightweight job selector option used by the employee task flow.
 class JobOption {
   const JobOption({required this.id, required this.name});
 
@@ -9,6 +10,7 @@ class JobOption {
   }
 }
 
+/// Checklist item shown in the employee flow for a selected job.
 class TaskChecklistItem {
   const TaskChecklistItem({
     required this.taskId,
@@ -35,6 +37,7 @@ class TaskChecklistItem {
   }
 }
 
+/// Employee task board payload for the selected meal and job.
 class TaskBoard {
   const TaskBoard({
     required this.meals,

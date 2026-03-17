@@ -1,3 +1,4 @@
+/// Backend training record used for the rotating two-minute training feature.
 class Training {
   const Training({
     required this.id,

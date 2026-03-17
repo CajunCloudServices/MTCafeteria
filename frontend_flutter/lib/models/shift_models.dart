@@ -1,3 +1,4 @@
+/// A single task grouped under setup, during-shift, or cleanup.
 class TaskItem {
   const TaskItem({
     required this.id,
@@ -18,6 +19,7 @@ class TaskItem {
   }
 }
 
+/// A line/dishroom/kitchen job and its phase-specific tasks.
 class Job {
   const Job({
     required this.id,
@@ -51,6 +53,7 @@ class Job {
   }
 }
 
+/// A shift container returned by legacy shift endpoints.
 class Shift {
   const Shift({
     required this.id,

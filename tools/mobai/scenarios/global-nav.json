@@ -1,0 +1,6 @@
+{
+  "name": "global-nav",
+  "description": "Traverse Home, Dashboard, Profile, and hamburger menu",
+  "path_ids": ["G-HOME", "G-DASH", "G-PROFILE", "G-MENU"],
+  "notes": "Use UI tree index or text predicate to tap bottom nav and menu in order. Capture screenshot after each view."
+}

@@ -1,3 +1,4 @@
+/// Job selector option for the lead trainer support board.
 class TrainerJobOption {
   const TrainerJobOption({required this.id, required this.name});
 
@@ -12,6 +13,7 @@ class TrainerJobOption {
   }
 }
 
+/// Task row displayed under a trainer's assigned trainee job.
 class TrainerTraineeTask {
   const TrainerTraineeTask({
     required this.taskId,
@@ -38,6 +40,7 @@ class TrainerTraineeTask {
   }
 }
 
+/// A trainee card returned by the backend trainer board endpoint.
 class TrainerTraineeCard {
   const TrainerTraineeCard({
     required this.traineeUserId,
@@ -66,6 +69,7 @@ class TrainerTraineeCard {
   }
 }
 
+/// Lead trainer board payload for the selected meal and trainee jobs.
 class TrainerBoard {
   const TrainerBoard({
     required this.meals,

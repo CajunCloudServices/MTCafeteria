@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MobAI Audit Issues",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "severity", "type", "path_id", "summary", "evidence", "repro"],
+    "properties": {
+      "id": {"type": "string"},
+      "severity": {"type": "string", "enum": ["critical", "major", "minor"]},
+      "type": {
+        "type": "string",
+        "enum": ["functional", "navigation", "layout", "readability", "consistency", "copy", "accessibility"]
+      },
+      "path_id": {"type": "string"},
+      "summary": {"type": "string"},
+      "evidence": {
+        "type": "object",
+        "required": ["screenshot", "note"],
+        "properties": {
+          "screenshot": {"type": "string"},
+          "note": {"type": "string"}
+        }
+      },
+      "repro": {"type": "string"},
+      "status": {"type": "string", "enum": ["open", "fixed", "wontfix"], "default": "open"}
+    }
+  }
+}

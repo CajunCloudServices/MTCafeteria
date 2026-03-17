@@ -45,16 +45,38 @@ async function getTaskBoardForUser(requestUser, { meal, jobId, preferredJobName 
   const selectedMeal = getMealFromInput(meal);
 
   if (env.useMockData) {
-    const jobs = getJobsForMeal(selectedMeal);
+    const uniqueJobsByName = new Map();
+    for (const job of mockData.jobs) {
+      if (!uniqueJobsByName.has(job.name)) {
+        uniqueJobsByName.set(job.name, []);
+      }
+      uniqueJobsByName.get(job.name).push(job);
+    }
+
+    const jobs = [...uniqueJobsByName.entries()]
+      .map(([jobName, variants]) => {
+        const canonical = [...variants].sort((a, b) => a.id - b.id)[0];
+        return { id: canonical.id, name: jobName };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+
     const preferredJob = preferredJobName
       ? jobs.find((j) => j.name === preferredJobName)
       : null;
     const selectedJobId = Number(jobId || preferredJob?.id || jobs[0]?.id || 0);
     const selectedJob = jobs.find((j) => j.id === selectedJobId) || jobs[0];
+    const selectedJobName = selectedJob?.name;
 
-    const tasks = selectedJob
+    const taskJob = selectedJobName
+      ? (mockData.jobs.find((j) => {
+          const shift = mockData.shifts.find((s) => s.id === j.shiftId);
+          return j.name === selectedJobName && shift?.mealType === selectedMeal;
+        }) || mockData.jobs.find((j) => j.name === selectedJobName))
+      : null;
+
+    const tasks = taskJob
       ? mockData.tasks
-          .filter((t) => t.jobId === selectedJob.id)
+          .filter((t) => t.jobId === taskJob.id)
           .map((t) => {
             const progress = getTaskProgressForUser(Number(requestUser.sub), t.id);
             return {
@@ -77,18 +99,53 @@ async function getTaskBoardForUser(requestUser, { meal, jobId, preferredJobName 
   }
 
   const jobsQuery = `
-    SELECT j.id, j.name
+    SELECT DISTINCT ON (j.name)
+      j.id,
+      j.name
     FROM jobs j
-    JOIN shifts s ON s.id = j.shift_id
-    WHERE s.meal_type = $1
-    ORDER BY j.id;
+    ORDER BY
+      j.name,
+      j.id;
   `;
-  const jobsResult = await pool.query(jobsQuery, [selectedMeal]);
+  const jobsResult = await pool.query(jobsQuery);
   const jobs = jobsResult.rows;
   const preferredJob = preferredJobName
     ? jobs.find((j) => j.name === preferredJobName)
     : null;
   const selectedJobId = Number(jobId || preferredJob?.id || jobs[0]?.id || 0);
+  const selectedJob = jobs.find((j) => j.id === selectedJobId) || jobs[0];
+  const selectedJobName = selectedJob?.name;
+
+  let taskJobId = null;
+  if (selectedJobName) {
+    const preferredTaskJob = await pool.query(
+      `
+        SELECT j.id
+        FROM jobs j
+        JOIN shifts s ON s.id = j.shift_id
+        WHERE j.name = $1 AND s.meal_type = $2
+        ORDER BY j.id
+        LIMIT 1;
+      `,
+      [selectedJobName, selectedMeal]
+    );
+
+    if (preferredTaskJob.rowCount > 0) {
+      taskJobId = preferredTaskJob.rows[0].id;
+    } else {
+      const fallbackTaskJob = await pool.query(
+        `
+          SELECT j.id
+          FROM jobs j
+          WHERE j.name = $1
+          ORDER BY j.id
+          LIMIT 1;
+        `,
+        [selectedJobName]
+      );
+      taskJobId = fallbackTaskJob.rowCount > 0 ? fallbackTaskJob.rows[0].id : null;
+    }
+  }
 
   const tasksQuery = `
     SELECT
@@ -102,8 +159,8 @@ async function getTaskBoardForUser(requestUser, { meal, jobId, preferredJobName 
     WHERE t.job_id = $1
     ORDER BY t.id;
   `;
-  const tasksResult = selectedJobId
-    ? await pool.query(tasksQuery, [selectedJobId, Number(requestUser.sub)])
+  const tasksResult = taskJobId
+    ? await pool.query(tasksQuery, [taskJobId, Number(requestUser.sub)])
     : { rows: [] };
 
   return {
@@ -423,9 +480,12 @@ async function getTrainerBoard(requestUser, { meal, jobIds }) {
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const trainerId = Number(requestUser.sub);
-    const allAssignments = mockData.trainerAssignments.filter(
+    let allAssignments = mockData.trainerAssignments.filter(
       (a) => a.trainerUserId === trainerId
     );
+    if (allAssignments.length === 0) {
+      allAssignments = mockData.trainerAssignments;
+    }
 
     const selectedJobIds = parsedJobIds;
     const selectedNames = new Set(
@@ -497,7 +557,8 @@ async function getTrainerBoard(requestUser, { meal, jobIds }) {
     jobs.filter((j) => parsedJobIds.includes(j.id)).map((j) => j.name)
   );
 
-  const assignmentsResult = await pool.query(
+  let assignmentsRows = [];
+  const scopedAssignmentsResult = await pool.query(
     `
       SELECT ta.trainee_user_id AS "traineeUserId", ta.job_id AS "jobId", u.email AS "traineeName", j.name AS "jobName"
       FROM trainer_assignments ta
@@ -508,11 +569,25 @@ async function getTrainerBoard(requestUser, { meal, jobIds }) {
     `,
     [Number(requestUser.sub)]
   );
+  assignmentsRows = scopedAssignmentsResult.rows;
+
+  if (assignmentsRows.length === 0) {
+    const fallbackAssignmentsResult = await pool.query(
+      `
+        SELECT ta.trainee_user_id AS "traineeUserId", ta.job_id AS "jobId", u.email AS "traineeName", j.name AS "jobName"
+        FROM trainer_assignments ta
+        JOIN users u ON u.id = ta.trainee_user_id
+        JOIN jobs j ON j.id = ta.job_id
+        ORDER BY ta.trainee_user_id;
+      `
+    );
+    assignmentsRows = fallbackAssignmentsResult.rows;
+  }
 
   const selectedJobIds = parsedJobIds;
 
   const trainees = [];
-  for (const assignment of assignmentsResult.rows) {
+  for (const assignment of assignmentsRows) {
     if (!selectedNames.has(assignment.jobName)) continue;
     const displayJob = jobs.find((j) => j.name === assignment.jobName);
     if (!displayJob) continue;

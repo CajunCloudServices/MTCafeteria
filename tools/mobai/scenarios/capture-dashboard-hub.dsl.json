@@ -1,0 +1,12 @@
+{
+  "version": "0.2",
+  "steps": [
+    {"action": "tap", "predicate": {"text_contains": "Dashboard"}},
+    {"action": "delay", "duration_ms": 500},
+    {"action": "observe", "context": "native", "include": ["ui_tree"]},
+    {"action": "tap", "predicate": {"text_contains": "Start Shift Workflow"}},
+    {"action": "delay", "duration_ms": 500},
+    {"action": "observe", "context": "native", "include": ["ui_tree"]}
+  ],
+  "on_fail": {"strategy": "retry", "max_retries": 1}
+}

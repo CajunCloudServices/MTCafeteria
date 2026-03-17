@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/training.dart';
 
+/// Legacy compact training summary panel used in simpler dashboard contexts.
 class TrainingPanel extends StatelessWidget {
   const TrainingPanel({
     super.key,

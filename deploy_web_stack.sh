@@ -96,4 +96,4 @@ if [ -z "${HOST_IP:-}" ]; then
   HOST_IP="localhost"
 fi
 echo "Frontend URL: http://${HOST_IP}:${FRONTEND_PORT:-8086}"
-echo "Backend health: http://${HOST_IP}:${BACKEND_PORT:-3001}/health"
+echo "Backend health: http://${HOST_IP}:${BACKEND_PORT:-3201}/health"

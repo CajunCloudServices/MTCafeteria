@@ -25,7 +25,7 @@ const corsOrigins = (process.env.CORS_ORIGINS || '')
 const env = {
   nodeEnv,
   isProduction,
-  port: Number(process.env.PORT || 3001),
+  port: Number(process.env.PORT || 3201),
   databaseUrl: process.env.DATABASE_URL || '',
   jwtSecret: jwtSecret || 'dev-secret',
   useMockData,

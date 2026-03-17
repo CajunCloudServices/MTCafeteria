@@ -1,3 +1,12 @@
+/// Accepts backend integer fields that sometimes arrive as strings.
+int _toInt(dynamic value) {
+  if (value is int) return value;
+  if (value is String) return int.tryParse(value) ?? 0;
+  if (value is num) return value.toInt();
+  return 0;
+}
+
+/// Supervisor-facing summary row for a single job in the selected meal.
 class SupervisorJobItem {
   const SupervisorJobItem({
     required this.jobId,
@@ -15,15 +24,16 @@ class SupervisorJobItem {
 
   factory SupervisorJobItem.fromJson(Map<String, dynamic> json) {
     return SupervisorJobItem(
-      jobId: json['jobId'] as int,
+      jobId: _toInt(json['jobId']),
       jobName: json['jobName'] as String,
       checked: json['checked'] as bool,
-      checkedCount: json['checkedCount'] as int? ?? 0,
-      totalCount: json['totalCount'] as int? ?? 0,
+      checkedCount: _toInt(json['checkedCount']),
+      totalCount: _toInt(json['totalCount']),
     );
   }
 }
 
+/// Top-level supervisor board model for a meal.
 class SupervisorBoard {
   const SupervisorBoard({
     required this.meals,
@@ -46,6 +56,7 @@ class SupervisorBoard {
   }
 }
 
+/// A cleanup task that supervisors mark complete for a specific job.
 class SupervisorJobTaskItem {
   const SupervisorJobTaskItem({
     required this.taskId,
@@ -61,7 +72,7 @@ class SupervisorJobTaskItem {
 
   factory SupervisorJobTaskItem.fromJson(Map<String, dynamic> json) {
     return SupervisorJobTaskItem(
-      taskId: json['taskId'] as int,
+      taskId: _toInt(json['taskId']),
       phase: json['phase'] as String,
       description: json['description'] as String,
       checked: json['checked'] as bool,
@@ -69,6 +80,7 @@ class SupervisorJobTaskItem {
   }
 }
 
+/// Detail view model for a single job's supervisor cleanup checklist.
 class SupervisorJobTaskBoard {
   const SupervisorJobTaskBoard({
     required this.meal,
@@ -85,7 +97,7 @@ class SupervisorJobTaskBoard {
   factory SupervisorJobTaskBoard.fromJson(Map<String, dynamic> json) {
     return SupervisorJobTaskBoard(
       meal: json['meal'] as String,
-      jobId: json['jobId'] as int,
+      jobId: _toInt(json['jobId']),
       jobName: json['jobName'] as String,
       tasks: (json['tasks'] as List<dynamic>)
           .map((e) => SupervisorJobTaskItem.fromJson(e as Map<String, dynamic>))
@@ -94,13 +106,30 @@ class SupervisorJobTaskBoard {
   }
 }
 
+/// Local-only secondary assignment tracked in the supervisor flow.
 class SecondaryJobItem {
-  const SecondaryJobItem({required this.name, required this.checked});
+  const SecondaryJobItem({
+    required this.name,
+    required this.phase,
+    required this.checked,
+    this.meals = const [],
+  });
 
   final String name;
+  final String phase;
   final bool checked;
+  final List<String> meals;
 
-  SecondaryJobItem copyWith({bool? checked}) {
-    return SecondaryJobItem(name: name, checked: checked ?? this.checked);
+  SecondaryJobItem copyWith({
+    String? phase,
+    bool? checked,
+    List<String>? meals,
+  }) {
+    return SecondaryJobItem(
+      name: name,
+      phase: phase ?? this.phase,
+      checked: checked ?? this.checked,
+      meals: meals ?? this.meals,
+    );
   }
 }

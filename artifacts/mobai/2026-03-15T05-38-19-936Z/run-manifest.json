@@ -1,0 +1,16 @@
+{
+  "runDir": "/Users/lajicpajam/Development/active/Apps/MTCafeteria/artifacts/mobai/2026-03-15T05-38-19-936Z",
+  "device": {
+    "id": "534043BD-EE42-4A1D-BB56-332BB4514715",
+    "name": "iPhone 16e",
+    "platform": "ios",
+    "model": "iPhone 16e",
+    "osVersion": "26.2",
+    "bridgeRunning": true,
+    "virtual": true
+  },
+  "appUrl": "http://localhost:51336",
+  "viewport": "mobile_web",
+  "navError": "POST /devices/534043BD-EE42-4A1D-BB56-332BB4514715/web/navigate failed: 400 {\"error\":\"device does not support web debugging\"}\n",
+  "createdAt": "2026-03-15T05:38:20.177Z"
+}

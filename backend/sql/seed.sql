@@ -1,8 +1,30 @@
+
+ALTER TABLE point_assignments
+  ADD COLUMN IF NOT EXISTS requires_manager_approval BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS manager_approved_by_user_id INT REFERENCES users(id),
+  ADD COLUMN IF NOT EXISTS manager_approved_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS assignment_description TEXT NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS daily_shift_reports (
+  id SERIAL PRIMARY KEY,
+  report_date DATE NOT NULL,
+  meal_type VARCHAR(40) NOT NULL CHECK (meal_type IN ('Breakfast', 'Lunch', 'Dinner')),
+  track VARCHAR(40) NOT NULL DEFAULT 'Line',
+  status VARCHAR(20) NOT NULL DEFAULT 'Draft' CHECK (status IN ('Draft', 'Submitted')),
+  submitted_by_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  submitted_at TIMESTAMP,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (report_date, meal_type, track, submitted_by_user_id)
+);
+
 INSERT INTO roles (name) VALUES
   ('Employee'),
   ('Lead Trainer'),
   ('Supervisor'),
-  ('Student Manager')
+  ('Student Manager'),
+  ('Dishroom Lead Trainer')
 ON CONFLICT (name) DO NOTHING;
 
 -- Password for all users: password123
@@ -13,20 +35,64 @@ INSERT INTO users (email, password_hash, role_id) VALUES
   ('manager@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Student Manager')),
   ('employee2@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee')),
   ('employee3@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee')),
-  ('employee4@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee'))
+  ('employee4@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Employee')),
+  ('dishtrainer@mtc.local', '$2a$10$hFr32lkOgmzoqPreOBkXZuY2jAPG9TpN6Y9FrUWSzjSG10IAVwAsC', (SELECT id FROM roles WHERE name = 'Dishroom Lead Trainer'))
 ON CONFLICT (email) DO UPDATE SET
   password_hash = EXCLUDED.password_hash,
   role_id = EXCLUDED.role_id;
 
 INSERT INTO points (user_id, points) VALUES
-  ((SELECT id FROM users WHERE email = 'employee@mtc.local'), 14),
-  ((SELECT id FROM users WHERE email = 'trainer@mtc.local'), 22),
-  ((SELECT id FROM users WHERE email = 'supervisor@mtc.local'), 30),
-  ((SELECT id FROM users WHERE email = 'manager@mtc.local'), 45),
+  ((SELECT id FROM users WHERE email = 'employee@mtc.local'), 8),
+  ((SELECT id FROM users WHERE email = 'trainer@mtc.local'), 7),
+  ((SELECT id FROM users WHERE email = 'supervisor@mtc.local'), 9),
+  ((SELECT id FROM users WHERE email = 'manager@mtc.local'), 6),
   ((SELECT id FROM users WHERE email = 'employee2@mtc.local'), 9),
-  ((SELECT id FROM users WHERE email = 'employee3@mtc.local'), 11),
-  ((SELECT id FROM users WHERE email = 'employee4@mtc.local'), 6)
+  ((SELECT id FROM users WHERE email = 'employee3@mtc.local'), 5),
+  ((SELECT id FROM users WHERE email = 'employee4@mtc.local'), 6),
+  ((SELECT id FROM users WHERE email = 'dishtrainer@mtc.local'), 4)
 ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO daily_shift_reports (
+  report_date,
+  meal_type,
+  track,
+  status,
+  submitted_by_user_id,
+  submitted_at,
+  payload
+)
+VALUES (
+  CURRENT_DATE,
+  'Breakfast',
+  'Line',
+  'Submitted',
+  (SELECT id FROM users WHERE email = 'supervisor@mtc.local'),
+  NOW(),
+  jsonb_build_object(
+    'count', '595 + 25 (J) + 14 (S) = 634',
+    'sackCount', '88 + 11 = 99',
+    'late', 'None',
+    'sick', 'Isabella Johnson, Zach Price',
+    'noShows', 'None',
+    'deepClean', 'Completed',
+    'seniorCashier', 'Aley Auna',
+    'juniorCashier', 'Volunteer',
+    'sackCashier', 'Quinn Goold',
+    'specialtyMealsAttendantAndPlateCount', 'Kirsten, 31 plates, 8 bowls',
+    'oneOnOne', 'None',
+    'shiftShoutout', 'Gabe Johnson',
+    'entreeItemOutage', 'None',
+    'productOutage', 'None',
+    'productSurplus', 'None',
+    'lockersChecked', 'Yes',
+    'maintenanceConcerns', 'Right juice machine on line 4 is warm',
+    'generalComments', 'No additional comments.',
+    'trainings', 'Completed',
+    'serviceMissionariesPresentForShift', 'Yes',
+    'summaries', 'Eggs count: 490. Pancakes count: 287.'
+  )
+)
+ON CONFLICT (report_date, meal_type, track, submitted_by_user_id) DO NOTHING;
 
 INSERT INTO announcements (type, title, content, start_date, end_date, created_by)
 VALUES (
@@ -57,6 +123,8 @@ WITH meal_jobs AS (
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
     ('Breakfast', 'Line Runner'),
+    ('Breakfast', 'Aloha Plate'),
+    ('Breakfast', 'Choices'),
     ('Breakfast', 'Beverages'),
     ('Breakfast', 'Senior Cash'),
     ('Breakfast', 'Junior Cash'),
@@ -69,6 +137,8 @@ WITH meal_jobs AS (
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
     ('Lunch', 'Line Runner'),
+    ('Lunch', 'Aloha Plate'),
+    ('Lunch', 'Choices'),
     ('Lunch', 'Beverages'),
     ('Lunch', 'Senior Cash'),
     ('Lunch', 'Junior Cash'),
@@ -78,6 +148,8 @@ WITH meal_jobs AS (
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
     ('Dinner', 'Line Runner'),
+    ('Dinner', 'Aloha Plate'),
+    ('Dinner', 'Choices'),
     ('Dinner', 'Beverages'),
     ('Dinner', 'Senior Cash'),
     ('Dinner', 'Junior Cash'),
@@ -92,6 +164,33 @@ FROM meal_jobs mj
 JOIN shifts s ON s.meal_type = mj.meal_type
 WHERE NOT EXISTS (
   SELECT 1 FROM jobs j WHERE j.shift_id = s.id AND j.name = mj.job_name
+);
+
+-- Keep line task definitions aligned with the latest reference sheets.
+DELETE FROM task_progress
+WHERE task_id IN (
+  SELECT t.id
+  FROM tasks t
+  JOIN jobs j ON j.id = t.job_id
+  JOIN shifts s ON s.id = j.shift_id
+  WHERE s.shift_type = 'Line Shift'
+);
+
+DELETE FROM supervisor_task_checks
+WHERE task_id IN (
+  SELECT t.id
+  FROM tasks t
+  JOIN jobs j ON j.id = t.job_id
+  JOIN shifts s ON s.id = j.shift_id
+  WHERE s.shift_type = 'Line Shift'
+);
+
+DELETE FROM tasks
+WHERE job_id IN (
+  SELECT j.id
+  FROM jobs j
+  JOIN shifts s ON s.id = j.shift_id
+  WHERE s.shift_type = 'Line Shift'
 );
 
 WITH meal_specific_task_defs AS (
@@ -144,21 +243,28 @@ WITH meal_specific_task_defs AS (
     ('Breakfast', 'Salads', 'During Shift', 'Keep salad bar stocked'),
     ('Breakfast', 'Salads', 'During Shift', 'Ensure plates remain stocked'),
     ('Breakfast', 'Salads', 'During Shift', 'Keep oatmeal, grits, or similar items stocked and warm'),
-    ('Breakfast', 'Salads', 'Cleanup', 'Wipe all surfaces'),
-    ('Breakfast', 'Salads', 'Cleanup', 'Put away breakfast items'),
-    ('Breakfast', 'Salads', 'Cleanup', 'Clean oatmeal or grits containers'),
-    ('Breakfast', 'Salads', 'Cleanup', 'Sweep area'),
-    ('Breakfast', 'Salads', 'Cleanup', 'Mop if necessary'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Surfaces cleaned'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Soup area clean'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Fridges wiped out'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Floor swept in and out of island'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Bowls/plates restocked'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Fruit shelf restocked'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Lettuce wraps/dressings restocked'),
+    ('Breakfast', 'Salads', 'Cleanup', 'Trash emptied'),
     ('Lunch', 'Salads', 'Setup', 'Put out salad ingredients'),
     ('Lunch', 'Salads', 'Setup', 'Put out tortillas'),
     ('Lunch', 'Salads', 'Setup', 'Set up deli bar'),
     ('Lunch', 'Salads', 'Setup', 'Ensure plates are stocked'),
     ('Lunch', 'Salads', 'During Shift', 'Keep salad bar stocked'),
     ('Lunch', 'Salads', 'During Shift', 'Ensure plates remain stocked'),
-    ('Lunch', 'Salads', 'Cleanup', 'Wipe all surfaces'),
-    ('Lunch', 'Salads', 'Cleanup', 'Put away salad items'),
-    ('Lunch', 'Salads', 'Cleanup', 'Sweep area'),
-    ('Lunch', 'Salads', 'Cleanup', 'Mop if necessary')
+    ('Lunch', 'Salads', 'Cleanup', 'Surfaces cleaned'),
+    ('Lunch', 'Salads', 'Cleanup', 'Soup area clean'),
+    ('Lunch', 'Salads', 'Cleanup', 'Fridges wiped out'),
+    ('Lunch', 'Salads', 'Cleanup', 'Floor swept in and out of island'),
+    ('Lunch', 'Salads', 'Cleanup', 'Bowls/plates restocked'),
+    ('Lunch', 'Salads', 'Cleanup', 'Fruit shelf restocked'),
+    ('Lunch', 'Salads', 'Cleanup', 'Lettuce wraps/dressings restocked'),
+    ('Lunch', 'Salads', 'Cleanup', 'Trash emptied')
   ) AS t(meal_type, job_name, phase, description)
 ),
 generic_task_defs AS (
@@ -172,28 +278,50 @@ generic_task_defs AS (
     ('Paninis', 'During Shift', 'Press paninis in machines'),
     ('Paninis', 'During Shift', 'Cut paninis'),
     ('Paninis', 'During Shift', 'Put paninis out for service'),
-    ('Paninis', 'Cleanup', 'Turn off machines'),
-    ('Paninis', 'Cleanup', 'Clean machines and work surfaces'),
-    ('Paninis', 'Cleanup', 'Put away tools and supplies'),
+    ('Paninis', 'Cleanup', 'Panini presses and tools cleaned'),
+    ('Paninis', 'Cleanup', 'Surfaces wiped and floor swept'),
+    ('Paninis', 'Cleanup', 'Heated shelf off and cleaned'),
     ('Ice Cream', 'Setup', 'Get ice cream'),
     ('Ice Cream', 'Setup', 'Get scoops'),
     ('Ice Cream', 'Setup', 'Get bowls'),
     ('Ice Cream', 'Setup', 'Get water as needed'),
     ('Ice Cream', 'During Shift', 'Serve ice cream'),
-    ('Ice Cream', 'Cleanup', 'Put away ice cream'),
-    ('Ice Cream', 'Cleanup', 'Clean scoops and bowls'),
-    ('Ice Cream', 'Cleanup', 'Clean serving area'),
+    ('Ice Cream', 'Cleanup', 'Dirty trays/utensils taken to scullery'),
+    ('Ice Cream', 'Cleanup', 'Dessert plates restocked'),
+    ('Ice Cream', 'Cleanup', 'Desserts put away in correct spot'),
+    ('Ice Cream', 'Cleanup', 'Counters/surfaces cleaned and dried'),
+    ('Ice Cream', 'Cleanup', 'Floor swept'),
+    ('Ice Cream', 'Cleanup', 'Cereal bowls restocked'),
+    ('Ice Cream', 'Cleanup', 'Silverware restocked'),
     ('Condiments Prep', 'Setup', 'Ensure condiment cart is full'),
     ('Condiments Prep', 'Setup', 'Assist condiments host with setup'),
     ('Condiments Prep', 'During Shift', 'Keep condiments stocked'),
     ('Condiments Prep', 'During Shift', 'Prepare condiments for next meal'),
     ('Condiments Prep', 'During Shift', 'If dinner: prepare condiments for breakfast bar next day'),
-    ('Condiments Prep', 'Cleanup', 'Assist condiments host with cleanup'),
-    ('Condiments Prep', 'Cleanup', 'Clean prep area'),
-    ('Condiments Prep', 'Cleanup', 'Put away condiment cart and supplies'),
-    ('Condiments Host', 'Setup', 'Same tasks as breakfast condiments host setup'),
-    ('Condiments Host', 'During Shift', 'Same tasks as breakfast condiments host during shift'),
-    ('Condiments Host', 'Cleanup', 'Same tasks as breakfast condiments host cleanup'),
+    ('Condiments Prep', 'Cleanup', 'Enough prepped for next meal'),
+    ('Condiments Prep', 'Cleanup', 'Specialty condiments prepped'),
+    ('Condiments Prep', 'Cleanup', 'PB, J, and butter prepped'),
+    ('Condiments Prep', 'Cleanup', 'Prep surfaces cleaned and dried'),
+    ('Condiments Prep', 'Cleanup', 'Toaster station cleaned and restocked'),
+    ('Condiments Prep', 'Cleanup', 'Condiment dispensers clean and full'),
+    ('Condiments Prep', 'Cleanup', 'Pump station swept under'),
+    ('Condiments Prep', 'Cleanup', 'Fruit bar surfaces cleaned and dried'),
+    ('Condiments Prep', 'Cleanup', 'Bowls/plates restocked on fruit bar'),
+    ('Condiments Host', 'Setup', 'Turn on fruit bar cooler'),
+    ('Condiments Host', 'Setup', 'Put out fruit (4 shotgun pans of fruit, 2 of specialty food)'),
+    ('Condiments Host', 'Setup', 'Put out any special condiments to salad bar'),
+    ('Condiments Host', 'Setup', 'Put up allergen signs'),
+    ('Condiments Host', 'Setup', 'Put utensils in the peanut butter, and butter next to Aloha plate'),
+    ('Condiments Host', 'Setup', 'Make sure the condiment stands are stocked'),
+    ('Condiments Host', 'Setup', 'Put spoons in the fruit'),
+    ('Condiments Host', 'During Shift', 'Ensure everything stays stocked: fruit, condiments, and salad bar condiments'),
+    ('Condiments Host', 'Cleanup', 'Wrap and put away the specialty food'),
+    ('Condiments Host', 'Cleanup', 'Wrap the fruit, leave it in place, and leave the cooler on'),
+    ('Condiments Host', 'Cleanup', 'Put away the allergen signs'),
+    ('Condiments Host', 'Cleanup', 'Wipe down the fruit bar'),
+    ('Condiments Host', 'Cleanup', 'Wipe down all the condiment bars'),
+    ('Condiments Host', 'Cleanup', 'Wipe down the condiment area of the salad bar'),
+    ('Condiments Host', 'Cleanup', 'Move salad bar condiments to the student table'),
     ('Line Runner', 'Setup', 'Fill wells with water'),
     ('Line Runner', 'Setup', 'Turn on heat'),
     ('Line Runner', 'Setup', 'Turn on heating elements'),
@@ -204,11 +332,44 @@ generic_task_defs AS (
     ('Line Runner', 'During Shift', 'Communicate with chefs as needed'),
     ('Line Runner', 'During Shift', 'Put plates out 10 at a time'),
     ('Line Runner', 'During Shift', 'Keep track of plate counts'),
-    ('Line Runner', 'Cleanup', 'Turn off heat'),
-    ('Line Runner', 'Cleanup', 'Remove water from wells'),
-    ('Line Runner', 'Cleanup', 'Empty buckets'),
-    ('Line Runner', 'Cleanup', 'Turn off heating elements'),
-    ('Line Runner', 'Cleanup', 'Wipe down all surfaces'),
+    ('Line Runner', 'Cleanup', 'Plates/bowls restocked'),
+    ('Line Runner', 'Cleanup', 'Heaters off'),
+    ('Line Runner', 'Cleanup', 'Surfaces clean and dry'),
+    ('Line Runner', 'Cleanup', 'Drain closed and bucket empty'),
+    ('Line Runner', 'Cleanup', 'Floors swept (including under station)'),
+    ('Line Runner', 'Cleanup', 'Trash emptied'),
+    ('Aloha Plate', 'Setup', 'Fill wells with water'),
+    ('Aloha Plate', 'Setup', 'Turn on heat'),
+    ('Aloha Plate', 'Setup', 'Turn on heating elements'),
+    ('Aloha Plate', 'Setup', 'Put food out in correct order'),
+    ('Aloha Plate', 'Setup', 'Get utensils'),
+    ('Aloha Plate', 'Setup', 'Prepare plate stacks'),
+    ('Aloha Plate', 'During Shift', 'Keep food stocked'),
+    ('Aloha Plate', 'During Shift', 'Communicate with chefs as needed'),
+    ('Aloha Plate', 'During Shift', 'Put plates out 10 at a time'),
+    ('Aloha Plate', 'During Shift', 'Keep track of plate counts'),
+    ('Aloha Plate', 'Cleanup', 'Plates/bowls restocked'),
+    ('Aloha Plate', 'Cleanup', 'Heaters off'),
+    ('Aloha Plate', 'Cleanup', 'Surfaces clean and dry'),
+    ('Aloha Plate', 'Cleanup', 'Drain closed and bucket empty'),
+    ('Aloha Plate', 'Cleanup', 'Floors swept (including under station)'),
+    ('Aloha Plate', 'Cleanup', 'Trash emptied'),
+    ('Choices', 'Setup', 'Fill wells with water'),
+    ('Choices', 'Setup', 'Turn on heat'),
+    ('Choices', 'Setup', 'Turn on heating elements'),
+    ('Choices', 'Setup', 'Put food out in correct order'),
+    ('Choices', 'Setup', 'Get utensils'),
+    ('Choices', 'Setup', 'Prepare plate stacks'),
+    ('Choices', 'During Shift', 'Keep food stocked'),
+    ('Choices', 'During Shift', 'Communicate with chefs as needed'),
+    ('Choices', 'During Shift', 'Put plates out 10 at a time'),
+    ('Choices', 'During Shift', 'Keep track of plate counts'),
+    ('Choices', 'Cleanup', 'Plates/bowls restocked'),
+    ('Choices', 'Cleanup', 'Heaters off'),
+    ('Choices', 'Cleanup', 'Surfaces clean and dry'),
+    ('Choices', 'Cleanup', 'Drain closed and bucket empty'),
+    ('Choices', 'Cleanup', 'Floors swept (including under station)'),
+    ('Choices', 'Cleanup', 'Trash emptied'),
     ('Beverages', 'Setup', 'Ensure all beverages are stocked'),
     ('Beverages', 'Setup', 'Turn on beverage machines'),
     ('Beverages', 'During Shift', 'Restock cups'),
@@ -216,22 +377,35 @@ generic_task_defs AS (
     ('Beverages', 'During Shift', 'Ensure sodas are stocked'),
     ('Beverages', 'During Shift', 'Ensure juices are stocked'),
     ('Beverages', 'During Shift', 'Ensure all beverage stations remain stocked'),
-    ('Beverages', 'Cleanup', 'Wipe down surfaces'),
-    ('Beverages', 'Cleanup', 'Rinse troughs'),
-    ('Beverages', 'Cleanup', 'Turn off all machines'),
-    ('Beverages', 'Cleanup', 'Wipe down machines'),
-    ('Beverages', 'Cleanup', 'Refill ice'),
-    ('Beverages', 'Cleanup', 'Put ice into machines for lines 1 and 2'),
+    ('Beverages', 'Cleanup', 'Milks and juices restocked'),
+    ('Beverages', 'Cleanup', 'Milk/soda/juice machines cleaned'),
+    ('Beverages', 'Cleanup', 'Cups filled'),
+    ('Beverages', 'Cleanup', 'Ice filled'),
+    ('Beverages', 'Cleanup', 'Scissors cleaned'),
+    ('Beverages', 'Cleanup', 'Milk trays cleaned'),
+    ('Beverages', 'Cleanup', 'Coke machine nozzles (dinner)'),
+    ('Beverages', 'Cleanup', 'Blue crates to Empire Crate Building'),
+    ('Beverages', 'Cleanup', 'Empire Crate Building wrapped'),
+    ('Beverages', 'Cleanup', 'Vitamin waters restocked'),
+    ('Beverages', 'Cleanup', 'BIB room checked'),
     ('Senior Cash', 'Setup', 'Sign into register'),
     ('Senior Cash', 'Setup', 'Verify register is ready'),
     ('Senior Cash', 'During Shift', 'Ring up senior missionaries'),
-    ('Senior Cash', 'Cleanup', 'Restock napkins at tables'),
-    ('Senior Cash', 'Cleanup', 'Restock salt and pepper shakers'),
-    ('Senior Cash', 'Cleanup', 'Write next meal on whiteboard on doors'),
+    ('Senior Cash', 'Cleanup', 'Napkins and salt/pepper'),
+    ('Senior Cash', 'Cleanup', 'Sanitizer and paper towels'),
+    ('Senior Cash', 'Cleanup', 'Lost and found items to front desk'),
+    ('Senior Cash', 'Cleanup', 'Write next meal menu on door'),
+    ('Senior Cash', 'Cleanup', 'Refill sanitizer bottles'),
+    ('Senior Cash', 'Cleanup', 'Sweep tile floor'),
     ('Junior Cash', 'Setup', 'Sign into register'),
     ('Junior Cash', 'During Shift', 'Ensure missionaries swipe cards'),
     ('Junior Cash', 'During Shift', 'Keep count of missionaries without cards'),
-    ('Junior Cash', 'Cleanup', 'Same cleanup tasks as Senior Cash'),
+    ('Junior Cash', 'Cleanup', 'Napkins and salt/pepper'),
+    ('Junior Cash', 'Cleanup', 'Sanitizer and paper towels'),
+    ('Junior Cash', 'Cleanup', 'Lost and found items to front desk'),
+    ('Junior Cash', 'Cleanup', 'Write next meal menu on door'),
+    ('Junior Cash', 'Cleanup', 'Refill sanitizer bottles'),
+    ('Junior Cash', 'Cleanup', 'Sweep tile floor'),
     ('Desserts', 'Setup', 'Put out desserts'),
     ('Desserts', 'Setup', 'Breakfast: donuts'),
     ('Desserts', 'Setup', 'Lunch/Dinner: cookies or assigned desserts'),
@@ -239,28 +413,23 @@ generic_task_defs AS (
     ('Desserts', 'Setup', 'Put out utensils'),
     ('Desserts', 'During Shift', 'Keep desserts stocked'),
     ('Desserts', 'During Shift', 'Keep utensils stocked'),
-    ('Desserts', 'Cleanup', 'Put away desserts'),
-    ('Desserts', 'Cleanup', 'Clean counters'),
-    ('Desserts', 'Cleanup', 'Sweep area'),
-    ('Desserts', 'Cleanup', 'Wipe down surfaces')
+    ('Desserts', 'Cleanup', 'Dirty trays/utensils taken to scullery'),
+    ('Desserts', 'Cleanup', 'Dessert plates restocked'),
+    ('Desserts', 'Cleanup', 'Desserts put away in correct spot'),
+    ('Desserts', 'Cleanup', 'Counters/surfaces cleaned and dried'),
+    ('Desserts', 'Cleanup', 'Floor swept'),
+    ('Desserts', 'Cleanup', 'Cereal bowls restocked'),
+    ('Desserts', 'Cleanup', 'Silverware restocked')
   ) AS t(job_name, phase, description)
-)
-INSERT INTO tasks (job_id, phase, description)
-SELECT j.id, ms.phase, ms.description
-FROM meal_specific_task_defs ms
-JOIN shifts s ON s.meal_type = ms.meal_type
-JOIN jobs j ON j.shift_id = s.id AND j.name = ms.job_name
-WHERE NOT EXISTS (
-  SELECT 1 FROM tasks t
-  WHERE t.job_id = j.id AND t.phase = ms.phase AND t.description = ms.description
-);
-
-WITH meal_jobs AS (
+),
+meal_jobs AS (
   SELECT * FROM (VALUES
     ('Breakfast', 'Sack Cashier'),
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
     ('Breakfast', 'Line Runner'),
+    ('Breakfast', 'Aloha Plate'),
+    ('Breakfast', 'Choices'),
     ('Breakfast', 'Beverages'),
     ('Breakfast', 'Senior Cash'),
     ('Breakfast', 'Junior Cash'),
@@ -273,6 +442,8 @@ WITH meal_jobs AS (
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
     ('Lunch', 'Line Runner'),
+    ('Lunch', 'Aloha Plate'),
+    ('Lunch', 'Choices'),
     ('Lunch', 'Beverages'),
     ('Lunch', 'Senior Cash'),
     ('Lunch', 'Junior Cash'),
@@ -282,6 +453,8 @@ WITH meal_jobs AS (
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
     ('Dinner', 'Line Runner'),
+    ('Dinner', 'Aloha Plate'),
+    ('Dinner', 'Choices'),
     ('Dinner', 'Beverages'),
     ('Dinner', 'Senior Cash'),
     ('Dinner', 'Junior Cash'),
@@ -291,6 +464,15 @@ WITH meal_jobs AS (
   ) AS t(meal_type, job_name)
 )
 INSERT INTO tasks (job_id, phase, description)
+SELECT j.id, ms.phase, ms.description
+FROM meal_specific_task_defs ms
+JOIN shifts s ON s.meal_type = ms.meal_type
+JOIN jobs j ON j.shift_id = s.id AND j.name = ms.job_name
+WHERE NOT EXISTS (
+  SELECT 1 FROM tasks t
+  WHERE t.job_id = j.id AND t.phase = ms.phase AND t.description = ms.description
+)
+UNION ALL
 SELECT j.id, gd.phase, gd.description
 FROM generic_task_defs gd
 JOIN meal_jobs mj ON mj.job_name = gd.job_name
@@ -337,5 +519,15 @@ VALUES
     (SELECT id FROM users WHERE email = 'trainer@mtc.local'),
     (SELECT id FROM users WHERE email = 'employee3@mtc.local'),
     (SELECT j.id FROM jobs j JOIN shifts s ON s.id = j.shift_id WHERE s.meal_type = 'Breakfast' AND j.name = 'Salads' LIMIT 1)
+  ),
+  (
+    (SELECT id FROM users WHERE email = 'trainer@mtc.local'),
+    (SELECT id FROM users WHERE email = 'employee4@mtc.local'),
+    (SELECT j.id FROM jobs j JOIN shifts s ON s.id = j.shift_id WHERE s.meal_type = 'Breakfast' AND j.name = 'Sack Cashier' LIMIT 1)
+  ),
+  (
+    (SELECT id FROM users WHERE email = 'trainer@mtc.local'),
+    (SELECT id FROM users WHERE email = 'employee2@mtc.local'),
+    (SELECT j.id FROM jobs j JOIN shifts s ON s.id = j.shift_id WHERE s.meal_type = 'Breakfast' AND j.name = 'Sack Runner' LIMIT 1)
   )
 ON CONFLICT DO NOTHING;

@@ -1,3 +1,4 @@
+/// A single announcement/reminder/event shown on the home screen.
 class LandingItem {
   const LandingItem({
     required this.id,

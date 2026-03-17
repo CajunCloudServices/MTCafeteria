@@ -2,12 +2,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const { chromium } = require('playwright');
+const { chromium, devices } = require('playwright');
 
 function usage() {
   console.error('Usage:');
   console.error('  node tools/live-site.js screenshot <url> [outputPath]');
-  console.error('  node tools/live-site.js actions <url> <jsonActions> [outputPath]');
+  console.error('  node tools/live-site.js actions <url> <jsonActions|@actions.json> [outputPath]');
   process.exit(1);
 }
 
@@ -29,15 +29,26 @@ function defaultOutputPath(mode, url) {
   return path.join('artifacts', 'live-site', `${mode}-${host}-${stamp}.png`);
 }
 
+function getContextOptions() {
+  const deviceName = process.env.PLAYWRIGHT_DEVICE;
+  if (deviceName && devices[deviceName]) {
+    return { ...devices[deviceName] };
+  }
+
+  const width = Number(process.env.SCREENSHOT_WIDTH || 1600);
+  const height = Number(process.env.SCREENSHOT_HEIGHT || 1000);
+  return {
+    viewport: { width, height },
+  };
+}
+
 async function runScreenshot(url, outputPath) {
   const browser = await chromium.launch({
     headless: process.env.HEADLESS !== 'false',
   });
 
   try {
-    const context = await browser.newContext({
-      viewport: { width: 1600, height: 1000 },
-    });
+    const context = await browser.newContext(getContextOptions());
     const page = await context.newPage();
     await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
     await page.screenshot({ path: outputPath, fullPage: true });
@@ -50,7 +61,10 @@ async function runScreenshot(url, outputPath) {
 async function runActions(url, jsonActions, outputPath) {
   let actions;
   try {
-    actions = JSON.parse(jsonActions);
+    const payload = jsonActions.startsWith('@')
+      ? fs.readFileSync(path.resolve(jsonActions.slice(1)), 'utf8')
+      : jsonActions;
+    actions = JSON.parse(payload);
   } catch (error) {
     console.error('Invalid JSON actions payload.');
     throw error;
@@ -65,9 +79,7 @@ async function runActions(url, jsonActions, outputPath) {
   });
 
   try {
-    const context = await browser.newContext({
-      viewport: { width: 1600, height: 1000 },
-    });
+    const context = await browser.newContext(getContextOptions());
     const page = await context.newPage();
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
@@ -91,9 +103,30 @@ async function runActions(url, jsonActions, outputPath) {
           await page.click(action.selector, { timeout: action.timeout || 30000 });
           break;
         }
+        case 'clickAt': {
+          if (typeof action.x !== 'number' || typeof action.y !== 'number') {
+            throw new Error('clickAt action requires numeric x and y');
+          }
+          await page.mouse.click(action.x, action.y);
+          break;
+        }
         case 'fill': {
           if (!action.selector) throw new Error('fill action requires selector');
           await page.fill(action.selector, String(action.value ?? ''), {
+            timeout: action.timeout || 30000,
+          });
+          break;
+        }
+        case 'fillByLabel': {
+          if (!action.label) throw new Error('fillByLabel action requires label');
+          await page.getByLabel(String(action.label)).fill(String(action.value ?? ''), {
+            timeout: action.timeout || 30000,
+          });
+          break;
+        }
+        case 'clickByText': {
+          if (!action.text) throw new Error('clickByText action requires text');
+          await page.getByText(String(action.text), { exact: action.exact ?? true }).click({
             timeout: action.timeout || 30000,
           });
           break;
@@ -106,6 +139,12 @@ async function runActions(url, jsonActions, outputPath) {
           });
           break;
         }
+        case 'typeText': {
+          await page.keyboard.type(String(action.value ?? ''), {
+            delay: action.delay || 0,
+          });
+          break;
+        }
         case 'press': {
           if (!action.selector || !action.key) {
             throw new Error('press action requires selector and key');
@@ -113,6 +152,11 @@ async function runActions(url, jsonActions, outputPath) {
           await page.press(action.selector, action.key, {
             timeout: action.timeout || 30000,
           });
+          break;
+        }
+        case 'pressKey': {
+          if (!action.key) throw new Error('pressKey action requires key');
+          await page.keyboard.press(action.key);
           break;
         }
         case 'waitForSelector': {
