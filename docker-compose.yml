@@ -1,35 +1,44 @@
 services:
-  backend:
-    build: ./backend
-    container_name: mtc_cafeteria_backend
+  web:
+    build:
+      context: .
+      dockerfile: ./web/Dockerfile
+    container_name: mtc_cafeteria_web
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 3201
+      PORT: 3000
+      API_UPSTREAM_URL: http://api:4000
+      APP_BASE_URL: ${APP_BASE_URL:-}
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "${WEB_HOST_PORT:-3017}:3000"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mtc_cafeteria_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
       USE_MOCK_DATA: ${USE_MOCK_DATA:-false}
       JWT_SECRET: ${JWT_SECRET:-replace-with-strong-secret}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/mtc_cafeteria}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
+      APP_BASE_URL: ${APP_BASE_URL:-}
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "${BACKEND_PORT:-3201}:3201"
-
-  frontend:
-    build:
-      context: .
-      dockerfile: ${FRONTEND_DOCKERFILE:-frontend_flutter/Dockerfile}
-    container_name: mtc_cafeteria_frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    ports:
-      - "${FRONTEND_PORT:-8086}:80"
+      - "${API_HOST_PORT:-4013}:4000"
 
   postgres:
     image: postgres:15-alpine
-    container_name: mtc_cafeteria_db
+    container_name: mtc_cafeteria_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -40,10 +49,17 @@ services:
       - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/10-schema.sql:ro
       - ./backend/sql/seed.sql:/docker-entrypoint-initdb.d/20-seed.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    ports:
+      - "${DB_HOST_PORT:-5436}:5432"
 
 volumes:
   mtc_postgres_data:

@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'training/training_text_data.dart';
 import '../widgets/shift_selection_cards.dart';
 
-/// Full-screen two-minute training viewer with rotating daily default content.
+/// Full-screen manual 2-minute training viewer with rotating daily default
+/// content.
+///
+/// This page reads the local training corpus from `training_text_data.dart`.
+/// It does not consume the legacy backend `/api/trainings` feed that still
+/// exists for older prototype flows.
 class TrainingDetailPage extends StatefulWidget {
   const TrainingDetailPage({super.key});
 
@@ -42,8 +47,10 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
 
   int _rotationIndexForDate(DateTime date, _TrainingTrack track) {
     if (_trainings.isEmpty) return 0;
+    // Line rotation anchor: March 18, 2026 should resolve to training #7
+    // ("Proper Lifting"), which is index 6 in the line track list.
     final cycleStart = track == _TrainingTrack.line
-        ? DateTime(2026, 3, 16)
+        ? DateTime(2026, 3, 12)
         : DateTime(2026, 3, 17);
     final dateOnly = DateTime(date.year, date.month, date.day);
     final delta = track == _TrainingTrack.line
@@ -95,13 +102,18 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
 
   String _trainingTitleFor(int index) => _trainings[index].title;
 
+  int _scheduleAnchorIndexForCurrentTrack() {
+    final track = _selectedTrack ?? _TrainingTrack.line;
+    return _rotationIndexForToday(track);
+  }
+
   DateTime _trainingDateFor(int index) {
     final track = _selectedTrack ?? _TrainingTrack.line;
     final today = track == _TrainingTrack.dishroom
         ? _nextNonSunday(_todayDateOnly())
         : _todayDateOnly();
     final delta =
-        (index - _selectedTrainingIndex + _trainings.length) %
+        (index - _scheduleAnchorIndexForCurrentTrack() + _trainings.length) %
         _trainings.length;
     if (track == _TrainingTrack.dishroom) {
       return _advanceNonSunday(today, delta);

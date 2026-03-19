@@ -8,6 +8,11 @@ extension AppStateContent on AppState {
     _stateChanged();
   }
 
+  /// Loads the legacy backend training feed used by older dashboard/panel
+  /// flows.
+  ///
+  /// The active detailed 2-minute training experience now reads the manual
+  /// local corpus from `training_text_data.dart` via `TrainingDetailPage`.
   Future<void> refreshTrainingsIfAllowed() async {
     if (!isAuthenticated ||
         !_features.trainingsEnabled ||

@@ -1,4 +1,7 @@
-/// Backend training record used for the rotating two-minute training feature.
+/// Legacy backend training record used by older prototype dashboard flows.
+///
+/// The active detailed 2-minute training viewer now uses the manual local
+/// corpus in `training_text_data.dart`.
 class Training {
   const Training({
     required this.id,

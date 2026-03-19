@@ -1,3 +1,12 @@
+String _normalizeTrainerJobName(String name) {
+  final trimmed = name.trim();
+  final beverageVariant = RegExp(r'^Beverages\s+\([A-Z]\)$');
+  if (beverageVariant.hasMatch(trimmed)) {
+    return 'Beverages';
+  }
+  return trimmed;
+}
+
 /// Job selector option for the lead trainer support board.
 class TrainerJobOption {
   const TrainerJobOption({required this.id, required this.name});
@@ -61,7 +70,7 @@ class TrainerTraineeCard {
       traineeUserId: json['traineeUserId'] as int,
       traineeName: json['traineeName'] as String,
       jobId: json['jobId'] as int,
-      jobName: json['jobName'] as String,
+      jobName: _normalizeTrainerJobName(json['jobName'] as String),
       tasks: (json['tasks'] as List<dynamic>)
           .map((e) => TrainerTraineeTask.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -86,15 +95,40 @@ class TrainerBoard {
   final List<TrainerTraineeCard> trainees;
 
   factory TrainerBoard.fromJson(Map<String, dynamic> json) {
+    final rawJobs = (json['jobs'] as List<dynamic>)
+        .map((e) => TrainerJobOption.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final uniqueJobs = <TrainerJobOption>[];
+    final seenNames = <String>{};
+    final selectedIdMap = <String, int>{};
+    for (final job in rawJobs) {
+      final normalizedName = _normalizeTrainerJobName(job.name);
+      selectedIdMap.putIfAbsent(normalizedName, () => job.id);
+      if (seenNames.add(normalizedName)) {
+        uniqueJobs.add(TrainerJobOption(id: job.id, name: normalizedName));
+      }
+    }
+
+    final rawSelectedJobIds = (json['selectedJobIds'] as List<dynamic>)
+        .map((e) => e as int)
+        .toList();
+    final selectedJobIds = <int>[];
+    final seenSelectedIds = <int>{};
+    for (final jobId in rawSelectedJobIds) {
+      final rawJob = rawJobs.where((job) => job.id == jobId);
+      if (rawJob.isEmpty) continue;
+      final normalizedName = _normalizeTrainerJobName(rawJob.first.name);
+      final mappedId = selectedIdMap[normalizedName] ?? jobId;
+      if (seenSelectedIds.add(mappedId)) {
+        selectedJobIds.add(mappedId);
+      }
+    }
+
     return TrainerBoard(
       meals: (json['meals'] as List<dynamic>).map((e) => e as String).toList(),
       selectedMeal: json['selectedMeal'] as String,
-      jobs: (json['jobs'] as List<dynamic>)
-          .map((e) => TrainerJobOption.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      selectedJobIds: (json['selectedJobIds'] as List<dynamic>)
-          .map((e) => e as int)
-          .toList(),
+      jobs: uniqueJobs,
+      selectedJobIds: selectedJobIds,
       trainees: (json['trainees'] as List<dynamic>)
           .map((e) => TrainerTraineeCard.fromJson(e as Map<String, dynamic>))
           .toList(),

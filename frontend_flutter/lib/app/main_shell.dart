@@ -128,12 +128,9 @@ extension _MainShell on _MtcCafeteriaAppState {
         },
         onOpenTrainings: () {
           if (!canViewTrainings) return;
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => TrainingDetailPage(
-              ),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: (_) => TrainingDetailPage()));
         },
         onOpenPoints: () {
           if (!canAssignPoints) return;
@@ -228,6 +225,11 @@ extension _MainShell on _MtcCafeteriaAppState {
             _dashboardTrackConfirmed = false;
             _dashboardRoleConfirmed = false;
           }
+        });
+      },
+      onReturnToDashboardHub: () {
+        _updateUi(() {
+          _resetDashboardSelectorsForRole(user.role);
         });
       },
       selectedTrack: effectiveDashboardView == _DashboardView.managerPortal

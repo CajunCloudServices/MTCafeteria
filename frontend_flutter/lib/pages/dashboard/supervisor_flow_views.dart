@@ -63,6 +63,14 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
                 ),
               ),
             ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: widget.onReturnToDashboardHub,
+                child: const Text('Back to Dashboard'),
+              ),
+            ),
           ],
         ),
       ),

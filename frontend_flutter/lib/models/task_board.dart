@@ -1,3 +1,12 @@
+String _normalizeTaskBoardJobName(String name) {
+  final trimmed = name.trim();
+  final beverageVariant = RegExp(r'^Beverages\s+\([A-Z]\)$');
+  if (beverageVariant.hasMatch(trimmed)) {
+    return 'Beverages';
+  }
+  return trimmed;
+}
+
 /// Lightweight job selector option used by the employee task flow.
 class JobOption {
   const JobOption({required this.id, required this.name});
@@ -54,13 +63,42 @@ class TaskBoard {
   final List<TaskChecklistItem> tasks;
 
   factory TaskBoard.fromJson(Map<String, dynamic> json) {
+    final rawJobs = (json['jobs'] as List<dynamic>)
+        .map((e) => JobOption.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final uniqueJobs = <JobOption>[];
+    final seenNames = <String>{};
+    for (final job in rawJobs) {
+      final normalizedName = _normalizeTaskBoardJobName(job.name);
+      if (seenNames.add(normalizedName)) {
+        uniqueJobs.add(JobOption(id: job.id, name: normalizedName));
+      }
+    }
+
+    final rawSelectedJobId = json['selectedJobId'] as int;
+    JobOption? selectedRawJob;
+    for (final job in rawJobs) {
+      if (job.id == rawSelectedJobId) {
+        selectedRawJob = job;
+        break;
+      }
+    }
+    final selectedNormalizedName = selectedRawJob == null
+        ? null
+        : _normalizeTaskBoardJobName(selectedRawJob.name);
+    var selectedJobId = rawSelectedJobId;
+    for (final job in uniqueJobs) {
+      if (job.name == selectedNormalizedName) {
+        selectedJobId = job.id;
+        break;
+      }
+    }
+
     return TaskBoard(
       meals: (json['meals'] as List<dynamic>).map((e) => e as String).toList(),
       selectedMeal: json['selectedMeal'] as String,
-      jobs: (json['jobs'] as List<dynamic>)
-          .map((e) => JobOption.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      selectedJobId: json['selectedJobId'] as int,
+      jobs: uniqueJobs,
+      selectedJobId: selectedJobId,
       tasks: (json['tasks'] as List<dynamic>)
           .map((e) => TaskChecklistItem.fromJson(e as Map<String, dynamic>))
           .toList(),

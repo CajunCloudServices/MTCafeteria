@@ -1,0 +1,13 @@
+{
+  "name": "mtc-cafeteria-web",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Static web host and reverse proxy for the MTC Cafeteria Flutter build",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3"
+  }
+}

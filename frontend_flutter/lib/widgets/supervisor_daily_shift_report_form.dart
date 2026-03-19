@@ -368,11 +368,16 @@ class _SupervisorDailyShiftReportFormState
                           setState(() {
                             _reportFeedback = 'Report submitted to leadership.';
                           });
-                        } catch (_) {
+                        } catch (error) {
+                          final message = error.toString().replaceFirst(
+                            'Exception: ',
+                            '',
+                          );
                           if (!mounted) return;
                           setState(() {
-                            _reportError =
-                                'Report submit failed. Verify required fields and try again.';
+                            _reportError = message.isEmpty
+                                ? 'Report submit failed. Verify required fields and try again.'
+                                : message;
                           });
                         } finally {
                           if (mounted) {

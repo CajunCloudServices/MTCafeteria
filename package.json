@@ -9,7 +9,8 @@
     "live:login:manager:html": "node tools/live-site.js actions http://localhost:51336 @tools/live-actions/login-manager-html.json",
     "live:capture:dashboard": "node tools/live-site.js actions http://localhost:51336 @tools/live-actions/capture-dashboard-selection.json",
     "mobai:audit:init": "node tools/mobai-audit.js --url http://localhost:51336 --viewport mobile_web",
-    "mobai:audit:init:desktop": "node tools/mobai-audit.js --url http://localhost:51336 --viewport desktop_web"
+    "mobai:audit:init:desktop": "node tools/mobai-audit.js --url http://localhost:51336 --viewport desktop_web",
+    "health:deploy": "node scripts/post_deploy_healthcheck.mjs"
   },
   "devDependencies": {
     "playwright": "^1.52.0"

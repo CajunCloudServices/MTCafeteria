@@ -94,41 +94,34 @@ VALUES (
 )
 ON CONFLICT (report_date, meal_type, track, submitted_by_user_id) DO NOTHING;
 
+DELETE FROM announcements;
+
 INSERT INTO announcements (type, title, content, start_date, end_date, created_by)
 VALUES
 (
   'Reminder',
-  'Clean-Shaven Reminder',
-  'Come to work clean shaven and ready for your shift.',
-  CURRENT_DATE,
-  CURRENT_DATE + INTERVAL '180 day',
-  (SELECT id FROM users WHERE email = 'manager@mtc.local')
-),
-(
-  'Reminder',
-  'Missionary-Appropriate Attire',
-  'Wear missionary-appropriate clothing when coming to work.',
+  'Shift Readiness Reminder',
+  'Arrive on time, clean shaven, and dressed in missionary-appropriate work attire.',
   CURRENT_DATE,
   CURRENT_DATE + INTERVAL '180 day',
   (SELECT id FROM users WHERE email = 'manager@mtc.local')
 ),
 (
   'Announcement',
-  'Spring and Summer Shift Sign-Up',
-  'Sign up for spring and summer shifts even if you will be away so we know who will and will not be here.',
+  'Seasonal Shift Sign-Up',
+  'Complete your spring and summer shift sign-up, even if you expect to be away, so staffing can be planned correctly.',
   CURRENT_DATE,
   CURRENT_DATE + INTERVAL '180 day',
   (SELECT id FROM users WHERE email = 'manager@mtc.local')
 ),
 (
   'Special Event',
-  'VIP Event Sign-Up',
-  'Sign up for next Tuesday''s VIP event if you are available to help.',
+  'VIP Event Volunteer Sign-Up',
+  'Volunteer sign-up is open for next Tuesday''s VIP event. Add your name if you are available to help.',
   CURRENT_DATE + INTERVAL '1 day',
   CURRENT_DATE + INTERVAL '180 day',
   (SELECT id FROM users WHERE email = 'manager@mtc.local')
-)
-ON CONFLICT DO NOTHING;
+);
 
 INSERT INTO trainings (title, content, assigned_date)
 VALUES
@@ -154,6 +147,7 @@ WITH meal_jobs AS (
     ('Breakfast', 'Sack Cashier'),
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
+    ('Breakfast', 'Server'),
     ('Breakfast', 'Line Running (Left)'),
     ('Breakfast', 'Line Running (Right)'),
     ('Breakfast', 'Aloha Plate'),
@@ -167,6 +161,7 @@ WITH meal_jobs AS (
     ('Lunch', 'Sack Cashier'),
     ('Lunch', 'Sack Runner'),
     ('Lunch', 'Salads'),
+    ('Lunch', 'Server'),
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
     ('Lunch', 'Line Running (Left)'),
@@ -179,6 +174,7 @@ WITH meal_jobs AS (
     ('Lunch', 'Desserts'),
     ('Lunch', 'Condiments Prep'),
     ('Lunch', 'Condiments Host'),
+    ('Dinner', 'Server'),
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
     ('Dinner', 'Line Running (Left)'),
@@ -308,6 +304,12 @@ generic_task_defs AS (
     ('Sack Runner', 'During Shift', 'Restock items from sack room as needed'),
     ('Sack Runner', 'During Shift', 'Coordinate with sack cashier'),
     ('Sack Runner', 'Cleanup', 'Assist sack cashier with cleanup tasks'),
+    ('Server', 'Setup', 'Follow the line map and set up the serving line'),
+    ('Server', 'Setup', 'Make sure the display plate has been put out'),
+    ('Server', 'Setup', 'Put 6 plates or 10 bowls out onto the hot pad before the doors open'),
+    ('Server', 'During Shift', 'Serve the food'),
+    ('Server', 'During Shift', 'Communicate your needs to the runner as they come up'),
+    ('Server', 'Cleanup', 'Clean up the serving line and make sure the heaters and light are turned off'),
     ('Paninis', 'Setup', 'Turn on panini machines'),
     ('Paninis', 'During Shift', 'Prepare paninis'),
     ('Paninis', 'During Shift', 'Press paninis in machines'),
@@ -478,6 +480,7 @@ meal_jobs AS (
     ('Breakfast', 'Sack Cashier'),
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
+    ('Breakfast', 'Server'),
     ('Breakfast', 'Line Running (Left)'),
     ('Breakfast', 'Line Running (Right)'),
     ('Breakfast', 'Aloha Plate'),
@@ -491,6 +494,7 @@ meal_jobs AS (
     ('Lunch', 'Sack Cashier'),
     ('Lunch', 'Sack Runner'),
     ('Lunch', 'Salads'),
+    ('Lunch', 'Server'),
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
     ('Lunch', 'Line Running (Left)'),
@@ -503,6 +507,7 @@ meal_jobs AS (
     ('Lunch', 'Desserts'),
     ('Lunch', 'Condiments Prep'),
     ('Lunch', 'Condiments Host'),
+    ('Dinner', 'Server'),
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
     ('Dinner', 'Line Running (Left)'),

@@ -2,6 +2,9 @@ const env = require('../config/env');
 const { pool } = require('../db/pool');
 const mockData = require('../db/mockData');
 
+// Legacy prototype training feed. This service remains available for older
+// dashboard flows, while the active detailed 2-minute training viewer is
+// sourced from the frontend's manual local corpus.
 function toTraining(row) {
   return {
     id: row.id,

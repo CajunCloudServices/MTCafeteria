@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -9,8 +9,8 @@ COPY src ./src
 COPY sql ./sql
 
 ENV NODE_ENV=production
-ENV PORT=3201
+ENV PORT=4000
 
-EXPOSE 3201
+EXPOSE 4000
 
 CMD ["npm", "start"]

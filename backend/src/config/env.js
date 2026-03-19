@@ -16,11 +16,17 @@ if (!useMockData && !jwtSecret) {
 if (isProduction && jwtSecret === 'dev-secret') {
   throw new Error('JWT_SECRET cannot be "dev-secret" in production.');
 }
+if (!useMockData && !process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required when USE_MOCK_DATA=false.');
+}
 
 const corsOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((value) => value.trim())
   .filter((value) => value.length > 0);
+if (isProduction && corsOrigins.length === 0) {
+  throw new Error('CORS_ORIGINS must be set in production.');
+}
 
 const env = {
   nodeEnv,

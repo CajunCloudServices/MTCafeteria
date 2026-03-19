@@ -58,6 +58,14 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    mode: env.useMockData ? 'mock' : 'postgres',
+    environment: env.nodeEnv,
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api', trainingRoutes);

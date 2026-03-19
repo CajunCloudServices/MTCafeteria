@@ -5,6 +5,7 @@ const Map<String, List<String>> _mealLineJobs = {
     'Sack Cashier',
     'Sack Runner',
     'Salads',
+    'Server',
     'Line Running (Left)',
     'Line Running (Right)',
     'Aloha Plate',
@@ -20,6 +21,7 @@ const Map<String, List<String>> _mealLineJobs = {
     'Sack Cashier',
     'Sack Runner',
     'Salads',
+    'Server',
     'Ice Cream',
     'Paninis',
     'Line Running (Left)',
@@ -34,6 +36,7 @@ const Map<String, List<String>> _mealLineJobs = {
     'Condiments Host',
   ],
   'Dinner': [
+    'Server',
     'Ice Cream',
     'Paninis',
     'Line Running (Left)',
@@ -108,6 +111,20 @@ _lineReferenceCatalog = {
         'Fruit shelf restocked',
         'Lettuce wraps/dressings restocked',
         'Trash emptied',
+      ],
+    },
+    'Server': {
+      'Setup': [
+        'Follow the line map and set up the serving line',
+        'Make sure the display plate has been put out',
+        'Put 6 plates or 10 bowls out onto the hot pad before the doors open',
+      ],
+      'During Shift': [
+        'Serve the food',
+        'Communicate your needs to the runner as they come up',
+      ],
+      'Cleanup': [
+        'Clean up the serving line and make sure the heaters and light are turned off',
       ],
     },
     'Line Running (Left)': {
@@ -385,6 +402,20 @@ _lineReferenceCatalog = {
         'Trash emptied',
       ],
     },
+    'Server': {
+      'Setup': [
+        'Follow the line map and set up the serving line',
+        'Make sure the display plate has been put out',
+        'Put 6 plates or 10 bowls out onto the hot pad before the doors open',
+      ],
+      'During Shift': [
+        'Serve the food',
+        'Communicate your needs to the runner as they come up',
+      ],
+      'Cleanup': [
+        'Clean up the serving line and make sure the heaters and light are turned off',
+      ],
+    },
     'Ice Cream': {
       'Setup': [
         'Get ice cream',
@@ -632,6 +663,20 @@ _lineReferenceCatalog = {
     },
   },
   'Dinner': {
+    'Server': {
+      'Setup': [
+        'Follow the line map and set up the serving line',
+        'Make sure the display plate has been put out',
+        'Put 6 plates or 10 bowls out onto the hot pad before the doors open',
+      ],
+      'During Shift': [
+        'Serve the food',
+        'Communicate your needs to the runner as they come up',
+      ],
+      'Cleanup': [
+        'Clean up the serving line and make sure the heaters and light are turned off',
+      ],
+    },
     'Ice Cream': {
       'Setup': [
         'Get ice cream',
@@ -879,4 +924,3 @@ _lineReferenceCatalog = {
     },
   },
 };
-

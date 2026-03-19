@@ -542,6 +542,13 @@
     }
   },
   "locker_inventory": {
+    "1": [
+      "Meat shop",
+      "Soups",
+      "Pasta",
+      "Cut fruit",
+      "English muffins"
+    ],
     "5": [
       "Chicken Breasts",
       "Chicken Thighs",
@@ -602,6 +609,66 @@
       "Yum Yum Sauce",
       "Kalua Pork",
       "Hawaiian Mac Salad"
+    ],
+    "10": [
+      "5GL milk",
+      "Chocolate milk 5GL bags",
+      "2% white milk 5GL bags",
+      "Sliced meats",
+      "12in tortillas",
+      "Carton milks",
+      "1GL juice",
+      "Muffins",
+      "Skim milk",
+      "Milk subs"
+    ],
+    "11": [
+      "Ice cream buckets",
+      "Ice cream tubs",
+      "Ice cream sandwiches",
+      "Ice cream fudge",
+      "Ice cream orange",
+      "Creamies",
+      "Frozen sliced meats"
+    ],
+    "12": [
+      "Fries",
+      "Hash brown patties",
+      "Pizza",
+      "Frozen fish",
+      "Sweet potato fries",
+      "Potato puffs",
+      "Bulgogi beef",
+      "Choices chicken",
+      "Choices beef",
+      "English chunks",
+      "Potato chunks",
+      "Hash ovals",
+      "Shoestring fries",
+      "Regular fries",
+      "Criss/steak fries",
+      "Tilapia",
+      "Cod",
+      "Mahi mahi",
+      "Twisters fries"
+    ],
+    "13": [
+      "12 oz bottled milk",
+      "12oz chocolate milk",
+      "12oz white milk",
+      "Packaged sandwiches",
+      "Small salads",
+      "Liquid eggs",
+      "Hard boiled eggs",
+      "Cream cheese",
+      "Packaged carrots",
+      "Packaged cookies",
+      "Apples",
+      "Orange",
+      "Pear",
+      "Grapefruit",
+      "Gal spicy orange",
+      "Gal sweet and sour"
     ],
     "notes": [
       "Locker 5/6 signs state: if item is not found, check locker 11 or 12.",
@@ -810,6 +877,1229 @@
         "Trainings and summary have been added to shift email."
       ]
     }
+  },
+  "kitchen_guides": {
+    "salad_deli": {
+      "title": "Kitchen: Salad + Deli",
+      "intro": "Kitchen guide content cleaned from the chef notes and reference pages in the MTCDocuments Kitchen folder. Wording is kept practical and close to the source, while obvious OCR junk and duplicate fragments were removed.",
+      "cards": [
+        {
+          "title": "Dressings and Salad Setup Basics",
+          "items": [
+            "Keep dressings in the larger salad-area bottles under the table when setting up the salad side.",
+            "Current dressings listed in the notes are Ranch, Thousand Island, Bleu Cheese, Raspberry Vinaigrette, Catalina, Poppyseed, Italian, and Creamy Caesar.",
+            "As of 2024, breakfast line crew is expected to replace dressing bottles every day for lunch and dinner and also make sure refill containers are available.",
+            "Oil and vinegar did not have a fixed policy in the source notes; one approved approach was to put them out in small bottles with refills.",
+            "Use 4 to 5 tortilla kinds, including whole wheat, plain, spinach, tomato basil, and garlic herb.",
+            "Tortilla wraps are pulled from Locker 10, and if needed from Locker 11 to thaw.",
+            "Tortilla wraps, lettuce, and spinach stage through the salad cart and the southwest cold-well area of the island during service.",
+            "Turn on the cold well by holding the power button for about 5 seconds.",
+            "Put out 2 pans of lettuce and 1 pan of spinach during service, with backup product kept in the cooler."
+          ]
+        },
+        {
+          "title": "Panning and Salad Toppings",
+          "items": [
+            "Use the clipboard and the paper in the salad binder to see how many pans of each topping need to be prepped.",
+            "Write down the number of new pans you made so the next person can see what was already done.",
+            "Salad toppings are generally panned into deep 1/6-size metal pans so more topping varieties can fit on the island during service.",
+            "Before panning new toppings, always check both date and quality.",
+            "Do not keep meats or cooked leftovers longer than 7 days.",
+            "Throw away spoiled food, including moldy produce or anything clearly past quality.",
+            "Most salad vegetables are kept in Locker 8, including onions, peppers, carrots, cucumbers, squash, tomatoes, alfalfa sprouts, and sugar snap peas.",
+            "Common fruit items include mandarin oranges, pineapple tidbits, and craisins, with substitutes like peaches, pears, or raisins if needed.",
+            "The cheese section is mostly Locker 7, with shredded cheddar bags there, cottage cheese in Locker 8, and white cheeses in Locker 7, including feta, bleu cheese, parmesan, mozzarella, cotija, and pepper jack.",
+            "If cottage cheese is unavailable, the notes suggest using 2 kinds of white cheese as a practical substitute.",
+            "Always check cheese carefully for mold before putting it out."
+          ]
+        },
+        {
+          "title": "Salad Meats and Backup Sources",
+          "items": [
+            "Check available leftovers and prepared meats before panning new salad-bar meat items.",
+            "Usable meats can include Philly beef, chicken fajita, shredded meats like barbacoa or Carolina pork, steak, chicken breast, bacon, ham slices, and shredded salmon.",
+            "Some meats need to be cut up before they can go onto the salad bar.",
+            "If using cooked leftovers, use the date the product was cooked and cooled when labeling it.",
+            "If using thawed packaged meats, use the open date.",
+            "Do not use cooked leftover meats older than 7 days.",
+            "Diced eggs are stored frozen in Locker 10 and should be pulled 2 to 3 trays at a time as needed.",
+            "Olives and beans also appear as regular salad toppings and should be drained or rinsed as needed before panning."
+          ]
+        },
+        {
+          "title": "Soup Service",
+          "items": [
+            "Soup service is usually breakfast 7:00 to 8:30 a.m., lunch 11:30 a.m. to 1:15 p.m., and dinner 4:30 to 6:15 p.m., with possible holiday or General Conference exceptions.",
+            "Soups come pre-bagged from campus and are stored in Locker 1 near the east dock before cooks place them into the bain marie in the main kitchen.",
+            "Use the bain marie carefully because the water can be very hot or boiling.",
+            "If needed, reduce the steam or boil with the lever on the right side, then turn it back up after pulling soup.",
+            "Use long tongs plus heat protection such as rags or oven mitts when handling soup bags.",
+            "Carry soup to the island on a movable metal cart because it is hot and heavy.",
+            "At the island, set the soup pot dial to 4 or 5, pour carefully, label the soups, and wipe up any spills.",
+            "If rolls are served with soup, put them in a serving pan or basket under the sneeze guard and provide tongs."
+          ]
+        },
+        {
+          "title": "Deli Bar Setup and Troubleshooting",
+          "items": [
+            "The deli bar is the sandwich bar on the other side of the island.",
+            "It is normally served Monday lunch and dinner, Tuesday lunch and dinner, Wednesday lunch only, Thursday lunch and dinner, and Friday lunch and dinner.",
+            "It is not usually served on Saturday or Sunday.",
+            "The general layout is condiments, meats, cheeses, then vegetables.",
+            "Mayo and mustard or Dijon are kept in the cage.",
+            "Common deli meats are ham, roast beef, and turkey.",
+            "Cheeses can be up to 2 kinds, with cheddar, Swiss, provolone, and pepper jack as common choices.",
+            "Green leaf lettuce, sliced tomatoes, and red onions are in Locker 8, and pickles are in Locker 4 in containers.",
+            "Deli meats are typically frozen in freezer 11, so pull a box out a few days before service or you may not have any meat ready to put out.",
+            "If meats run short, talk to a supervisor, full-time kitchen staff, or the material specialist so more can be thawed or ordered.",
+            "If tomatoes or lettuce are missing, temporarily substitute another workable vegetable rather than leaving the station empty.",
+            "On heavy sandwich days, prep extra cheese, lettuce, tomatoes, mustard, and pickles ahead of time."
+          ]
+        }
+      ]
+    },
+    "desserts_fruit": {
+      "title": "Kitchen: Desserts + Fruit",
+      "intro": "Dessert, fruit, and whipped-spread notes cleaned from the Kitchen folder. These stay close to the original working instructions rather than rewriting them into policy language.",
+      "cards": [
+        {
+          "title": "Dessert Prep and Storage",
+          "items": [
+            "Desserts are kept in upright keepers in closed wheeled racks.",
+            "Uncut desserts are commonly received into Locker 8 until they are ready to be cut for service.",
+            "Keep cold desserts cold, especially anything containing dairy or nuts.",
+            "Use clean knives between dessert types to reduce cross-contact.",
+            "Label every tray with the dessert name and the date made.",
+            "Return the dessert keeper to Locker 10 when finished.",
+            "When cutting brownies and other dense desserts, use care so you do not leave metal shavings in the pan.",
+            "Dense pies and crusted desserts should be cut all the way through so slices come out clean and are easier to serve.",
+            "Most tray desserts such as cakes, bars, and Rice Krispy treats are cut into 7 by 10 pieces, for 70 total pieces.",
+            "Cheesecakes are usually cut into 16 pieces, and pies are usually cut into 8 pieces.",
+            "Hot water on the knife can help when cutting cheesecake."
+          ]
+        },
+        {
+          "title": "Portioning Desserts and Sweet Breads",
+          "items": [
+            "Puddings, crisps, and cobblers go into 9 oz cups, filled about two-thirds to three-quarters full with the designated scoop.",
+            "Nilla Wafer pudding stays in the pan it comes in rather than being repanned.",
+            "Sweet bread loaves for Monday service are prepped by checking Friday counts, slicing each loaf into about 8 to 10 slices, and shingling the slices into a full-size hotel pan.",
+            "If sweet bread will not be served right away, cover it with plastic wrap.",
+            "Angel food cake is treated like a dessert even though it comes as a loaf; slice it like sweet bread and keep it covered so it does not dry out.",
+            "The notes call for 1 or 2 small pans of strawberry syrup with angel food cake and a visible note so line workers know the syrup goes with the cake.",
+            "Cookies require no kitchen prep for service; line workers handle them during lunch.",
+            "Pre-portioned desserts such as mousse cups, panna cotta cups, macarons, pecan tarts, and key lime tarts do not need additional preparation.",
+            "If a dessert does not need prep, it can stay out for lunch service as-is."
+          ]
+        },
+        {
+          "title": "Fruit for Condiments and Salad Support",
+          "items": [
+            "Grapes are stored in Locker 9.",
+            "Rinse grapes over the sink in a holey pan, remove spoiled grapes, cut them into small bunches of about 4 to 6 grapes, then pan, label, and cover them on the condiments rack in Locker 10.",
+            "A typical grape target is about 3 to 4 pans per meal for lunch and dinner.",
+            "Kiwis are also stored in Locker 9.",
+            "Rinse kiwis, use a cutting glove and paring knife, cut them hamburger-style in half, then pan, label, cover, and store them on the condiments rack in Locker 10.",
+            "A typical kiwi target is about 2 to 3 pans per meal for lunch and dinner."
+          ]
+        },
+        {
+          "title": "Whipped Cream Cheese and Margarine",
+          "items": [
+            "Whipped cream cheese is part of the salad or breakfast-bar prep flow.",
+            "Cream cheese blocks are stored in Locker 13.",
+            "Put the mixer bowl and correct paddle on the mixer before adding ingredients, and do not overload the bowl.",
+            "Keep the block and bowl cold, and use the mixer until the cream cheese becomes spreadable.",
+            "Scrape the bowl and paddle down as needed with a rubber scraper, stopping the mixer before scraping.",
+            "For strawberry cream cheese, the notes call for 1 can of strawberry syrup per 2 blocks of cream cheese.",
+            "Soften cream cheese before mixing in syrup so it does not stay chunky.",
+            "Scoop finished cream cheese into a pan, cover and label it, and store it in Locker 8.",
+            "Whipped margarine follows the same general mixing process, but the exact storage locker note on the source page is still too fuzzy to state confidently.",
+            "Clean the mixer after finishing whipped spreads."
+          ]
+        }
+      ]
+    },
+    "weekend_setup": {
+      "title": "Kitchen: Weekend + Setup",
+      "intro": "Operational setup notes for weekend salad coverage, locker/cart flow, and island prep. Lower-confidence count charts were not copied over as authoritative numbers if the OCR was too noisy to trust.",
+      "cards": [
+        {
+          "title": "Weekend Salad Checklist",
+          "items": [
+            "For the Saturday and Sunday morning shift, get the salad-bar rack from Locker 10 and collect salad toppings from the island cooler and Locker 8.",
+            "There is no deli bar on Saturday or Sunday.",
+            "Rotate product by using the oldest dates first.",
+            "Wrap and label all new full pans and record how many new pans were made.",
+            "Set up the salad bar on the island by about 10:50 a.m.",
+            "Take soup to the island around 11:00 to 11:15 a.m., bring out 2 bags of each soup, set the dials around 4 or 5, and put out 6 oz ladles with soup labels.",
+            "Gather uncut dessert keepers from Locker 8 or Locker 10, prepare desserts using the dessert cutting guide, label each tray with the dessert name and date, and return the keeper when done.",
+            "Check the condiments rack in Locker 10 for prepped grapes or kiwis and prep more from Locker 9 if needed.",
+            "Sanitize work surfaces, return supplies, wash scissors and knives, clear dirty dishes, recycle empty cans, and check in with the weekend manager if you finish early.",
+            "For the later weekend shift, first check with the A.M. salad worker, help on salad bar and soups if needed, then move into dessert or next-day prep as time allows.",
+            "If the morning shift person has already gone, use steps 1 through 6 from the other checklist before moving into the later-shift work."
+          ]
+        },
+        {
+          "title": "Core Shift Setup Order",
+          "items": [
+            "Salad Bar, Deli Bar, and Soups should all be set up on the island no later than 11:00.",
+            "Start every shift with a red sanitizer bucket and keep it with you.",
+            "Get the weekly prep list and mark which day you are prepping; the source notes say the hard copy is in the black binder.",
+            "The recommended kitchen prep order is Salad Cart, Dressing Cart/Tortilla Cart, Deli Cart, Soups, Desserts, then fruit.",
+            "Bring the Locker 10 salad-toppings cart back to the prep area before starting, and replace dirty trays or sanitize them before reuse.",
+            "Work from the top of the cart downward.",
+            "Use the clipboard and prep list to decide how many items and backups are needed.",
+            "The source notes specifically call out preparing extra containers of popular items like tomatoes and grapes when needed.",
+            "Use metal salad containers from the top of the dish rack near the dishroom, and keep them covered with plastic wrap once they are in the salad prep area."
+          ]
+        },
+        {
+          "title": "Locker, Cart, and Ingredient Reference",
+          "items": [
+            "Most salad-prep items are in Locker 8, including cucumbers, grape tomatoes, peppers, onions, cabbage, carrots, cottage cheese, lettuce, and spinach.",
+            "Use the oldest dated items first when pulling product; dates are posted on the food packaging.",
+            "Rinse grape tomatoes, sprouts, canned beans, and sugar snap peas in a holey pan over the sink.",
+            "Common salad meats include bacon crumbles from Locker 7 and fajita chicken from freezer 5, which should be pulled to thaw in Locker 8 unless there is already enough leftover meat from previous meals.",
+            "If you do not know what to use, ask a full-time cook.",
+            "Usable leftovers like salmon, steak, or chicken breast can be used if still within date, but steak and chicken breasts need to be cut into smaller cubes with a cutting glove.",
+            "Canned salad items come from the cage and should be opened at the condiments prep table, then rinsed or drained as needed.",
+            "The sheets specifically call out beans, corn, baby corn, mandarin oranges, and olives as common canned goods.",
+            "Rinse empty cans and take them to the recycling area past the scullery instead of throwing them in the trash.",
+            "After the salad cart is done, put it back in Locker 10 and bring out the cart for lettuce, dressings, and tortilla wraps.",
+            "Prepare 3 black containers total for leafy greens: 1 for spinach and 2 for romaine or lettuce.",
+            "Ranch, Thousand Island, and Bleu Cheese are noted in Locker 8, while Raspberry Vinaigrette, Poppyseed, Caesar, Italian, and Catalina are listed in the cage.",
+            "Wrap flavors listed in the notes are Spinach, Garlic Herb, Flour, Tomato Basil, and Whole Wheat, but only 3 tortilla flavors go out at a time.",
+            "Cage items also include croutons, crispy onions, tortilla strips, chow mein noodles, soup crackers, mayo bottles, and mustard or Dijon bottles.",
+            "Cheeses other than cottage cheese are in Locker 7. Cheddar is always an option, mozzarella or parmesan are typical white-cheese options, and cheddar goes in the longer 6 x 3 metal pans.",
+            "Diced eggs come frozen from freezer 6. If available, move them into Locker 8 in the egg section of the keeper with extra salad items. If there are no eggs ready, mushrooms can be used as an alternative.",
+            "Craisins are usually in Locker 10 near the tortilla shells.",
+            "Locker 10 items also include sunflower seeds, tortilla wraps, and bread for the deli bar.",
+            "If you are in a bind, get the island set up first, then return to finish prep in the salad area.",
+            "If you are the last worker, make sure the salad cart has enough food to cover the rest of lunch or dinner."
+          ]
+        },
+        {
+          "title": "Quick Notes for Soups and Deli Cart",
+          "items": [
+            "Soups are held near Aloha Plate Prep in the kitchen, and a cook usually places them there each morning.",
+            "Grab a clean metal cart from the scullery and collect 2 to 3 bags of each soup choice of the day, usually 2 different kinds.",
+            "Use clean towels when moving hot soup bags.",
+            "Use 2- to 6-inch deep pans on the cart if needed to keep the soup bags from rolling.",
+            "Grab 2 6 oz ladles and wheel the soups out to the island.",
+            "Use a small knife with a white, red, or blue handle and cut a hole near the bottom of the bag so soup can pour into the pot.",
+            "If you are in a bind, set up the island first, then finish assembling items back in the salad prep area.",
+            "If you are the last worker, make sure the Salad Cart has enough food to get through the rest of lunch or dinner.",
+            "Tape and Sharpies are in Donna's office.",
+            "Set the soup heat dial around 4 or 5.",
+            "Soup labels are on the island in a small plastic container, and the correct soup sign should be clipped in front of the soups.",
+            "Pull deli meats far enough ahead of time that they can thaw before service."
+          ]
+        }
+      ]
+    }
+  },
+  "dishroom_guides": {
+    "operations": {
+      "title": "Dishroom: Operations",
+      "cards": [
+        {
+          "title": "General Organization",
+          "items": [
+            "Keep your area clean and organized so the cafeteria can work effectively.",
+            "Clean your area often, including wiping down your station with sanitizer, taking dishes to scullery or dishroom, and leaving the area better than you found it.",
+            "If there is an empty cart, take it to scullery.",
+            "Take empty keepers where they need to go right away. CSC keepers go by the cage, and keepers labeled MTC go between scullery and the ice machines.",
+            "Move empty carts to scullery instead of leaving them in the way.",
+            "Break down boxes before putting them in the trash carts.",
+            "Do not leave empty crates, boxes, or other loose items lying around.",
+            "Consolidate and organize items in lockers when possible, and ask the supervisor if you are unsure how.",
+            "If you do not know where something goes, ask instead of leaving it in an open spot."
+          ],
+          "source_images": [
+            "Dishroom13.JPG"
+          ]
+        },
+        {
+          "title": "Setup: Dishroom and Scullery",
+          "items": [
+            "Turn on both dishroom fans.",
+            "Close the drains in the cup machine by pushing the small internal levers all the way down, close the doors, and turn it on so it starts autofilling.",
+            "Check the baskets in the dish machine for food and make sure all machine parts are installed properly before turning it on; repeat with the other dish machine if needed.",
+            "Check the silverware machine. If the water is not clear, drain it and fill it again.",
+            "Make sure the clean-side countertop is actually clean. If not, clean it with Pantastic.",
+            "Check the mobile sink and rinse it out before use if it is not adequately clean.",
+            "Fill the pulper by pressing the green button.",
+            "Check that all 7 traps are in place.",
+            "In scullery, turn on the wall ventilation and both fans.",
+            "If you plan to use the walk-in machine, close the drain and turn the black dial to the FILL position.",
+            "Close the pan machine drain, turn the pan machine on, and fill the scullery pulper.",
+            "Fill the wash sink with hot water, the rinse sink with hot water, and the sanitizing sink with cool water. Run the soap and sanitizer for about 20 to 30 seconds."
+          ],
+          "source_images": [
+            "IMG_8284.JPG"
+          ]
+        },
+        {
+          "title": "Supervisor Shift Support",
+          "items": [
+            "Check on crew members frequently, especially if they are being trained, and make sure they know you are there to help.",
+            "Bring your crew drinks.",
+            "Get empty dish carts for unloaders.",
+            "Bring misplaced dirty dishes back to scullery.",
+            "Help during rushes instead of waiting for someone to ask.",
+            "Tear up cardboard for the pulpers, using at least half a box per pulper.",
+            "Share tips that help the crew move faster and more safely.",
+            "Watch for hazards such as missing PPE, wet floors, and overflowing glass bins.",
+            "Refresh trash cans for pit and pit lead.",
+            "Keep looking for ways to help."
+          ],
+          "source_images": [
+            "IMG_8285.JPG",
+            "IMG_8286.JPG"
+          ]
+        },
+        {
+          "title": "Shift-Specific Weekly Jobs",
+          "items": [
+            "These are recurring jobs tied to specific days and meals rather than general close-down work.",
+            "Tuesday dinner appears to include putting milk and juice from Cafe West Line 4 into Locker 10.",
+            "Wednesday lunch: pull ice cream into Locker 10 for dinner and clean up Deli Bar like dinner cleanup.",
+            "Wednesday dinner: do not clean the pan machine.",
+            "Thursday dinner: do not clean the pan machine, and put all milk and juice from Line 2 and Line 3 into Locker 10.",
+            "Friday lunch: switch to paper and plastic for dinner and turn serving lines as posted on the sign.",
+            "Friday dinner: put all milk and juice from Line 6 into Locker 10 West.",
+            "Saturday lunch: set up cereal bar at Cafe West.",
+            "Saturday dinner: switch to paper and plastic for breakfast.",
+            "Sunday breakfast: switch back to normal plates, cups, and silverware for lunch, and pull ice cream into Locker 10 for lunch.",
+            "Sunday dinner: clean up food, clean pulpers, and turn off all the lights."
+          ],
+          "source_images": [
+            "Shift Specific jobs for dishroomRotational.JPG"
+          ],
+          "uncertain_lines": [
+            "The source image is a color-coded grid and several cells are harder to read than the others.",
+            "Friday lunch includes a handwritten note about the serving lines that should be checked against the image if exact wording matters.",
+            "Tuesday dinner and some Sunday notes are interpreted from the image rather than clean OCR."
+          ]
+        }
+      ]
+    },
+    "chemicals": {
+      "title": "Dishroom: Chemicals + Utilities",
+      "cards": [
+        {
+          "title": "Night Custodial Chemicals",
+          "items": [
+            "Pantastic is a washing detergent comparable to Dawn dish soap. It has a blue hue and is the basic chemical for scrubbing jobs such as sinks, drains, and pulpers.",
+            "Oasis 135 Power Force is a premium cleaner and degreaser with a red hue and mild citrus aroma. It is used on floors to cut through heavy soil and grease.",
+            "Oasis 146 Multi-Quat Sanitizer is used to sanitize food-contact surfaces and high-contact points such as tables, light switches, and locker handles.",
+            "Consume Drop-in-a-Drain is a drain cleaner with a green hue and pleasant aroma. It is primarily used as an additive to the pulpers once they are clean.",
+            "Grease Express Fast Foam Degreaser is used on stubborn jobs that need extra help, such as flat tops and ovens.",
+            "EnvirOx H2Orange2 Concentrate 117 is an oxidizing disinfectant for hard non-food surfaces and is used on the blue belt to kill bacteria and viruses.",
+            "Lime-A-Way is a delimer used in the dish machine to remove lime buildup caused by hard water.",
+            "Use protective equipment when handling custodial chemicals."
+          ],
+          "source_images": [
+            "Dishroom14.JPG"
+          ]
+        },
+        {
+          "title": "Stocking Chemicals",
+          "items": [
+            "If a machine is beeping or dishes come through with food particles, check whether the soap needs to be changed.",
+            "Check soap levels at the beginning of each shift.",
+            "Double check labels and wear gloves when replacing chemicals.",
+            "For dishroom machines, Solid Power XL is used in the silverware machine and cup machine. Remove the old container, remove the lid from the new container, and place the new container upside down in the machine.",
+            "For dishroom rinse product, Solid Rinse Dry is used in the silverware machine and cup machine. Open the package, use gloves to remove the product, and place it inside the machine.",
+            "For silverware machine detergent, Silver Power is replaced by removing the old container, removing the lid from the new container, and placing the new container upside down in the machine.",
+            "For scullery, Solid Power XL is used in the scullery machine and is stocked from dishroom.",
+            "Monsoon is used for scullery sinks. Remove the hose or adapter from the old container, remove the lid from the new container, and attach the hose or adapter to the new container.",
+            "Oasis 146 is also used for scullery sinks and is stocked from the basement using the same hose or adapter swap process.",
+            "Each shift, a member of dishroom, usually the unloader, should restock the custodial closet by bringing up chemicals and supplies from the basement.",
+            "If there are no back-ups in the basement, inform your supervisor or lead trainer."
+          ],
+          "source_images": [
+            "Dishroom21.JPG",
+            "Dishroom22.JPG"
+          ]
+        },
+        {
+          "title": "Floor Cleaning Procedure",
+          "items": [
+            "Wipe up spills and sweep the floor first.",
+            "Fill a mop bucket with solution using the dispenser.",
+            "Apply Wash 'n Walk no-rinse floor cleaner with a mop.",
+            "Leave the cleaner on the floor long enough to penetrate grease and soil.",
+            "Brush the floor with a stiff-bristled brush when needed.",
+            "Mop up the solution or squeegee it toward the drain.",
+            "Do not rinse. Walk away and let the floor air dry.",
+            "Daily use helps prevent deep grease buildup and keeps grout lines cleaner over time."
+          ],
+          "source_images": [
+            "IMG_8234.JPG"
+          ]
+        },
+        {
+          "title": "Pulpers and Gas Connections",
+          "items": [
+            "The pulpers turn waste into pulp used to fertilize BYU campus. Do not reach into a pulper unless the disconnect switch is off.",
+            "Do not put banana peels, watermelon rinds, pineapple tops, excessive rice or quinoa, eggshells, bones, grease or oils, wooden sticks, Styrofoam, metal, plastic, paper dishes, or wrappers into the pulper.",
+            "If a pulper is not working, make sure it is filled and turned on with the lid closed, check the emergency stop, then drain, refill, add cardboard, and run it again if needed.",
+            "If the overflow light is flashing, spray out the back chute of the mother pulper, make sure the sensors are clear, and verify the laser is aligned.",
+            "Break down and run a cardboard box through the dishroom and scullery pulpers each shift, and clean the pulpers on Sunday dinner dishroom.",
+            "There are three pulper locations: the mother pulper, the scullery pulper, and the dishroom pulper.",
+            "Before filling, make sure the drain levers are closed. In the morning, fill the three pulpers with water, and keep about 3 inches of water in the dishroom trough so the mother pulper does not drain out.",
+            "The pulper system is normally filled in the morning and drained and cleaned at night rather than after every shift, unless odor problems require extra cleaning.",
+            "If the pulpers will not turn on, inspect switches, buttons, panels, covers, and safety magnets. If the problem continues, talk with a manager or Rob.",
+            "For gas disconnection in main dish, rotate the electrical plug counterclockwise before unplugging, turn the gas valve perpendicular to the pipe, pull back the blue coupling while pushing the pipe forward, and unhook the safety harness carabiner.",
+            "For reconnection, plug the electrical outlet back in and rotate it clockwise in main dish, push the gas pipe onto the connection until it snaps on, pull on the gas hose to confirm it is secure, turn the valve parallel to the pipe, reattach the carabiner, and light the pilot lights on the appropriate grills in main dish.",
+            "Always put equipment back in the same order it was pulled. In main dish, the source order is flat top, flat top, table, grill, fryer, SM grill."
+          ],
+          "source_images": [
+            "Dishroom17.JPG",
+            "IMG_8232.JPG",
+            "Dishroom15.JPG"
+          ]
+        }
+      ]
+    },
+    "cleaning": {
+      "title": "Dishroom: Cleaning + Maintenance",
+      "cards": [
+        {
+          "title": "Dishroom Cleaning Hotspots",
+          "items": [
+            "Spray out underworld.",
+            "Squeegee the counter in No Man's Land and remove all food, trash, dishes, and water.",
+            "Pay particular attention to the area underneath the cup conveyor belt. Clean between the pipes and remove debris. If time permits, clean the walls with Pantastic.",
+            "At the end of the shift, remove all 3 traps in the pit area, including the trap under the extra blue belt near No Man's Land.",
+            "Do not spray food down the drains when cleaning traps. Remove the food into a trash can first.",
+            "Before cleaning the silverware machine, make sure the nozzles and cone strainer have already been washed, and check with Beverage and Salad Bar if needed.",
+            "Remove and clean the drain cover with steel wool and Pantastic.",
+            "Clean beneath the drain pipe's funnel opening and underneath the panel on the right wall until you can run a finger across the area without feeling gunk.",
+            "Remove the plastic curtains, scrub between the plastic sheets, and scrub behind all curtain holders and crevices."
+          ],
+          "source_images": [
+            "Dishroom18.JPG",
+            "IMG_8231.JPG"
+          ]
+        },
+        {
+          "title": "Dish Machine Cleaning and Reassembly",
+          "items": [
+            "A thorough spray-down saves time before using steel wool, brushes, and Pantastic.",
+            "Easy-to-reach flat surfaces only need a quick pass. Spend most of your effort on crevices, ridges, and spots people forget to scrub.",
+            "Spray and squeegee under the machine, including under pipes and crevices on the bottom of the doors.",
+            "Disconnect electrical power before cleaning the machine.",
+            "Remove wash arms by releasing the catches. Slide the upper arm forward and swing the front of the arm down.",
+            "Remove end caps, clean the wash arms and nozzles, and remove the flush arm to clean it too.",
+            "Clean the load and unload shelf by spraying debris into the machine and flushing the sensor openings on the load end.",
+            "Do not strike wash arms, rinse arms, or scrap baskets on solid objects to knock debris loose.",
+            "Open the doors, spray debris off the inside of adjacent doors, chamber walls, and tank shelves, then repeat at the other doors.",
+            "Remove and clean scrap baskets and trays, wash down the inside of the tank, and rinse nozzles with water as needed.",
+            "Before beginning operation, verify that pump intake screens, strainer pans, strainer buckets, wash arm end caps, wash arm latches, flush arm, auxiliary rinse arms, and final rinse arms are all installed correctly before reconnecting power."
+          ],
+          "source_images": [
+            "Dishroom19.JPG",
+            "IMG_8233.JPG",
+            "IMG_8235.JPG"
+          ],
+          "uncertain_lines": [
+            "Dishroom19.JPG is truncated after the opening examples, so the card keeps only the clearly readable example areas."
+          ]
+        },
+        {
+          "title": "Scullery Cleaning Priorities",
+          "items": [
+            "Anyone can scrub and squeegee an open floor. Winners scrub and squeegee thoroughly under things.",
+            "If an area is hard to reach, squeegee it anyway.",
+            "Spray thoroughly under ledges and in crevices before scrubbing. It saves time and effort.",
+            "Focus scrubbing effort under ledges, around pipes, and in corners rather than on easy wall areas.",
+            "Food gets stuck under the walk-in machine. Spray from the back toward the drain to remove built-up food, or dump a bucket of water in the back to wash food to the drain.",
+            "Do not clean the pan machine on Wednesday or Thursday nights."
+          ],
+          "source_images": [
+            "Dishroom20.JPG"
+          ]
+        },
+        {
+          "title": "Weekly Deep Cleaning",
+          "items": [
+            "Monday: clean and polish the walls and metal trim of dish return and scullery. Focus on the metal window of dish return and the outer metal machinery in scullery. Use Pantastic if scrubbing is needed and steel polish from the custodial closet where it will help most.",
+            "Tuesday: sanitize and organize the silverware shelves next to the unloader and cup machine, and put away anything that does not belong.",
+            "Wednesday: sanitize and organize scullery shelves, including the stereo shelf, the white-bin shelving unit, and the bucket shelving unit. Do not include the mobile dish shelving unit.",
+            "If shelf items do not belong to scullery workers, throw them out or take them to Donna's office with a note.",
+            "Thursday: replace the black bins and pans holding serving utensils, move the old bins to scullery, reorganize utensils if needed, and put labels back on the bins.",
+            "Friday: clean five trash cans, rinse and scrub them in front of the walk-in machine, air dry them upside down, and relabel them with the last-cleaned date including the year.",
+            "Saturday breakfast: remove and scrub the two cup conveyor attachments with steel wool and Pantastic, then rinse and reinstall them.",
+            "Saturday lunch: scrub and organize underneath the sinks in scullery, clean the drain if needed, and remove empty chemical buckets.",
+            "Saturday dinner: wash all opened steel wool in the silverware machine, keeping it weighted down with an empty silverware tray, and be careful because it comes out very hot.",
+            "Sunday lunch: scrub the back wall behind the sinks in scullery with Pantastic and rinse it.",
+            "Sunday dinner: clean the floors between dish machines in dishroom and spray underneath the machines to flush out trapped food."
+          ],
+          "source_images": [
+            "IMG_8287.JPG",
+            "IMG_8288.JPG"
+          ]
+        },
+        {
+          "title": "Sunday Dinner Close Down",
+          "items": [
+            "Do the normal dishroom close down first: clean machines, empty trashes, run cardboard, scrub floors, and clean the sinks in scullery.",
+            "Clean the pit drain and the two middle floor drains between the main dish machine and silverware machine. Remove grates if possible, remove all food, scrub the drain cover and grate with Pantastic, and replace all parts.",
+            "Clean the pulpers by removing food chunks to the garbage, scrubbing the outside with steel wool and Pantastic, and scrubbing the inside including underneath the top ledge.",
+            "In dishroom, also scrub the trough.",
+            "Close the lid, fill the pulper with water, and pour half a bottle of Consume into the pulper and the other half into the dish return trough, about one quarter bottle in each trough.",
+            "Clean the dish return drain and pulper drain and clear out any food.",
+            "If more instruction is needed, refer to the night custodial pulper training in the custodial closet."
+          ],
+          "source_images": [
+            "IMG_8289.JPG"
+          ]
+        }
+      ]
+    },
+    "jobs": {
+      "title": "Dishroom: Jobs",
+      "cards": [
+        {
+          "title": "Pit Lead",
+          "items": [
+            "Place the silverware trays on the bottom row of the carousel, alternating every 3 trays. When that is no longer possible, leave one space between trays.",
+            "Turn on the pulper with the green button and go to the head of the pit.",
+            "Use the control console to turn on the cup conveyor, blue belt, and carousel once everyone is ready.",
+            "During the shift, completely remove anything that cannot go into the pulper and throw it away.",
+            "Focus primarily on trash and silverware. Trash goes in your trash can and silverware goes in the mobile sink on your right.",
+            "Empty the silverware trays into the mobile sink.",
+            "If you have time, help the cups person by stacking cups and setting them aside.",
+            "At cleanup, rinse your station, clean the dish return area, spray the trap area and floor, spray under the blue belt, scoop out food and trash into a trash can, climb into No Man's Land from the left side to spray out food, squeegee the standing water, and return to help in dishroom."
+          ],
+          "source_images": [
+            "IMG_8290.JPG"
+          ]
+        },
+        {
+          "title": "Pit Crew",
+          "items": [
+            "Start with two bags in each trash can and agree on who will be first in line and what the plan is.",
+            "Remove plates from the carousel, scrape them into the pulper trough, and put the empty plates onto the blue belt.",
+            "Throw away anything that cannot go into the pulper. If you are unsure what goes in, think about what could be blended easily and check the sign above pit lead.",
+            "Stack scraped plates when possible to make more room on the blue belt.",
+            "Keep the carousel as clean as you can during service.",
+            "At cleanup, rinse the carousel and your station, then once large food is gone run cardboard through the pulper for about 5 minutes and press the blue button so it drains itself.",
+            "After the pulper drains, spray out the remaining pulp and run the overhead hoses into the trough for about 10 minutes to help the drain clear.",
+            "Remove the 2 traps in pit along with the cover, spray out the food, wheel everything off the floor from inside pit to the pulper, prepare diluted Oasis 135 Powerforce, scrub the floor in pit and pit lead, sweep up the remaining food, and take out all but one trash can."
+          ],
+          "source_images": [
+            "IMG_8291.JPG"
+          ]
+        },
+        {
+          "title": "Cups",
+          "items": [
+            "Make sure the cup machine is on and ready to start.",
+            "Bring an empty cup tower at a comfortable height to the station between pit lead and pit crew.",
+            "Load cups into cup racks one cup per slot, and send full racks on the cup conveyor belt to the cup machine.",
+            "Add more racks when the tower height becomes uncomfortable so you do not have to bend over as much.",
+            "When a cup cart is empty, give it to the loader so it can be cleaned.",
+            "At cleanup, rinse your station and the cup conveyor, remove both cup-machine traps, turn off and drain the machine, scrub all parts with steel wool and Pantastic, scrub the inside until the metal is reflective, reassemble the machine, and then help other dishroom areas."
+          ],
+          "source_images": [
+            "IMG_8292.JPG"
+          ]
+        },
+        {
+          "title": "Silverware",
+          "items": [
+            "Fill the mobile sink with water and 3 squirts of Silver Power to just above silverware-tray height, and place it to the right of pit lead.",
+            "Bring an empty silverware tray and at least 12 silver-wash cylinders to the dirty side of the silverware machine.",
+            "Run dirty silverware from the mobile sink directly through the machine.",
+            "After the wash cycle, dump the silverware onto the dirty side of the counter and sort it.",
+            "Start with forks and sort the silverware face up into the silver-wash cylinders, without filling them all the way.",
+            "Once the tray of cylinders is full, run the silverware through the machine again.",
+            "Change gloves before placing cleaned silverware into bins. The source notes 2 cylinders of spoons per bin, 1 1/2 cylinders of forks per bin, and 1 cylinder of knives per bin unless you want the bin very heavy.",
+            "Move filled bins to the silverware shelves or the extra silverware cart when needed.",
+            "Try to keep something running in the machine so you do not fall behind.",
+            "Pull out silverware that does not belong to the cafeteria and separate VIP pieces, BYU Catering pieces, and random missionary additions."
+          ],
+          "source_images": [
+            "IMG_8293.JPG"
+          ],
+          "uncertain_lines": [
+            "The image labels for the example non-cafeteria silverware are partly visual, but the VIP, BYU Catering, and random-additions split is clear."
+          ]
+        },
+        {
+          "title": "Loading",
+          "items": [
+            "Before the shift, agree with the unloader on the easiest loading configuration, including plate side and bowl direction.",
+            "Remove dishes from the blue belt and load them into the dish machine.",
+            "If dishes are not scraped enough, scrape the excess into the pulper or trash.",
+            "Make sure dishes and carts are arranged so the machine can actually clean them.",
+            "When cleaning cup carts, blue carts with a hole in the center go wheels down, and brown carts and other carts go wheels up.",
+            "At cleanup, gather the 2 loading traps at the end of the blue belts, empty the food, spray out the trap area and corners, and spray off the loading counter and your section of the blue belt.",
+            "When the last dishes reach unloading, stop the machine, drain it one section at a time, remove parts, spray the interior, scrub with Pantastic and steel wool, and pay extra attention to the underside of the doors, above the curtain areas, the wall under you, and underneath pipes.",
+            "Rinse everything, get checked off by the supervisor or lead trainer, put the machine back together, and help other areas."
+          ],
+          "source_images": [
+            "IMG_8294.JPG"
+          ]
+        },
+        {
+          "title": "Unloading",
+          "items": [
+            "Before the shift, agree with the loader on the easiest unloading configuration, including plate side and bowl direction.",
+            "Pull over empty or partial carts and build yourself a small work bubble with easy access to what you need, especially multiple plate carts.",
+            "Wear plastic gloves, unloading heat gloves, and another pair of plastic gloves on top to protect your hands and keep the gloves drier.",
+            "Press the green button on the unloading side when you are ready.",
+            "Unload dishes into the correct carts.",
+            "If dishes are still dirty, send them back to the loader when needed. If the food brushes off cleanly with no residue, the dish is still considered clean.",
+            "When a cart is full, put it under the condiments prep table in the kitchen and bring back a new cart.",
+            "At cleanup, move carts back to the walls so the area stays open and clean dishes do not get re-dirtied.",
+            "When the last dishes reach you, stop and drain the machine one section at a time, remove parts, spray the interior, scrub with Pantastic and steel wool, focus on door undersides, curtain areas, the wall under you, and pipes, rinse, get checked off, reassemble the machine, and help elsewhere."
+          ],
+          "source_images": [
+            "IMG_8295.JPG"
+          ]
+        }
+      ]
+    },
+    "scullery": {
+      "title": "Dishroom: Scullery",
+      "cards": [
+        {
+          "title": "Scullery Organization",
+          "items": [
+            "Always consolidate carts.",
+            "Always keep someone scrubbing and moving things through the sinks.",
+            "Spray sheet pans over the drain and make sure the pan machine is running with dishes in it whenever possible.",
+            "When you have extra hands, use them on rice pans and other dishes with stubborn food.",
+            "Take care of raw-meat dishes quickly.",
+            "If you have no dishes to clean, check main dish, the serving lines, and the island.",
+            "With 1 person, scrub a batch, move it through the sink, and cart it up. If possible, also use the pan machine.",
+            "With 2 people, use 1 scrubber and sink operator and 1 sheet-pan sprayer and pan-machine operator.",
+            "With 3 or more people, keep 2 scrubbers when possible, add a sheet-pan sprayer, move dishes through the sink and machine, and use extra hands on difficult dishes, meat bins, buckets, and full carts."
+          ],
+          "source_images": [
+            "Dishroom23.JPG"
+          ],
+          "uncertain_lines": [
+            "The staffing chart is partly visual, so the guide keeps the clearly readable staffing principles instead of reproducing every chart cell verbatim."
+          ]
+        },
+        {
+          "title": "Scullery Jobs",
+          "items": [
+            "Pan scrubber: 2-inch, 4-inch, and 6-inch full-size pans, both metal and plastic, plus larger bins normally go through the pan machine.",
+            "Use an empty metal cart for rinsed pans so they move to the machine more easily.",
+            "Let difficult pans soak before scrubbing them again.",
+            "Stand pans vertically in the machine when needed to fit more inside.",
+            "When the pan machine is full, close it and press the short button. Let the wash, rinse, and cool cycle finish before opening it.",
+            "Open the machine carefully because pans can fall out.",
+            "Load cleaned pans onto a plastic cart and put bins back on their shelves.",
+            "Utensil scrubber: smaller items and utensils that could get lost should go into the small-item compartment.",
+            "Let dishes tumble in the wash sink for at least 30 seconds, then move them to the rinse sink, then the sanitizer sink, then let them sit in sanitizer at least 30 seconds before drying.",
+            "Load cleaned dishes onto plastic carts and keep the carts organized.",
+            "Sheet pans: gather them onto one cart, spray the front and back, scrub if needed, and move cleaned pans onto another cart or onto the walk-in rack.",
+            "If the walk-in is being used, fill the rack, wheel it into the walk-in machine, and push START.",
+            "When finished with your main task, help where needed, especially moving dishes through sinks or unloading a machine."
+          ],
+          "source_images": [
+            "IMG_8296.JPG"
+          ]
+        },
+        {
+          "title": "Scullery Cleanup",
+          "items": [
+            "Pan scrubber cleanup: except on Wednesdays and Thursdays, clean the pan machine by turning it off, draining it, removing the racks, base, baskets, and screens, rinsing and scrubbing them, scrubbing the machine with Pantastic, and putting everything back together.",
+            "Utensil scrubber cleanup: turn off the tumble sink, drain all three sinks, rinse food out of all steel wool, scrub the counters and sink interiors with Pantastic, remove and scrub the small wash compartment, rinse the sinks, and leave the drains open to dry.",
+            "Sheet-pan cleanup: unless told otherwise, clean the walk-in machine by turning it off and draining it carefully, removing the 4 traps and 4 poles, scrubbing them, scrubbing the walls and ceiling, removing the 5 floor pieces, and scrubbing underneath the floor and the pipes.",
+            "The floor piece with notches in two corners is the front piece when the walk-in is reassembled.",
+            "Run at least half a box of cardboard through the pulper for at least 5 minutes, then press the blue button so it drains itself. Do not stop the pulper after the blue button is pressed.",
+            "Clean the large drain in front of the walk-in machine.",
+            "Remove the metal stool and the squeegees stored on top of it while cleaning that area.",
+            "Help with miscellaneous tasks after the main cleanup is done."
+          ],
+          "source_images": [
+            "IMG_8297.JPG"
+          ]
+        }
+      ]
+    }
+  },
+  "night_custodial_guides": {
+    "dishroom_scullery": {
+      "title": "Night Custodial: Dishroom + Scullery",
+      "cards": [
+        {
+          "title": "Blue Belt Cleaning",
+          "items": [
+            "Tools: red bucket with Pantastic and water, long-handled white brush, steel wool, Envirox H2Orange Concentrate 117 spray bottle, large dishroom hose, powerwasher, and masking tape.",
+            "Set up by day: Tuesday = Dish Return, Wednesday = Pit, Thursday = Extra.",
+            "Plug in the powerwasher in the Dish Return closet and attach the hose.",
+            "Tape around the fin closest to the end of the belt so you know where to stop.",
+            "Spray the belt with H2Orange, scrub the top with the long-handled white brush, lift each fin and scrub between them, then rinse.",
+            "Lift the belt off the tracks, spray the tracks with H2Orange, scrub with steel wool, and powerwash them, including the cracks in the track.",
+            "Lay the belt upside down on the tracks, spray it with H2Orange, scrub it with the long-handled white brush, and powerwash it again.",
+            "Pay close attention to the center joints. There should not be any black left on the belt when you are done.",
+            "Reattach the belt and rotate it using the Dishroom control panel, using the spray bottle marker to know when you have reached the taped fin."
+          ],
+          "source_images": [
+            "IMG_8243.JPG"
+          ]
+        },
+        {
+          "title": "Underworld Cleaning",
+          "items": [
+            "Tools: red bucket with Pantastic and water, long-handled white brush, steel wool, deck brush, squeegee, Oasis 135 Powerforce, hose, and Consume.",
+            "Spray out the blue-belt track with the hose.",
+            "Scrub the track under the blue belt with Pantastic diluted in water, lifting the belt with one hand and scrubbing with the other.",
+            "Remove chunks of food and debris, then rinse the track.",
+            "Evenly distribute a bottle of Consume across the track.",
+            "Spray down the walls, scrub them with Pantastic, and pay close attention to grout lines.",
+            "Spray the floor, spread Oasis 135 Powerforce on it, scrub with a deck brush, and pay extra attention to edges by the walls.",
+            "Rinse the floor, squeegee the water into the drain, and clean the drain under the dish return with Pantastic and steel wool.",
+            "Report insect or pest sightings to your supervisor, and ask whether Limeaway is needed for excess buildup."
+          ],
+          "source_images": [
+            "IMG_8244.JPG"
+          ]
+        },
+        {
+          "title": "Cup Conveyor and Fans",
+          "items": [
+            "For the cup conveyor, start at the No Man's Land end and scrub the rotating steel rods, sides of the conveyor, areas beneath the conveyor, removable blue plastic rod sets, everything beneath them, and the drain near the hose.",
+            "Remove the blue plastic rod sets to scrub them, rinse the conveyor completely, replace the rod sets, squeegee the water into the nearest drain, and clean that drain.",
+            "For dishroom fans, move clean dishes and silverware away first.",
+            "Sanitize the outside of the fans and identify which one, if any, needs inside cleaning.",
+            "Only open one dirty fan per shift.",
+            "Yellow fans open with screws. Black fans need to be pried open.",
+            "Sanitize the inside of the open fan, put it back together, clean the shelves beneath it, sweep the floors, and move dishes and silverware back into place."
+          ],
+          "source_images": [
+            "IMG_8246.JPG",
+            "IMG_8247.JPG"
+          ]
+        },
+        {
+          "title": "Basement Stairs",
+          "items": [
+            "Tools: broom, dust pan, mop, mop head, mop bucket, Wash N' Walk, and wet floor sign.",
+            "Prep the mop bucket in the Scullery mop closet using Wash N' Walk diluted in water, and attach a mop head to the mop.",
+            "Sweep the stairs and high-traffic basement areas before mopping.",
+            "Carefully carry the mop bucket down the stairs and mop the high-traffic areas first.",
+            "Change the Wash N' Walk solution at least once while mopping the basement and again before doing the stairs.",
+            "Put the wet floor sign at the top of the stairs.",
+            "When mopping stairs, begin at the bottom and work upward to avoid slipping and tracking residue.",
+            "Leave the wet floor sign at the top until the stairs are dry.",
+            "When finished, remove the mop head, place it in a dirty mop-head bag, dump the solution, and rinse the bucket."
+          ],
+          "source_images": [
+            "IMG_8245.JPG"
+          ]
+        },
+        {
+          "title": "Plate Carts",
+          "items": [
+            "Tools: red bucket with Pantastic and water, green scrubber, red bucket with Oasis 146 Multi-Quat Sanitizer, rag, hose, and squeegee.",
+            "Starting with an empty cart in Dishroom, scrub off built-up food with Pantastic and the green scrubber, rinse well, then wipe it down with sanitizer and a rag.",
+            "Repeat the process for all empty carts.",
+            "Collect carts from Island, Cafe West, Cereal, Desserts, and Condiments.",
+            "Transfer clean dishes into a cart you already cleaned.",
+            "Clean the full carts the same way: Pantastic scrub, full rinse, then sanitizer wipe-down.",
+            "Repeat for all full carts, redistribute them to the cafeteria stations, and squeegee the floor water into the nearest drain."
+          ],
+          "source_images": [
+            "IMG_8258.JPG"
+          ]
+        },
+        {
+          "title": "Pulpers and Dish Return",
+          "items": [
+            "Tools: bucket of Pantastic, green scrubber, steel wool if needed, 2 bottles of Consume, and green gloves.",
+            "For the dishroom pulper, turn it off with the yellow button or, if needed, the red button, then switch the wall emergency switch to OFF.",
+            "Open the pulper drain by pulling the yellow lever underneath it to the vertical position.",
+            "While it drains, spray the trough, push gunk into the pulper, then scrub remaining buildup with Pantastic and the green scrubber.",
+            "Clean the pulper top, lid, inner ring corners, inner walls, rim, trough connection point, and magnetic mechanism with Pantastic, rinsing thoroughly as you go.",
+            "Pull out any glass with green gloves and put it in the glass bucket along the east wall of Dishroom. Throw away other trash.",
+            "Close the drain, refill the pulper so the three fins are covered, and add half a bottle of Consume.",
+            "Clean the seven food traps in Dishroom and all pull-out pieces.",
+            "For the scullery pulper, shut it off the same way, open the drain, scrub the table or counter, wall, and water-flow crack with Pantastic, then clean the pulper the same way as the dishroom pulper.",
+            "Clean the blue curtains, the front and back of the curtain frame, and under the ledge, then refill the pulper using the hanging sprayers and add half a bottle of Consume.",
+            "Clean the 3 drains in Scullery.",
+            "For the mother pulper, get the keys from the assistant manager's office, drain the pulper from the backside valve, remove the lid, spray and scrub all sludge areas including the cylindrical pipe and the back pipe, rinse, close the drain, and refill the water to about 1 to 2 inches below the back pipe.",
+            "While it fills, scrub the floor around the mother pulper with Powerforce, rinse, and squeegee what you can into the drain, then scrub the drain and grate with Pantastic.",
+            "When the mother pulper is full, add half a bottle of Consume.",
+            "Put one quarter bottle of the remaining Consume into each dish-return trough, spot-clean the troughs with the green scrubber, and do not rinse it out."
+          ],
+          "source_images": [
+            "IMG_8259.JPG",
+            "IMG_8260.JPG"
+          ],
+          "uncertain_lines": [
+            "The pulper pages are two-page instructions with broken OCR numbering, so the guide keeps the readable task order rather than mirroring every OCR line break.",
+            "The chemical name Consume is preserved from the source."
+          ]
+        }
+      ]
+    },
+    "floors": {
+      "title": "Night Custodial: Floors",
+      "cards": [
+        {
+          "title": "Main Floors and Drains",
+          "items": [
+            "Tools: red hose from the custodial closet, deck brushes, squeegees, Hydrofoamer bottle, hose nozzle, Oasis 135 Powerforce, red bucket with Pantastic and steel wool, and a way to collect food scraps.",
+            "Hook up the hose under Chef's Table in Main Dish and place rags in the custodial-closet doorway.",
+            "Remove ramps from warmers and coolers in Main Dish, Salads, and Cafe West.",
+            "Start in Bakery and work toward Cafe West, cleaning one section at a time.",
+            "Spray the floors with water until wet but not soaked, connect the Hydrofoamer, and soap the floors.",
+            "Scrub every reachable section of the floors, including under shelves, racks, edges, and corners, but not inside lockers.",
+            "Rinse the floors and squeegee all water, including under shelves and in locker doors, into the nearest drains.",
+            "Repeat section by section until the full floor area is done.",
+            "For drains, remove the cover and trap, throw away debris, scrub the drain, trap, and cover with Pantastic, and repeat for all drains.",
+            "The source drain list includes Bakery, Main Dish, specialty-meals areas, salad prep, Bain Marie, Tilt Skillet, garnish fridge, BIB racks, and five drains on the island."
+          ],
+          "source_images": [
+            "IMG_8250.JPG"
+          ]
+        },
+        {
+          "title": "Gray Floors",
+          "items": [
+            "Tools: red bucket with Pantastic and water, steel wool, deck brush, squeegee, Oasis 135 Powerforce, hose, and white bucket.",
+            "Start on the northwest dock behind Scullery and clear the floor up to Locker 12. Move pallets with the pallet jack and move carts, but do not move the grease dumpster or anything unreasonable.",
+            "Spray the cleared floor, spread Powerforce from the mop closet using the white bucket, scrub with the deck brush, and squeegee the water into the nearest drain.",
+            "Return everything to where it was.",
+            "Clear the area in front of Lockers 12 and 13, move everything onto the red floors in Scullery, and clean that area the same way.",
+            "Clear the area between Cafe West and Scullery and clean it the same way.",
+            "Clean the drains using Pantastic diluted in water and steel wool."
+          ],
+          "source_images": [
+            "IMG_8251.JPG"
+          ],
+          "uncertain_lines": [
+            "One OCR line appears to read squeegee wall water into the nearest drain; the operational meaning is clearly to squeegee the floor water into the drain."
+          ]
+        }
+      ]
+    },
+    "equipment": {
+      "title": "Night Custodial: Equipment",
+      "cards": [
+        {
+          "title": "Fryers and Oil",
+          "items": [
+            "Tools: red bucket with Pantastic and water, steel wool, colander, the R2 unit oil pump drum, filter paper, and paper towels.",
+            "Check the Oil Filter Log in Main Dish before starting.",
+            "Disconnect fryers by unplugging the power cord, turning the gas valve perpendicular to the pipe, pulling back the blue pipe coupling while pushing the pipe forward, unhooking the safety carabiner, and moving the fryer to Scullery.",
+            "Use the Oil Clarity Test Kit in Cafe West to test oil clarity, and use the R2 oil filter near the Scullery entry.",
+            "To empty fryers, place the nozzle into the oil, switch it to Fill, and monitor the extraction so the nozzle does not fall out or clog.",
+            "Put the colander over the long drain in Scullery, remove the Crud Catcher, Rack, and Basket Hanger, open the front door and valve, and spray out the fryer interior with the yellow hose attached to the walk-in machine.",
+            "Scrub the fryer interior, exterior, and removable parts with Pantastic and steel wool, rinse well, dry thoroughly with paper towels, and reassemble.",
+            "To refill oil, put the nozzle into the fryer, switch it to Filter, and monitor it so it does not spray oil everywhere.",
+            "Record all oil filtering and oil changes on the Fryer Oil Log.",
+            "Change oil when it fails the clarity test or when the log requests it. Check for new oil in the cage first.",
+            "Roll R2 to the Oil Dumpster on the northwest dock behind Scullery, then use the same refill procedure for the dumpster and refill the fryer with new oil to the middle line.",
+            "Clean R2 with paper towels only. Do not use soap or water. Throw away the thin paper filter, not the cardboard filter."
+          ],
+          "source_images": [
+            "IMG_8248.JPG",
+            "IMG_8249.JPG"
+          ],
+          "uncertain_lines": [
+            "The fryer continuation page is structurally messy in OCR, but the oil-change criteria and refill workflow are clear."
+          ]
+        },
+        {
+          "title": "Flat Tops",
+          "items": [
+            "Tools: hose, degreaser spray bottles, thin wire brushes, steel wool, metal butter knife for scraping, screwdriver for the back panel, and full PPE including rubber apron, arm-length gloves, green rubber gloves, face mask, goggles, and masking tape.",
+            "Put on the PPE before starting.",
+            "Disconnect flat tops by unplugging the power cord, turning the gas valve perpendicular to the pipe, pulling back the blue pipe coupling while pushing the pipe forward, unhooking the safety carabiner, and removing the back panel with a screwdriver.",
+            "Spray degreaser and scrub all grease, dirt, and buildup in the corners and edges. Go over it multiple times if needed.",
+            "Spray off the chemical and grime with the nearest hose.",
+            "Clean the surrounding floors and wall behind the flat tops.",
+            "Reconnect the flat tops when finished."
+          ],
+          "source_images": [
+            "IMG_8252.JPG"
+          ]
+        },
+        {
+          "title": "Cafe West Hoods",
+          "items": [
+            "Tools: red bucket with Pantastic and water, steel wool, paper towels, ladder, hose, deck brush, and squeegee.",
+            "Fill the pan machine in Scullery and take the large wireframe cart to Cafe West.",
+            "Disconnect all equipment and move it out from under the hoods.",
+            "Turn off the hood fans on the panel in the B.I.B. Room if they are still on.",
+            "Remove all hood segments and drip pans.",
+            "Take the pieces to Scullery and run them through the pan machine on the Long cycle.",
+            "Spray down the hoods, protecting outlets with tape if needed.",
+            "Scrub the inside hood slots, outer lip, ceiling, walls, fire suppressant pipes, and the bottom of the hood lip with Pantastic.",
+            "Run another Long cycle on the removed pieces once during the scrubbing process.",
+            "Rinse the hoods, dry flat areas with the squeegee and the rest with paper towels, return the cleaned pieces, replace all equipment, and clean the pan machine."
+          ],
+          "source_images": [
+            "IMG_8253.JPG"
+          ]
+        },
+        {
+          "title": "Ovens",
+          "items": [
+            "All PPE is required: rubber apron, green rubber gloves, arm-length gloves taped around the arms, face mask, goggles, full Night Custodial uniform, long pants, and rubber boots.",
+            "Make sure all ovens are off.",
+            "Remove oven racks, take them to Scullery, and run them through the pan machine on a Long cycle.",
+            "Spray the oven interiors with degreaser and let it sit for ten minutes.",
+            "Scrub the doors, ceiling, walls, floors, and back grill with Pantastic and steel wool.",
+            "Take breaks, drink water, and get fresh air as needed. The degreaser is strong.",
+            "Run a second Long cycle on the racks once during the scrubbing process.",
+            "Rinse the ovens thoroughly with the hose so no chemical remains.",
+            "Wipe down the interior with paper towels to remove remaining grease and chemicals.",
+            "Replace the oven racks and clean the pan machine."
+          ],
+          "source_images": [
+            "IMG_8254.JPG"
+          ]
+        },
+        {
+          "title": "Main Dish Hoods",
+          "items": [
+            "Tools: red bucket with Pantastic and water, steel wool, metal butter knife for scraping, ladders, hose, squeegee, paper towel, and patience.",
+            "Fill the pan machine in Scullery and take the large wireframe cart to Main Dish.",
+            "Remove all cooking equipment, utensils, and tools from under the hoods you are cleaning.",
+            "Remove hood panels by twisting the spring-loaded hammers and removing the hanging safety hook, then remove the drip trays.",
+            "Run the removed pieces through the pan machine on the Long cycle.",
+            "Scrub the hood area thoroughly with steel wool, scraper, and Pantastic.",
+            "Run the hood pieces through another Long cycle once during the scrubbing process.",
+            "Rinse the area well with the hose, dry it with squeegees and paper towels, return the cleaned pieces, and replace the removed equipment and tools.",
+            "Sanitize steam-pot lids as needed and clean the pan machine when done."
+          ],
+          "source_images": [
+            "IMG_8261.JPG"
+          ],
+          "uncertain_lines": [
+            "The source page includes a long humorous paragraph; the guide keeps the operational steps rather than the extra flavor text."
+          ]
+        }
+      ]
+    },
+    "stations": {
+      "title": "Night Custodial: Beverage + Cereal Stations",
+      "cards": [
+        {
+          "title": "Beverage Line Cleaning",
+          "items": [
+            "Schedule: Tuesday = Line 4, Thursday = Line 2 and Line 3, Friday = Line 6.",
+            "To empty the machines, use forks to carefully pinch shut the milk tubes without puncturing them.",
+            "Remove the milks and place them on a cart, and turn the milk machines off if possible so the ice can melt.",
+            "Remove all juice concentrates from the juice machines and place them on the cart too, then take the cart to the nearest locker that is not a freezer.",
+            "For milk machines, remove the silver milk handles and gray milk bracers and put them in a silverware crate.",
+            "Use hot water to remove ice buildup, then clean with sanitizer.",
+            "Turn the milk machines back on when you are done so they can cool to below 41 degrees before the milk is returned.",
+            "After the parts are washed in the silverware machine, replace the parts and the milks when cold enough.",
+            "For juice machines, attach gray juice containers to the yellow connectors and run hot water through the lines by pressing the star button until the water runs clear.",
+            "Remove the yellow juice heads, white nozzles, black box bases, and black elbow connectors and put them in a silverware crate.",
+            "Wash out the orangey-yellow tubes with hot water.",
+            "Clean the machine with pipe cleaners and a knife with a rag to reach small spaces, then wipe the inside, outside, and underneath.",
+            "After all parts have been washed in the silverware machine, replace them correctly.",
+            "Replace the juice concentrates and run the machine until the juice dispenses normally."
+          ],
+          "source_images": [
+            "IMG_8255.JPG",
+            "IMG_8256.JPG"
+          ],
+          "uncertain_lines": [
+            "The beverage-line page appears twice and is image-heavy, but the schedule and cleaning workflow are consistent.",
+            "One OCR line says silverware crater; the intended wording is clearly silverware crate."
+          ]
+        },
+        {
+          "title": "Cereal Dispensers",
+          "items": [
+            "Tools: 6-inch pans for all cereals, silverware machine, silverware racks, rags, and a trash can.",
+            "Start the silverware machine first.",
+            "Pour cereal from one tower at a time into 6-inch pans until all cereal is out.",
+            "Take the towers to Dishroom and fully disassemble them by removing the black base, tension rod, latches, sealing ring, metal smiley face, springs, and any rubber tongue that is still installed.",
+            "Load the small pieces in a silverware rack and cover them with another rack.",
+            "Load the black bases on the top rack and run them through the silverware machine.",
+            "Load the towers upside down in another rack and run them through the machine.",
+            "Repeat until everything has been washed.",
+            "Dry everything completely with rags so there is no moisture left to cause cereal clumping or soggy cereal.",
+            "Reassemble the dispensers by reversing the disassembly steps.",
+            "Cinnamon Toasters only work in dispensers with a bubble nose and no rubber tongue.",
+            "Tootie Fruities cannot go into dispensers with a flat nose.",
+            "Small cereals use smaller openings. Bigger cereals use bigger openings."
+          ],
+          "source_images": [
+            "IMG_8257.JPG"
+          ]
+        }
+      ]
+    }
+  },
+  "line_misc_guides": {
+    "title": "Line Misc",
+    "cards": [
+      {
+        "title": "Aloha Plate Leftovers",
+        "items": [
+          "Dinner leftovers: if there is a use first sticker on any meat or rice, it goes to student table or gets tossed in scullery; otherwise, put everything away as instructed.",
+          "Mac salad past 7 days gets tossed.",
+          "Coleslaw past the date on the label gets tossed.",
+          "Wipe teriyaki-sauce bottles before returning them to Locker 9. If they are too low, combine them into one bottle and place the dirty empty ones on the scullery cart.",
+          "Shoyu chicken goes unwrapped onto the leftover meat only rack and then to Locker 1.",
+          "Kalua pork should be transferred from 2-inch full pans into cooking-tray sheets, placed on the leftover meat only rack, and moved to Locker 1.",
+          "Spam goes unwrapped onto the leftover meat only rack and then to Locker 1.",
+          "Rice should be transferred from 2-inch full pans into cooking-tray sheets, split into 2 trays if needed, and moved on the leftover rice only rack to Locker 9.",
+          "Hawaiian mac salad and coleslaw stay wrapped and go to Locker 8."
+        ],
+        "source_images": [
+          "AlohaLeftovers.JPG"
+        ]
+      },
+      {
+        "title": "Aloha Plate Prep Check-Off",
+        "items": [
+          "Clean and sanitize Aloha prep areas and warmer and cooler doors.",
+          "Sweep out warmer and cooler floors.",
+          "Clean the steam kettle used for pork.",
+          "Take out trash and replace the bag.",
+          "Do the daily grill cleaning.",
+          "Take and replace the scullery cart.",
+          "Label all leftovers with the product name and date and place them on the correct cooler rack.",
+          "Do not cover leftovers except for mac salad and coleslaw.",
+          "Rice, mac salad, and coleslaw leftovers go in Loc-9.",
+          "Meat leftovers go in Loc-1.",
+          "Scrub Aloha Plate floors.",
+          "Friday only: deep clean the grill.",
+          "Clean the grill drip pan and line it with new aluminum foil.",
+          "Clean cast-iron grills through the silverware machine."
+        ],
+        "source_images": [
+          "AlohaPrepsheetehcekdoff.JPG"
+        ]
+      },
+      {
+        "title": "Dessert Rules and Storage",
+        "items": [
+          "Always use plastic instead of metal sheet trays unless the specific dessert rule says otherwise.",
+          "Never serve donuts or muffins during dinner.",
+          "Always serve stacked cookies.",
+          "Always keep a clean counter.",
+          "Never stack donuts.",
+          "Always remember silverware and serving utensils.",
+          "Keep desserts stocked, and help serve food when you are not busy.",
+          "Do not put donuts, cookies, or Rice Krispy Treats in the locker.",
+          "Do not forget to restock cereal bowls.",
+          "Top shelf items are never on trays.",
+          "Bottom shelf items are always on plastic sheet trays.",
+          "Brownies can stay on metal sheet trays.",
+          "Cake stays on the cardboard and then on an upside-down plastic sheet tray."
+        ],
+        "source_images": [
+          "Deserts.JPG",
+          "Desserts.JPG"
+        ]
+      },
+      {
+        "title": "Line Deep Cleaning Assignments",
+        "items": [
+          "These assignments must be completed each shift. Talk to a Student Manager if you do not fully understand your assignment.",
+          "Monday breakfast: clean underneath beverage lines and steel polish metal trim on Line 6.",
+          "Monday lunch: clean underneath beverage lines and steel polish metal trim on Line 1 and 2, including the nearest cereal station.",
+          "Monday dinner: clean underneath beverage lines and steel polish metal trim on Line 4, including the nearest cereal station.",
+          "Tuesday breakfast: sanitize and organize under shelves and the student table in Cafe West.",
+          "Tuesday lunch: deep clean the panini presses.",
+          "Tuesday dinner: swap out and clean breakfast topping holders and large white tubs.",
+          "Wednesday breakfast: clean all of the sneeze guards.",
+          "Wednesday lunch: on serving lines, wipe underneath and scrub the white plastic boards.",
+          "Wednesday dinner: wash dustpans in the pan machine, replace sheet pans on the first three racks in Locker 10, and discard condiments 3 days or older.",
+          "Thursday breakfast: deep clean the right-side condiment dispensers in Cafe West and the condiment dispensers by D-100.",
+          "Thursday lunch: deep clean the left-side condiment dispensers and organize the station including underneath.",
+          "Thursday dinner: polish the metal trim and sanitize and organize underneath shelves and cupboards on the island.",
+          "Friday breakfast: defrost and sanitize the Blue Bunny ice cream freezer.",
+          "Friday lunch: clean and organize under the fruit bar and wipe out the microwave.",
+          "Friday dinner: clean Cafe West warmers.",
+          "Saturday breakfast: maintain the mop closet and mop the BIB room.",
+          "Saturday lunch: wash red buckets in the pan machine at the end of shift and deep clean the dustpans with hose and Pantastic.",
+          "Saturday dinner: maintain the Dish Return closet and Vacuum closet.",
+          "Sunday breakfast: clean pillars in Cafe West and swap towel buckets under the student table and both serving lines.",
+          "Sunday lunch: clean drip tubs under hanging rag bags in the custodial closet.",
+          "Sunday dinner: spot mop and sweep the red floors."
+        ],
+        "source_images": [
+          "LineDeepCleaningAssignemntsRotational.JPG"
+        ]
+      },
+      {
+        "title": "Sack Room Daily and Deep Cleaning",
+        "items": [
+          "Every shift: restock everything, vacuum the floor including the outside rugs, wipe off both counters, check expiration dates for milks, sandwiches, and salads, take out trash and replace the bag, reset the ticker to 0, sign out the cash register, lock both outside doors, turn off all lights, and leave the wooden door open between shifts.",
+          "Breakfast deep cleaning includes organizing oatmeal containers and lids, cleaning wooden cabinets inside and out, taking out empty boxes, deep cleaning the warmer, deep cleaning the fruit stand on both sides, and cleaning the door handles on all three doors.",
+          "Lunch deep cleaning includes sanitizing the cash register and wooden cashier station with glass cleaner, wiping down outside glass doors and cooler doors, sanitizing cooler shelves, organizing and decluttering the cashier-station drawer, and checking best-by dates that go past Sunday."
+        ],
+        "source_images": [
+          "SackRooomClaeaningChecklist.JPG",
+          "SackRoomDeepCleaningAssignmentsRotational.JPG"
+        ],
+        "uncertain_lines": [
+          "The deep-cleaning schedule pages are table-based, so the breakfast and lunch groupings are the clearest parts of the OCR.",
+          "The later shift cells should be re-checked against the images if you want the full weekly matrix reproduced."
+        ]
+      },
+      {
+        "title": "Server and Runner Responsibilities",
+        "items": [
+          "Server before doors open: follow the line map, set up the serving line, put out the display plate, and place 6 plates or 10 bowls on the hot pad.",
+          "Server while doors are open: serve the food and communicate needs to the runner.",
+          "Runner before doors open: talk to the cooks about when to call out low food, get a grease bucket if needed, and make sure there is a scullery cart.",
+          "Runner while doors are open: replace food as it runs out, restock plates, wipe out empty plate carts, notify cooks when items are getting low, and take the scullery cart back when it is full or when time allows.",
+          "The runner's last priority is helping the server serve food.",
+          "After doors close: clean up the serving line, turn off heaters and lights, clean the hot pad and surrounding counter, dry out the hot wells, close the drain and dump the bucket water, sweep the area, take out the trash, dump the grease bucket if needed, and restock plates or bowls for the next shift."
+        ],
+        "source_images": [
+          "Server : Runner responsibilities.JPG"
+        ]
+      },
+      {
+        "title": "Muffins Pull Sheet",
+        "items": [
+          "Pull muffins from Locker 11 and let them defrost in Locker 10 overnight.",
+          "Sunday through Friday, pull brown crates for blueberry, lemon poppyseed, banana nut, and butterscotch muffins as listed on the sheet.",
+          "Saturday uses a heavier muffin pull with multiple brown crates of each listed muffin type.",
+          "If it looks like muffins may run out before breakfast ends, pull more and warm them in the oven if needed."
+        ],
+        "source_images": [
+          "MuffinsInstrucitons.JPG"
+        ],
+        "uncertain_lines": [
+          "The exact Saturday crate counts are noisy in OCR and should be checked against the image if you want the precise numbers."
+        ]
+      }
+    ]
+  },
+  "safety_guides": {
+    "title": "Safety",
+    "cards": [
+      {
+        "title": "Chemical Safety",
+        "items": [
+          "Keep cleaning materials off of and away from surfaces used to prep, serve, or hold food.",
+          "Always wear gloves when handling cleaning chemicals.",
+          "After cleaning, always change to a new pair of gloves before starting a new task."
+        ],
+        "source_images": [
+          "ChemicalSafety.JPG"
+        ]
+      },
+      {
+        "title": "Reporting Safety Issues",
+        "items": [
+          "If you notice something unsafe, notify your supervisor immediately.",
+          "If the issue is not resolved there, contact the Dining Services safety hotline.",
+          "The poster provides three reporting methods: call, text, or email."
+        ],
+        "source_images": [
+          "SafetyPoster.JPG"
+        ],
+        "uncertain_lines": [
+          "The final confidentiality line is clipped in OCR."
+        ]
+      },
+      {
+        "title": "Oasis 146 Sanitizer Reference",
+        "items": [
+          "Oasis 146 Multi-Quat Sanitizer is a no-rinse sanitizer for pre-cleaned hard, non-porous food-prep surfaces and ware.",
+          "The label lists a usable dilution range of 0.26 to 0.68 ounces per gallon of water.",
+          "The acceptable test range shown is 150 to 400 ppm.",
+          "Use test paper at room temperature, dip it for 10 seconds without shaking, and compare the color immediately against the package scale.",
+          "Expose equipment, ware, or utensils to the sanitizer for at least one minute, then let them air dry."
+        ],
+        "source_images": [
+          "Sanitizer.JPG"
+        ]
+      }
+    ]
+  },
+  "general_information_guides": {
+    "title": "General Information",
+    "cards": [
+      {
+        "title": "Accountability Policy",
+        "items": [
+          "The policy tracks points for sick calls, extenuating circumstances, late arrivals, no-shows, discipline, incomplete shifts, and lost or forgotten uniform items.",
+          "Extenuating circumstances must be approved by Donna, a manager, or a student manager, and they must be both called in and posted on W2W.",
+          "If a sick call is not called in and posted on W2W before the supervisor or lead trainer clocks in, it counts as a no-show.",
+          "On weekend sick calls, if Donna does not answer, the sheet says to call or text the supervisor instead.",
+          "Posting a shift without finding a sub still counts as a no-show.",
+          "Clocking out early without permission or leaving work unfinished can also earn points.",
+          "Points expire after 3 months unless there is a longer seasonal break.",
+          "Talk to the Lead Student Manager to get points removed.",
+          "The poster also shows escalating consequences at 10, 15, and 20 points, with termination at 20 points."
+        ],
+        "source_images": [
+          "Accountability Policy.JPG"
+        ],
+        "uncertain_lines": [
+          "The top point matrix is cramped, so the card keeps the policy rules and escalation rather than restating every grid value."
+        ]
+      },
+      {
+        "title": "Cashier Training Signup",
+        "items": [
+          "Cashier training is required.",
+          "The sheet says training is offered every week and takes around 30 minutes.",
+          "Text the trainer you are signing up with so they actually know to come.",
+          "If the listed times do not work, the sheet says to text Spencer, Colby, or Makayla first, and if that still does not work, text Dalin Haas.",
+          "The visible recurring time slot is Monday, Wednesday, and Friday from 9:30 to 10:00 a.m."
+        ],
+        "source_images": [
+          "Cahsier Training.JPG"
+        ],
+        "uncertain_lines": [
+          "The top of the image has bleed-through from another page, and the name and phone-number table alignment is noisy."
+        ]
+      },
+      {
+        "title": "Equal Opportunity",
+        "items": [
+          "BYU prohibits unlawful discrimination based on race, color, national origin, religion, sex, age, veteran status, pregnancy, disability, or genetic information.",
+          "The policy also covers unlawful sexual harassment.",
+          "This commitment applies to recruiting, hiring, training, promotion, transfer, conditions of employment, benefits, discipline, layoff, termination, and student opportunities.",
+          "The Equal Opportunity Office provides training and consultation and handles Title VII, ADEA, ADA, discrimination, and retaliation concerns.",
+          "The poster includes contact information for the Equal Opportunity Manager, Employee Relations Manager, and the Title IX Coordinator."
+        ],
+        "source_images": [
+          "Equal Opportunity.JPG"
+        ]
+      },
+      {
+        "title": "Sacrament Meeting Information",
+        "items": [
+          "Sacrament is available every Sunday in D100 at 9:00 a.m."
+        ],
+        "source_images": [
+          "Sacrament Meeting ifrmation.JPG"
+        ]
+      },
+      {
+        "title": "North Chapel Parking Access Policy",
+        "items": [
+          "The chapel lot directly north of campus may be used by full-time or part-time staff Monday through Friday.",
+          "Use the card swipe to access campus, and the same entrance rules apply as at other campus entrances.",
+          "Do not speed on Stadium Avenue.",
+          "The lot is not available on Saturdays or when a funeral is scheduled.",
+          "Swipe your card to enter the pedestrian gate and push the button to exit.",
+          "Make sure the gate closes behind the last authorized person.",
+          "On Wednesdays during New Missionary Day intake, employees, volunteers, and ecclesiastical leaders should not use the main MTC vehicle entrance from about 12:30 to 2:30 p.m."
+        ],
+        "source_images": [
+          "StudentParkingPolicy.JPG"
+        ]
+      }
+    ]
   },
   "metadata": {
     "extraction_scope": "Operational extraction only; no UI/app logic included.",

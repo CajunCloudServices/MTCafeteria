@@ -28,36 +28,29 @@ const announcements = [
   {
     id: 1,
     type: 'Reminder',
-    title: 'Clean-Shaven Reminder',
-    content: 'Come to work clean shaven and ready for your shift.',
+    title: 'Shift Readiness Reminder',
+    content:
+      'Arrive on time, clean shaven, and dressed in missionary-appropriate work attire.',
     startDate: today,
     endDate: longFuture,
     createdBy: 4,
   },
   {
     id: 2,
-    type: 'Reminder',
-    title: 'Missionary-Appropriate Attire',
-    content: 'Wear missionary-appropriate clothing when coming to work.',
+    type: 'Announcement',
+    title: 'Seasonal Shift Sign-Up',
+    content:
+      'Complete your spring and summer shift sign-up, even if you expect to be away, so staffing can be planned correctly.',
     startDate: today,
     endDate: longFuture,
     createdBy: 4,
   },
   {
     id: 3,
-    type: 'Announcement',
-    title: 'Spring and Summer Shift Sign-Up',
-    content:
-      'Sign up for spring and summer shifts even if you will be away so we know who will and will not be here.',
-    startDate: today,
-    endDate: longFuture,
-    createdBy: 4,
-  },
-  {
-    id: 4,
     type: 'Special Event',
-    title: 'VIP Event Sign-Up',
-    content: 'Sign up for next Tuesday’s VIP event if you are available to help.',
+    title: 'VIP Event Volunteer Sign-Up',
+    content:
+      'Volunteer sign-up is open for next Tuesday’s VIP event. Add your name if you are available to help.',
     startDate: tomorrow,
     endDate: longFuture,
     createdBy: 4,
@@ -204,6 +197,24 @@ const jobDefinitions = [
           'Trash emptied',
         ],
       },
+    },
+  },
+  {
+    name: 'Server',
+    meals: ['Breakfast', 'Lunch', 'Dinner'],
+    phases: {
+      Setup: [
+        'Follow the line map and set up the serving line',
+        'Make sure the display plate has been put out',
+        'Put 6 plates or 10 bowls out onto the hot pad before the doors open',
+      ],
+      'During Shift': [
+        'Serve the food',
+        'Communicate your needs to the runner as they come up',
+      ],
+      Cleanup: [
+        'Clean up the serving line and make sure the heaters and light are turned off',
+      ],
     },
   },
   {

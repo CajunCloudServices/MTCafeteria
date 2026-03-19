@@ -32,6 +32,7 @@ class DashboardPage extends StatelessWidget {
     required this.resetFlowSignal,
     required this.backSignal,
     required this.onBackAtWorkflowRoot,
+    required this.onReturnToDashboardHub,
     required this.selectedTrack,
     required this.selectedMode,
     required this.trainings,
@@ -94,6 +95,7 @@ class DashboardPage extends StatelessWidget {
   final int resetFlowSignal;
   final int backSignal;
   final VoidCallback onBackAtWorkflowRoot;
+  final VoidCallback onReturnToDashboardHub;
   final String selectedTrack;
   final String selectedMode;
   final List<Training> trainings;
@@ -188,6 +190,7 @@ class DashboardPage extends StatelessWidget {
               resetSignal: resetFlowSignal,
               backSignal: backSignal,
               onBackAtRoot: onBackAtWorkflowRoot,
+              onReturnToDashboardHub: onReturnToDashboardHub,
               trainerBoard: trainerBoard,
               traineeCount: trainerTraineeCount,
               selectedTraineeSlot: trainerSelectedTraineeSlot,
@@ -205,6 +208,7 @@ class DashboardPage extends StatelessWidget {
               resetSignal: resetFlowSignal,
               backSignal: backSignal,
               onBackAtRoot: onBackAtWorkflowRoot,
+              onReturnToDashboardHub: onReturnToDashboardHub,
               taskBoard: taskBoard,
               onSelectMeal: onSelectMeal,
               onSelectJob: onSelectJob,
@@ -216,6 +220,7 @@ class DashboardPage extends StatelessWidget {
               resetSignal: resetFlowSignal,
               backSignal: backSignal,
               onBackAtRoot: onBackAtWorkflowRoot,
+              onReturnToDashboardHub: onReturnToDashboardHub,
               supervisorBoard: supervisorBoard,
               jobTaskBoard: supervisorJobTaskBoard,
               selectedJobId: supervisorSelectedJobId,

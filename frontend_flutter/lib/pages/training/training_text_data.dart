@@ -1,5 +1,10 @@
 import 'package:flutter/foundation.dart';
 
+/// Authoritative runtime corpus for the manual 2-minute training viewer.
+///
+/// This file is intentionally separate from the older backend `/api/trainings`
+/// feed. `TrainingDetailPage` reads the content defined here directly, while
+/// OCR JSON files remain offline transcription/reference artifacts.
 @immutable
 class TrainingTextSection {
   const TrainingTextSection({required this.heading, required this.bullets});
@@ -27,6 +32,7 @@ class TrainingTextContent {
   final String? sourceImage;
 }
 
+/// Manual source-image to runtime-content mapping used by the active viewer.
 TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
   if (sourceImage == null) return null;
   switch (sourceImage) {
@@ -962,16 +968,26 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
     case 'Dishroom13.JPG':
       return const TrainingTextContent(
         title: 'General Organization',
-        objective:
-            'Create a clean, organized environment so dishroom operations stay safe and efficient.',
+        objective: 'Create a clean, organized environment.',
+        teachingIdea:
+            'We have many moving pieces in the cafeteria. Each person should do their part so we can work effectively.',
         sections: [
           TrainingTextSection(
-            heading: 'Core Habits',
+            heading: 'Examples of Staying Organized',
             bullets: [
-              'Keep stations clean throughout shift, not only at close.',
-              'Return tools and carts to assigned locations.',
-              'Leave each area better than you found it.',
+              'Clean your area often, including wiping down your station with sanitizer, taking dishes to scullery or dishroom, and leaving your area better than you found it.',
+              'If there is an empty cart, take it to scullery.',
+              'Take empty keepers where they need to go right away. CSC keepers go by the cage; keepers that say MTC go in between scullery and the ice machines.',
+              'Move empty carts to scullery.',
+              'Break down boxes before putting them in the trash carts.',
+              'Do not leave stuff lying around such as empty crates and boxes. Pick them up.',
+              'Consolidate and organize in lockers when possible. (Ask the supervisor.)',
+              'If you do not know where something goes, just ask. Do not leave it in an open spot.',
             ],
+          ),
+          TrainingTextSection(
+            heading: 'Prompt for Crew',
+            bullets: ['What else can we do to be organized?'],
           ),
         ],
         sourceImage: 'Dishroom13.JPG',
@@ -980,28 +996,67 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Night Custodial Chemicals',
         objective:
-            'Ensure employees understand uses of custodial chemicals and can identify them correctly.',
+            'Ensure employees understand the different uses for the chemicals used during Night Custodial and be able to differentiate between them.',
         sections: [
           TrainingTextSection(
             heading: 'Pantastic',
             bullets: [
-              'Detergent-style cleaner for scrubbing tasks.',
-              'Typically identified by blue hue.',
+              'Pantastic is washing detergent comparable to Dawn dish soap.',
+              'It can be identified by its blue hue.',
+              'Pantastic is the basic chemical for jobs that require scrubbing, such as sinks, drains, and pulpers.',
             ],
           ),
           TrainingTextSection(
-            heading: 'Oasis 135 Power Force',
+            heading: 'Oasis 135: Power Force',
             bullets: [
-              'Premium degreaser/cleaner for heavy-duty cleaning.',
-              'Typically identified by red hue.',
+              'Power Force is a premium cleaner/degreaser.',
+              'It can be identified by its red hue and mild citrus aroma.',
+              'Power Force is used to clean the floors because it is designed to help cut through heavy soil and grease.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Oasis 146: Multi-Quat Sanitizer',
+            bullets: [
+              'Sanitizer is a sanitizer.',
+              'It can be identified by its red hue and disinfectant aroma.',
+              'Sanitizer is used to sanitize food-contact surfaces and high-contact points, such as tables, light switches, and locker handles.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Consume Drop-in-a-Drain',
+            bullets: [
+              'Consume is classified as a drain cleaner.',
+              'It can be identified by its green hue and pleasant aroma.',
+              'Consume is primarily used as an additive to the pulpers once clean.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Grease Express Fast Foam Degreaser',
+            bullets: [
+              'Degreaser is just that: a degreaser.',
+              'It can be identified by its opaque red hue and alcohol-like aroma.',
+              'Degreaser is used on stubborn jobs that need extra help, such as flat tops and ovens.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'EnvirOx H2Orange2 Concentrate 117',
+            bullets: [
+              'H2Orange is an oxidizing disinfectant/virucide for hard non-food surfaces.',
+              'It can be identified by its lack of hue and citrus aroma.',
+              'H2Orange is used on the Blue Belt to kill bacteria and viruses.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Lime-A-Way',
+            bullets: [
+              'Lime-A-Way is classified as a delimer.',
+              'It can be identified by its lack of hue and odorless nature.',
+              'Lime-A-Way is put in the dish machine to remove lime buildup due to hard water.',
             ],
           ),
           TrainingTextSection(
             heading: 'Safety',
-            bullets: [
-              'Verify labels before use and follow PPE requirements.',
-              'Do not mix chemicals.',
-            ],
+            bullets: ['Use protective equipment.'],
           ),
         ],
         sourceImage: 'Dishroom14.JPG',
@@ -1010,20 +1065,38 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Gas Connections',
         objective:
-            'Help crew members safely disconnect and reconnect gas equipment in kitchen areas.',
+            'Help crew members understand unhook/hook up fryers and grills.',
+        teachingIdea:
+            'Take crew to a fryer and demonstrate how to disconnect/reconnect.',
         sections: [
           TrainingTextSection(
             heading: 'Disconnection',
             bullets: [
-              'Turn off electrical and gas supply first.',
-              'Use correct coupling and valve steps before moving equipment.',
+              'Electrical outlet: In Main Dish the plug needs to be rotated counterclockwise before unplugging.',
+              'Gas pipe: Turn valve perpendicular to the pipe to cut off gas flow.',
+              'Gas pipe: Pull back blue pipe coupling while pushing pipe forward with an overall action moving away from the grill or fryer.',
+              'Safety harness: Unhook the carabiner.',
             ],
           ),
           TrainingTextSection(
-            heading: 'Reconnection',
+            heading: 'Connection',
             bullets: [
-              'Reconnect gas and electrical lines in correct order.',
-              'Confirm secure connection before operating equipment.',
+              'Electrical outlet: In Main Dish the plug needs to be rotated clockwise once plugged in.',
+              'Gas pipe: Push pipe onto fryer or grill connection valve until you feel it snap on.',
+              'Double check connection by pulling on the gas hose. If it comes off, try again.',
+              'Turn valve parallel to pipe.',
+              'In Main Dish, light pilot lights on appropriate grills.',
+              'Safety harness: Attach the carabiner.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Other',
+            bullets: [
+              'Check fryers to ensure proper connection.',
+              'If the green light does not come on, check electrical connection.',
+              'If the pilot light does not light, check gas connection.',
+              'Always put everything back in the same order you pulled it from.',
+              'In Main Dish, from left to right it should be: flat top, flat top, table, grill, fryer, SM Grill.',
             ],
           ),
         ],
@@ -1033,21 +1106,49 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Pulpers',
         objective:
-            'Ensure employees know proper pulper usage and what must not go into the pulper.',
+            'Ensure employees know how to maintain and properly use the pulper.',
+        teachingIdea:
+            'Take the crew to dishroom or scullery to show them the pulper.',
         sections: [
-          TrainingTextSection(
-            heading: 'Do Not Put In Pulper',
-            bullets: [
-              'Banana peels, watermelon rinds, pineapple tops.',
-              'Bones, metals, plastics, wrappers, or paper dishes.',
-              'Grease/oils and large excessive rice/quinoa loads.',
-            ],
-          ),
           TrainingTextSection(
             heading: 'Safety',
             bullets: [
-              'Never reach into pulper unless disconnect switch is off.',
-              'Escalate malfunctions to leadership immediately.',
+              'The pulpers turn waste into pulp, which is then used to fertilize BYU Campus.',
+              'Do not reach into the pulper unless you have turned off the Disconnect Switch.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'These Items Cannot Go in the Pulper',
+            bullets: [
+              'Banana peels',
+              'Watermelon rinds',
+              'Pineapple tops',
+              'Excessive rice and quinoa',
+              'Eggshells',
+              'Bones',
+              'Grease/oils',
+              'Wooden sticks',
+              'Styrofoam',
+              'Metal',
+              'Plastic',
+              'Paper dishes',
+              'Wrappers',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'If the Pulper Isn\'t Working',
+            bullets: [
+              'Make sure the pulper is filled and turned on, with the lid closed.',
+              'Check whether the Emergency Stop is engaged.',
+              'If not running, drain, refill, insert cardboard and run again.',
+              'If the "Overflow" light is flashing, spray out the back chute of the Mother pulper. Ensure that the sensors of the Mother pulper are clear and that the laser is properly aligned.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Reminders',
+            bullets: [
+              'Each shift a cardboard box should be broken down and run through the dishroom and scullery pulpers.',
+              'Sunday Dinner Dishroom cleans the pulpers at the end of the day.',
             ],
           ),
         ],
@@ -1057,20 +1158,33 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Important Cleaning: Dishroom Part 1',
         objective:
-            'Review high-priority dishroom cleaning locations that are often missed.',
+            'Ensure employees know where and how to clean problematic areas of dishroom.',
+        teachingIdea:
+            'Please show them what we mean by Underworld, No Man\'s Land, and all the trap locations.',
+        generalGuidelines: [
+          'This training is highlighting hard to remember spots, not ALL cleaning.',
+        ],
         sections: [
           TrainingTextSection(
             heading: 'Pit Lead and No Man\'s Land',
             bullets: [
-              'Spray and clean underworld and nearby counters thoroughly.',
-              'Remove food, water, and dish buildup continuously.',
+              'Spray out UNDERWORLD!!!',
+              'Squeegee the counter in No Man\'s Land. Remove all food, trash, dishes, and water.',
+              'Pay particular attention to the area underneath the cup conveyer belt; clean between the pipes and remove any debris. (Time permitting, clean the walls with pantastic.)',
             ],
           ),
           TrainingTextSection(
-            heading: 'Conveyor and Surrounding Areas',
+            heading: 'Pit Crew and Traps',
             bullets: [
-              'Clean around and under conveyor structures.',
-              'Pay attention to hidden splash and residue zones.',
+              'Remove the 3 traps in the Pit area at the end of the shift, including the trap under the extra blue belt (near No Man\'s Land). MAKE SURE YOU GET ALL OF THEM!!!',
+              'Do NOT spray food down the drains when cleaning the trap area out. Remove all food into a trash can first.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Silverware',
+            bullets: [
+              'Before beginning to clean the silverware machine, PLEASE go make sure the nozzles and cone strainer have been washed.',
+              'Go ask the Beverage and Salad Bar workers on line if these two things are done.',
             ],
           ),
         ],
@@ -1080,13 +1194,21 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Important Cleaning: Dish Machine',
         objective:
-            'Ensure employees clean hard-to-reach dish machine loading-side areas.',
+            'Ensure employees know where and how to clean problematic areas of dishroom.',
+        teachingIdea: 'Point out specific areas.',
+        generalGuidelines: [
+          'This training is highlighting hard to remember spots, not ALL cleaning.',
+        ],
         sections: [
           TrainingTextSection(
-            heading: 'Problem Areas',
+            heading: 'Cleaning the Loading Side',
             bullets: [
-              'Target corners, seams, rails, and hidden buildup points.',
-              'Rinse and sanitize surfaces after debris removal.',
+              'A thorough spraying will save you SOOO MUCH TIME before using steel wool, brushes, and pantastic.',
+              'Flat and easy-to-reach surfaces only need a quick pass over.',
+              'Spend most of your time on crevices, ridges, and places you would not think to scrub.',
+              'Show the crew specific spots you have seen missed.',
+              'Spray and squeegee UNDER THE MACHINE.',
+              'Some examples: under pipes and crevices on the bottom of the doors.',
             ],
           ),
         ],
@@ -1096,20 +1218,26 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Important Cleaning: Scullery',
         objective:
-            'Ensure employees understand key scullery cleaning priorities.',
+            'Ensure employees understand important cleaning areas in scullery.',
+        teachingIdea: 'Field trip to scullery to highlight cleaning areas.',
+        generalGuidelines: [
+          'This is not a training on ALL cleaning procedures in scullery.',
+        ],
         sections: [
           TrainingTextSection(
-            heading: 'Floors and Drains',
+            heading: 'Floors',
             bullets: [
-              'Keep floors clear of food and standing water.',
-              'Clean drain zones to prevent buildup and odor.',
+              'ANYONE can scrub and squeegee an open floor.',
+              'ONLY WINNERS scrub and squeegee thoroughly under things. BE A WINNER. If it is hard to reach, SQUEEGEE IT.',
             ],
           ),
           TrainingTextSection(
-            heading: 'Sink and Work Zones',
+            heading: 'Machines',
             bullets: [
-              'Sanitize sink edges and splash areas.',
-              'Keep scrubbing and wash stations organized and ready.',
+              'Spray thoroughly under ledges and in crevices. It will save you a lot of time and effort on scrubbing.',
+              'Scrub thoroughly under ledges, pipes, and in corners. Take MINIMAL TIME scrubbing walls and easy-to-reach places.',
+              'Food gets stuck under the walk-in machine. SPRAY UNDER FROM THE BACK TOWARDS THE DRAIN TO REMOVE BUILT UP FOOD, or fill a bucket with water and dump in the back to wash food to the drain.',
+              'Do NOT clean the pan machine on Wednesday or Thursday nights.',
             ],
           ),
         ],
@@ -1119,20 +1247,52 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Stocking Chemicals: Dishroom',
         objective:
-            'Ensure employees can safely replace chemical products on dishroom machines.',
+            'Ensure employees know how to properly replace the soap in each machine.',
+        teachingIdea: 'Picture on the back of this training.',
         sections: [
           TrainingTextSection(
-            heading: 'Before Replacing',
+            heading: 'Overview',
             bullets: [
-              'Confirm product label and machine compatibility.',
-              'Wear gloves and follow posted safety instructions.',
+              'If you hear a machine beeping or if dishes come through with particles of food, often the soap needs to be changed.',
+              'Check the soap level at the beginning of each shift.',
+              'Double check the labels and wear gloves when replacing soap.',
             ],
           ),
           TrainingTextSection(
-            heading: 'Replacement Steps',
+            heading: 'Solid Power XL',
             bullets: [
-              'Remove empty container and prepare new one correctly.',
-              'Seat container/hose securely and verify machine feeds properly.',
+              'Machines: Silverware Machine, Dishroom Machines, Cup Machine.',
+              'Stored in: Dishroom.',
+              '1. Remove old container.',
+              '2. Remove lid from new container.',
+              '3. Place new container upside down in machine.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Solid Rinse Dry',
+            bullets: [
+              'Machines: Silverware Machine, Dishroom Machines, Cup Machine.',
+              'Stored in: Dishroom.',
+              '1. Open the package.',
+              '2. Use gloves to remove product.',
+              '3. Place product inside machine.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Silver Power',
+            bullets: [
+              'Machines: Silverware machine.',
+              'Stored in: Dishroom.',
+              '1. Remove old container.',
+              '2. Remove lid from new container.',
+              '3. Place new container upside down in machine.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Restocking',
+            bullets: [
+              'Each shift, a member of dishroom (usually the unloader) should restock the custodial closet, bringing up chemicals and other necessary supplies from the basement.',
+              'If there are no back-ups in the basement, inform your supervisor or lead trainer.',
             ],
           ),
         ],
@@ -1142,20 +1302,49 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
       return const TrainingTextContent(
         title: 'Stocking Chemicals: Scullery and Custodial Closet',
         objective:
-            'Ensure employees replace scullery and custodial chemicals safely and accurately.',
+            'Ensure employees know how to properly replace the soap in each machine.',
+        teachingIdea: 'Picture on the back of this training.',
         sections: [
           TrainingTextSection(
-            heading: 'Verification',
+            heading: 'General Safety',
             bullets: [
-              'Match product name to the correct machine/system.',
-              'Double-check labels before connecting.',
+              'Double check the labels and wear gloves when replacing soap.',
             ],
           ),
           TrainingTextSection(
-            heading: 'Safe Handling',
+            heading: 'Solid Power XL',
             bullets: [
-              'Use gloves and avoid splashes.',
-              'Secure all adapters and lines after replacement.',
+              'Machines: Scullery Machine.',
+              'Stored in: Dishroom.',
+              '1. Remove old container.',
+              '2. Remove lid from new container.',
+              '3. Place new container upside down in machine.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Monsoon',
+            bullets: [
+              'Machines: Scullery sinks.',
+              'Stored in: Scullery.',
+              '1. Remove hose/adapter from the old container.',
+              '2. Remove lid from new container.',
+              '3. Place hose/adapter on new container.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Oasis 146',
+            bullets: [
+              'Machines: Scullery sinks.',
+              'Stored in: Basement.',
+              '1. Remove hose/adapter from old container.',
+              '2. Remove lid from new container.',
+              '3. Place the hose/adapter on new container.',
+            ],
+          ),
+          TrainingTextSection(
+            heading: 'Restocking',
+            bullets: [
+              'If there are no back-ups of any of these chemicals in the basement, inform your supervisor or lead trainer.',
             ],
           ),
         ],
@@ -1164,21 +1353,29 @@ TrainingTextContent? _manualTrainingOverride({required String? sourceImage}) {
     case 'Dishroom23.JPG':
       return const TrainingTextContent(
         title: 'Scullery Organization',
-        objective:
-            'Ensure employees know how to work efficiently in scullery during high volume.',
+        objective: 'Ensure employees know how to work efficiently in scullery.',
         sections: [
           TrainingTextSection(
-            heading: 'Flow and Consolidation',
+            heading: 'Main Points',
             bullets: [
-              'Consolidate carts and keep wash flow moving.',
-              'Keep pan machine running when load exists.',
+              'Always consolidate carts.',
+              'Always have someone scrubbing and moving things through the sinks.',
+              'Spray sheet pans over the drain, and utilize the pan machine. Always have it going with dishes in it.',
+              'When you have more hands, use them to scrub rice pans and other dishes with stubborn food.',
+              'Take care of raw meat dishes quickly.',
+              'If you have no dishes to clean, check Main Dish, the serving lines, and the Island.',
             ],
           ),
           TrainingTextSection(
-            heading: 'Priorities',
+            heading:
+                'Where to Direct Efforts in Scullery (1500+ Missionaries Edition)',
             bullets: [
-              'Handle raw-meat dishes quickly and safely.',
-              'When caught up, support nearby areas that need help.',
+              '1 person: scrub a batch, move it through the sink, and then cart it up. If feeling adventurous, can also use pan machine.',
+              '2 people: have 1 scrubber and sink operator, and 1 sheet pan sprayer and pan machine operator.',
+              '3 people: have 2 scrubbers, 1 sheet pan sprayer, and 1 of the scrubbers move things through the sink and load/unload the pan machine.',
+              '4 people: same as previous, just make 1 scrubber permanent and try splitting jobs between utensils/small dishes and bigger dishes.',
+              '5 people: same as previous, but have someone scrubbing difficult dishes, meat bins, and buckets on a cart away from the counter.',
+              '6 people: have a second sheet pan worker load and unload the pan machine, help scrub stubborn sheet pans, and replace full scullery carts.',
             ],
           ),
         ],
@@ -1287,31 +1484,28 @@ List<TrainingTextContent> buildDishroomTrainings() => <TrainingTextContent>[
   ),
   _requireManualTraining(
     sourceImage: 'Dishroom15.JPG',
-    title: 'Line Chemicals and Their Purpose',
+    title: 'Gas Connections',
   ),
-  _requireManualTraining(
-    sourceImage: 'Dishroom17.JPG',
-    title: 'Handwashing Procedures',
-  ),
+  _requireManualTraining(sourceImage: 'Dishroom17.JPG', title: 'Pulpers'),
   _requireManualTraining(
     sourceImage: 'Dishroom18.JPG',
-    title: 'Pan Machine Basics',
+    title: 'Important Cleaning: Dishroom Part 1',
   ),
   _requireManualTraining(
     sourceImage: 'Dishroom19.JPG',
-    title: 'Sanitizer Bucket and Rag Standards',
+    title: 'Important Cleaning: Dish Machine',
   ),
   _requireManualTraining(
     sourceImage: 'Dishroom20.JPG',
-    title: 'Rack Layout and Washing Sequence',
+    title: 'Important Cleaning: Scullery',
   ),
   _requireManualTraining(
     sourceImage: 'Dishroom21.JPG',
-    title: 'Dishroom Closing Priorities',
+    title: 'Stocking Chemicals: Dishroom',
   ),
   _requireManualTraining(
     sourceImage: 'Dishroom22.JPG',
-    title: 'Rack Return and Workstation Reset',
+    title: 'Stocking Chemicals: Scullery and Custodial Closet',
   ),
   _requireManualTraining(
     sourceImage: 'Dishroom23.JPG',

@@ -63,6 +63,8 @@ extension ApiClientContent on ApiClient {
 
   Future<({String today, List<Training> trainings, Training? todaysTraining})>
   getTrainings(String token) async {
+    // Legacy prototype feed. The active detailed training viewer reads the
+    // local manual corpus in `training_text_data.dart` instead of this API.
     final response = await http.get(
       Uri.parse('$_baseUrl/api/trainings'),
       headers: _authHeaders(token),

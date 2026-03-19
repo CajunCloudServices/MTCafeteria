@@ -9,6 +9,11 @@ part 'reference/reference_catalog.dart';
 part 'reference/reference_section_registry.dart';
 part 'reference/reference_helpers.dart';
 part 'reference/reference_extractors.dart';
+part 'reference/reference_flows/dishroom_guides_flow.dart';
+part 'reference/reference_flows/kitchen_guides_flow.dart';
+part 'reference/reference_flows/line_guide_group_flow.dart';
+part 'reference/reference_flows/misc_reference_group_flow.dart';
+part 'reference/reference_flows/night_custodial_guides_flow.dart';
 part 'reference/reference_flows/line_jobs_flow.dart';
 part 'reference/reference_flows/line_secondary_flow.dart';
 part 'reference/reference_flows/find_item_flow.dart';
@@ -39,6 +44,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   final TransformationController _mapTransformationController =
       TransformationController();
   final TextEditingController _lockerSearchController = TextEditingController();
+  final TextEditingController _guideSearchController = TextEditingController();
   String _selectedSection = 'Select';
   int _condimentStep = 0;
   String _selectedCondimentColor = 'green';
@@ -48,6 +54,13 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   String _selectedLineMeal = 'Breakfast';
   String? _selectedLineJobKey;
   String _lockerSearchQuery = '';
+  String _guideSearchQuery = '';
+  String _selectedLineGuideSection = 'Select';
+  String _selectedDishroomCard = 'Select';
+  String _selectedKitchenCard = 'Select';
+  String _selectedNightCustodialCard = 'Select';
+  String _selectedSafetyCard = 'Select';
+  String _selectedGeneralInformationCard = 'Select';
   int _lineSecondaryStep = 0;
   String _lineSecondaryMeal = 'Breakfast';
   String _lineSecondaryGroup = 'While Doors Open';
@@ -67,6 +80,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   void dispose() {
     _mapTransformationController.dispose();
     _lockerSearchController.dispose();
+    _guideSearchController.dispose();
     super.dispose();
   }
 
@@ -105,6 +119,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
               Text('Guides', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
+                key: ValueKey('reference-section-$_selectedSection'),
                 initialValue: _selectedSection,
                 decoration: const InputDecoration(labelText: 'Section'),
                 isExpanded: true,
@@ -126,8 +141,36 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
                 },
               ),
               const SizedBox(height: 14),
+              TextField(
+                controller: _guideSearchController,
+                decoration: InputDecoration(
+                  labelText: 'Search guides',
+                  hintText: 'Search instructions, lockers, soups, desserts...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _guideSearchQuery.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear search',
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            _guideSearchController.clear();
+                            _updateReferenceState(() {
+                              _guideSearchQuery = '';
+                            });
+                          },
+                        ),
+                ),
+                onChanged: (value) {
+                  _updateReferenceState(() {
+                    _guideSearchQuery = value.trim();
+                  });
+                },
+              ),
+              const SizedBox(height: 14),
             ],
-            _buildSectionContent(context, data, sections),
+            _guideSearchQuery.isNotEmpty
+                ? _buildGuideSearchPanel(data)
+                : _buildSectionContent(context, data, sections),
           ],
         );
 

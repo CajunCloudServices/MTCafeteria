@@ -20,6 +20,12 @@ Lightweight prototype focused on organization and clarity for cafeteria workers.
 - Supervisor
 - Student Manager
 
+## Training Sources
+- Active detailed 2-minute training viewer: local manual corpus in `frontend_flutter/lib/pages/training/training_text_data.dart`
+- OCR workflow artifacts: `artifacts/mtcdocuments_vision_output.json` and `artifacts/mtcdocuments_vision_trainings_cleaned.json`
+- Legacy backend training feed: `GET /api/trainings` for older prototype dashboard/panel flows
+- Architecture note: `TRAINING_ARCHITECTURE.md`
+
 ## Core API (Prototype)
 - `POST /api/auth/login`
 - `GET /api/content/landing-items`
@@ -115,47 +121,96 @@ flutter run -d chrome \
 - Add stronger validation and error-handling UX
 - Expand shift/job/task authoring interfaces
 
-## Docker Deploy (Fast by Default)
-The frontend container now serves prebuilt `frontend_flutter/build/web` assets using nginx. This avoids pulling the huge Flutter image every deploy.
+## Production Deploy
+This repo now matches the standard 3-service server pattern:
+- `web`: Node static host for `public/flutter-web`, SPA fallback, and reverse proxy for `/api` and `/socket.io`
+- `api`: Express backend on container port `4000`
+- `postgres`: `postgres:15-alpine` with healthcheck
 
-1) First-time setup:
+Flutter build artifacts are deployed into:
+- `public/flutter-web`
+
+### Default host ports
+- `WEB_HOST_PORT=3017`
+- `API_HOST_PORT=4013`
+- `DB_HOST_PORT=5436`
+
+Container ports stay fixed at:
+- `web`: `3000`
+- `api`: `4000`
+- `postgres`: `5432`
+
+### Health checks
+- web: `http://localhost:${WEB_HOST_PORT}/health`
+- api through web proxy: `http://localhost:${WEB_HOST_PORT}/api/health`
+- api direct: `http://localhost:${API_HOST_PORT}/health`
+
+### Preflight
+Before first deploy, make sure the host ports are actually free:
+
 ```bash
-cd /home/lajicpajam/projects/MTCafeteria
-cp .env.example .env
-# set a strong JWT secret before continuing
-sed -i 's|^JWT_SECRET=.*|JWT_SECRET=<strong-random-secret>|' .env
-chmod +x deploy_web_stack.sh
+ss -ltn | grep -E ':(3017|4013|5436)\b' || true
+docker ps --format 'table {{.Names}}\t{{.Ports}}'
 ```
 
-2) Build web assets locally once, then deploy:
+### First-time server setup
 ```bash
-cd /home/lajicpajam/projects/MTCafeteria/frontend_flutter
+cd /home/lajicpajam/projects/websites/MTCafeteria
+cp .env.example .env
+chmod +x deploy_flutter_web.sh scripts/server_pull_and_deploy.sh scripts/server_redeploy_web.sh
+```
+
+Then set real values in `.env`:
+- `APP_BASE_URL`
+- `CORS_ORIGINS`
+- `JWT_SECRET`
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL`
+
+### Deploy steps
+1. Build Flutter web locally:
+
+```bash
+cd frontend_flutter
 flutter pub get
 flutter build web --release --dart-define=API_BASE_URL=
-
-cd /home/lajicpajam/projects/MTCafeteria
-./deploy_web_stack.sh
 ```
 
-3) Update on new commits:
+2. Copy the Flutter build into the repo checkout on the server:
+
 ```bash
-cd /home/lajicpajam/projects/MTCafeteria
-git pull --ff-only origin main
-./deploy_web_stack.sh
+cd /home/lajicpajam/projects/websites/MTCafeteria
+./deploy_flutter_web.sh /absolute/path/to/flutter/build/web
 ```
 
-Useful deploy flags:
-- `./deploy_web_stack.sh --no-build` restart without rebuilding images
-- `./deploy_web_stack.sh --build-frontend` force local flutter web rebuild first
+3. Pull latest code and rebuild the stack:
 
-If Flutter is unavailable locally and web assets are missing, deploy falls back automatically to `frontend_flutter/Dockerfile.builder` (slower dockerized Flutter build).
+```bash
+cd /home/lajicpajam/projects/websites/MTCafeteria
+./scripts/server_pull_and_deploy.sh
+```
 
-Default exposed ports:
-- Frontend: `8086`
-- Backend API: `3201`
+4. Verify deploy health:
 
-Point your DNS record to the server IP, then browse:
-- `http://<your-domain>:8086`
+```bash
+npm run health:deploy
+```
+
+### Web-only redeploy
+If only the Flutter build changed and the backend did not:
+
+```bash
+cd /home/lajicpajam/projects/websites/MTCafeteria
+./deploy_flutter_web.sh /absolute/path/to/flutter/build/web
+./scripts/server_redeploy_web.sh
+```
+
+### Cloudflare Tunnel target
+Point the tunnel for this app to:
+
+```text
+http://localhost:${WEB_HOST_PORT}
+```
 
 ## Playwright Automation
 Use a dedicated fixed-port profile so Playwright targets a stable URL.

@@ -1,6 +1,25 @@
 part of 'package:frontend_flutter/services/api_client.dart';
 
 extension ApiClientReports on ApiClient {
+  String _dailyShiftReportErrorMessage(http.Response response) {
+    try {
+      final data = jsonDecode(response.body);
+      if (data is Map<String, dynamic>) {
+        final missingFields = data['missingFields'];
+        if (missingFields is List && missingFields.isNotEmpty) {
+          return 'Missing required fields: ${missingFields.join(', ')}';
+        }
+        final message = data['message'];
+        if (message is String && message.trim().isNotEmpty) {
+          return message.trim();
+        }
+      }
+    } catch (_) {
+      // Fall back to a generic message when the response is not JSON.
+    }
+    return 'Failed to submit daily shift report (${response.statusCode})';
+  }
+
   Future<DailyShiftReport?> getCurrentDailyShiftReport(
     String token, {
     required String meal,
@@ -45,15 +64,20 @@ extension ApiClientReports on ApiClient {
     String token, {
     required String meal,
     required Map<String, String> payload,
+    required bool isPilotProfile,
   }) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/api/daily-shift-reports/current/submit'),
       headers: _jsonHeaders(token),
-      body: jsonEncode({'meal': meal, 'payload': payload}),
+      body: jsonEncode({
+        'meal': meal,
+        'payload': payload,
+        'appProfile': isPilotProfile ? 'pilot' : 'full',
+      }),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to submit daily shift report');
+      throw Exception(_dailyShiftReportErrorMessage(response));
     }
 
     return DailyShiftReport.fromJson(

@@ -1,4 +1,0 @@
-{
-  "tree": "[0] Application \"Frontend Flutter\" (0,0 390x844)\n                    [15] Image \"MTC Dining\\nProvo Operations Board\" (16,69 308x80)\n                    [16] Button \"Menu\" (340,84 50x50)\n                    [18] ScrollView (16,185 358x521)\n                      [20] Other \"Reference Sheets\\nView-only operational reference. Night custodial tasks are in the Night Custodial workflow.\\nLine Jobs Reference\\nStep 1 of 3\\nSelect the meal you are working.\" [value=\"33\"] (16,185 358x507)\n                      [21] Button \"Section\\nLine Jobs\" (34,336 322x54)\n                      [22] Button \"Meal\\nBreakfast\" (47,540 296x54)\n                      [23] Button \"Next\" (47,607 296x54)\n                    [26] Button \"Home\\nTab 1 of 3\" (0,722 130x88)\n                    [27] Button \"Dashboard\\nTab 2 of 3\" [selected] (130,722 130x88)\n                    [28] Button \"Profile\\nTab 3 of 3\" (260,722 130x88)",
-  "activity": ""
-}

@@ -5,6 +5,7 @@ class _LeadTrainerTaskSection extends StatefulWidget {
     required this.resetSignal,
     required this.backSignal,
     required this.onBackAtRoot,
+    required this.onReturnToDashboardHub,
     required this.trainerBoard,
     required this.traineeCount,
     required this.selectedTraineeSlot,
@@ -20,6 +21,7 @@ class _LeadTrainerTaskSection extends StatefulWidget {
   final int resetSignal;
   final int backSignal;
   final VoidCallback onBackAtRoot;
+  final VoidCallback onReturnToDashboardHub;
 
   final TrainerBoard? trainerBoard;
   final int traineeCount;
@@ -551,14 +553,8 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
             width: double.infinity,
             child: FilledButton(
               onPressed: () {
-                widget.onResetFlow();
-                widget.onSelectTraineeSlot(0);
                 setState(() {
-                  _step = 0;
-                  _shiftFinished = false;
-                  _selectedCount = 1;
-                  _traineeCheckedOff = {};
-                  _leadTrainerEndShiftChecks = {};
+                  _shiftFinished = true;
                 });
               },
               child: const Text('Finish'),

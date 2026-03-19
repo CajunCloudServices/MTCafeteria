@@ -82,6 +82,7 @@ async function submitCurrentLineReport(req, res, next) {
       requesterRole: req.user.role,
       meal: req.body.meal,
       payload: req.body.payload,
+      appProfile: req.body.appProfile,
     });
 
     return res.json(report);

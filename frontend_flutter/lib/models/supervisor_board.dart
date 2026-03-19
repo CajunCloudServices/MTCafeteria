@@ -6,6 +6,15 @@ int _toInt(dynamic value) {
   return 0;
 }
 
+String _normalizeSupervisorJobName(String name) {
+  final trimmed = name.trim();
+  final beverageVariant = RegExp(r'^Beverages\s+\([A-Z]\)$');
+  if (beverageVariant.hasMatch(trimmed)) {
+    return 'Beverages';
+  }
+  return trimmed;
+}
+
 /// Supervisor-facing summary row for a single job in the selected meal.
 class SupervisorJobItem {
   const SupervisorJobItem({
@@ -46,12 +55,30 @@ class SupervisorBoard {
   final List<SupervisorJobItem> jobs;
 
   factory SupervisorBoard.fromJson(Map<String, dynamic> json) {
+    final rawJobs = (json['jobs'] as List<dynamic>)
+        .map((e) => SupervisorJobItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final uniqueJobs = <SupervisorJobItem>[];
+    final seenNames = <String>{};
+    for (final job in rawJobs) {
+      final normalizedName = _normalizeSupervisorJobName(job.jobName);
+      if (seenNames.add(normalizedName)) {
+        uniqueJobs.add(
+          SupervisorJobItem(
+            jobId: job.jobId,
+            jobName: normalizedName,
+            checked: job.checked,
+            checkedCount: job.checkedCount,
+            totalCount: job.totalCount,
+          ),
+        );
+      }
+    }
+
     return SupervisorBoard(
       meals: (json['meals'] as List<dynamic>).map((e) => e as String).toList(),
       selectedMeal: json['selectedMeal'] as String,
-      jobs: (json['jobs'] as List<dynamic>)
-          .map((e) => SupervisorJobItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      jobs: uniqueJobs,
     );
   }
 }
@@ -98,7 +125,7 @@ class SupervisorJobTaskBoard {
     return SupervisorJobTaskBoard(
       meal: json['meal'] as String,
       jobId: _toInt(json['jobId']),
-      jobName: json['jobName'] as String,
+      jobName: _normalizeSupervisorJobName(json['jobName'] as String),
       tasks: (json['tasks'] as List<dynamic>)
           .map((e) => SupervisorJobTaskItem.fromJson(e as Map<String, dynamic>))
           .toList(),

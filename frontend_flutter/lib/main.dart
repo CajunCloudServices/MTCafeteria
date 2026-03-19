@@ -62,9 +62,46 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   int _dashboardBackSignal = 0;
   _DashboardView _dashboardView = _DashboardView.hub;
 
+  static final DateTime _mealRotationAnchor = DateTime(2026, 3, 16);
+  static const List<String> _mealWeekOrder = [
+    'Pink',
+    'Yellow',
+    'Green',
+    'Blue',
+  ];
+
   void _updateUi(VoidCallback action) {
     if (!mounted) return;
     setState(action);
+  }
+
+  DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+
+  String _currentMealWeekLabel() {
+    final today = _dateOnly(DateTime.now());
+    final daysFromAnchor = today.difference(_mealRotationAnchor).inDays;
+    final weekOffset = daysFromAnchor >= 0
+        ? daysFromAnchor ~/ 7
+        : -(((-daysFromAnchor - 1) ~/ 7) + 1);
+    final index =
+        ((weekOffset % _mealWeekOrder.length) + _mealWeekOrder.length) %
+        _mealWeekOrder.length;
+    return _mealWeekOrder[index];
+  }
+
+  Color _mealWeekAccent(String label) {
+    switch (label) {
+      case 'Pink':
+        return const Color(0xFFC34F7B);
+      case 'Yellow':
+        return const Color(0xFFAF8B00);
+      case 'Green':
+        return const Color(0xFF2D7A55);
+      case 'Blue':
+      default:
+        return const Color(0xFF2E69A6);
+    }
   }
 
   static const List<String> _defaultShiftTracks = [
@@ -138,12 +175,6 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     _dashboardRoleConfirmed = modes.length <= 1;
   }
 
-  void _openDashboardHub(String role) {
-    _resetDashboardSelectorsForRole(role);
-    _dashboardView = _DashboardView.hub;
-    _selectedIndex = 1;
-  }
-
   void _handleDashboardBack({required _DashboardView effectiveDashboardView}) {
     // Non-workflow dashboard surfaces always return to the hub in one press.
     if (effectiveDashboardView != _DashboardView.workflow) {
@@ -177,13 +208,10 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
 
     setState(() {
       if (effectiveIndex == 1) {
-        // Always enter dashboard from a clean hub state.
-        _openDashboardHub(role);
+        _selectedIndex = 1;
+        _resetDashboardSelectorsForRole(role);
         return;
       }
-
-      // Any non-dashboard tab clears dashboard transient state.
-      _resetDashboardSelectorsForRole(role);
       _selectedIndex = effectiveIndex;
     });
   }
@@ -568,8 +596,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           if (value == 'trainings' && canViewTrainings) {
                             Navigator.of(context).push(
                               MaterialPageRoute<void>(
-                                builder: (_) => TrainingDetailPage(
-                                ),
+                                builder: (_) => TrainingDetailPage(),
                               ),
                             );
                             return;
@@ -581,6 +608,37 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           }
                         },
                         itemBuilder: (context) => [
+                          PopupMenuItem<String>(
+                            enabled: false,
+                            height: 40,
+                            value: 'meal-week',
+                            child: RichText(
+                              text: TextSpan(
+                                style: const TextStyle(
+                                  color: Color(0xFF244668),
+                                  fontSize: 14,
+                                  height: 1.1,
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text: 'Week: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: _currentMealWeekLabel(),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: _mealWeekAccent(
+                                        _currentMealWeekLabel(),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           if (canViewTrainings &&
                               _selectedIndex == 1 &&
                               !showTrackSelection &&

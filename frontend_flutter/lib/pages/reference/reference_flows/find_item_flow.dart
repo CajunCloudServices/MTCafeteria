@@ -1,23 +1,57 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
+  String _normalizeLockerSearchText(String value) {
+    final lower = value.toLowerCase();
+    final buffer = StringBuffer();
+    for (final rune in lower.runes) {
+      final char = String.fromCharCode(rune);
+      final isLetter = rune >= 97 && rune <= 122;
+      final isDigit = rune >= 48 && rune <= 57;
+      if (isLetter || isDigit) {
+        buffer.write(char);
+      }
+    }
+    return buffer.toString();
+  }
+
   Widget _buildLockerFlow(Map<String, dynamic> data) {
     // Workers usually know the item they need, not the locker number, so the
     // experience starts from search instead of a locker list.
     final lockerData =
         data['locker_inventory'] as Map<String, dynamic>? ?? const {};
     final search = _lockerSearchQuery.trim().toLowerCase();
-    final lockerKeys = ['5', '6', '7', '8', '9'];
+    final normalizedSearch = _normalizeLockerSearchText(search);
+    final lockerKeys =
+        lockerData.keys.where((key) => int.tryParse(key) != null).toList()
+          ..sort((a, b) {
+            final aNum = int.tryParse(a);
+            final bNum = int.tryParse(b);
+            if (aNum != null && bNum != null) {
+              return aNum.compareTo(bNum);
+            }
+            return a.compareTo(b);
+          });
 
     final matchesByLocker = <String, List<String>>{};
     if (search.isNotEmpty) {
       for (final locker in lockerKeys) {
-        final items = ((lockerData[locker] as List<dynamic>?) ?? const [])
-            .map((e) => e.toString())
-            .where((item) => item.toLowerCase().contains(search))
-            .toList();
-        if (items.isNotEmpty) {
-          matchesByLocker[locker] = items;
+        final rawItems = lockerData[locker];
+        final items = switch (rawItems) {
+          List<dynamic> value => value.map((e) => e.toString()).toList(),
+          String value => <String>[value],
+          _ => const <String>[],
+        };
+        final filteredItems = items.where((item) {
+          final lowerItem = item.toLowerCase();
+          if (lowerItem.contains(search)) return true;
+          if (normalizedSearch.isEmpty) return false;
+          return _normalizeLockerSearchText(
+            lowerItem,
+          ).contains(normalizedSearch);
+        }).toList();
+        if (filteredItems.isNotEmpty) {
+          matchesByLocker[locker] = filteredItems;
         }
       }
     }
@@ -29,7 +63,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
           controller: _lockerSearchController,
           decoration: InputDecoration(
             labelText: 'Find an item',
-            hintText: 'Example: gloves, syrup, ranch',
+            hintText: 'Example: meat shop, hard boiled eggs, ice cream',
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _lockerSearchQuery.trim().isEmpty
                 ? null
@@ -42,7 +76,8 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
                     icon: const Icon(Icons.close),
                   ),
           ),
-          onChanged: (value) => _updateReferenceState(() => _lockerSearchQuery = value),
+          onChanged: (value) =>
+              _updateReferenceState(() => _lockerSearchQuery = value),
         ),
         if (search.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -85,9 +120,6 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
       );
     }
 
-    return _buildReferencePanel(
-      title: 'Find an Item',
-      child: searchBody,
-    );
+    return _buildReferencePanel(title: 'Find an Item', child: searchBody);
   }
 }

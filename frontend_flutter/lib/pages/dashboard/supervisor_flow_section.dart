@@ -5,6 +5,7 @@ class _SupervisorSection extends StatefulWidget {
     required this.resetSignal,
     required this.backSignal,
     required this.onBackAtRoot,
+    required this.onReturnToDashboardHub,
     required this.supervisorBoard,
     required this.jobTaskBoard,
     required this.selectedJobId,
@@ -31,6 +32,7 @@ class _SupervisorSection extends StatefulWidget {
   final int resetSignal;
   final int backSignal;
   final VoidCallback onBackAtRoot;
+  final VoidCallback onReturnToDashboardHub;
   final SupervisorBoard? supervisorBoard;
   final SupervisorJobTaskBoard? jobTaskBoard;
   final int? selectedJobId;

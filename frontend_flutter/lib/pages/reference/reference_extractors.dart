@@ -1,6 +1,122 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _ReferenceExtractors on _ReferenceSheetsViewState {
+  List<String> _extractCardsAsLines(Iterable<Map<String, dynamic>> cards) {
+    final lines = <String>[];
+
+    for (final card in cards) {
+      final title = _guideCardTitle(card);
+      if (title.isNotEmpty) {
+        lines.add('$title:');
+      }
+      lines.addAll(_guideCardItems(card).map((item) => '- $item'));
+      lines.add('');
+    }
+
+    if (lines.isNotEmpty) {
+      lines.removeLast();
+    }
+    return lines;
+  }
+
+  List<String> _extractNestedGuideSection(
+    Map<String, dynamic> data, {
+    required String sectionKey,
+    required String guideKey,
+  }) {
+    final section = data[sectionKey] as Map<String, dynamic>? ?? const {};
+    final guide = section[guideKey] as Map<String, dynamic>? ?? const {};
+    return _extractCardsAsLines(_guideCardsFromMap(guide));
+  }
+
+  List<String> _extractLineAllGuides(Map<String, dynamic> data) {
+    return <String>[
+      ..._extractAlohaChoices(data),
+      '',
+      ..._extractCondiments(data),
+      '',
+      ..._extractSecondaryAndCheckoff(data),
+      '',
+      ..._extractGuideCards(data, 'line_misc_guides'),
+      if (!_runtimeConfig.isPilotProfile) ...[
+        '',
+        ..._extractFoodPrep(data),
+        '',
+        ..._extractMealTimes(data),
+        '',
+        ..._extractSafety(data),
+      ],
+    ];
+  }
+
+  List<String> _extractGuideCards(Map<String, dynamic> data, String key) {
+    final section = data[key] as Map<String, dynamic>? ?? const {};
+    return _extractCardsAsLines(_guideCardsFromMap(section));
+  }
+
+  List<String> _extractDishroomAllGuides(Map<String, dynamic> data) {
+    return <String>[
+      ..._extractDishroomGuide(data, 'operations'),
+      '',
+      ..._extractDishroomGuide(data, 'chemicals'),
+      '',
+      ..._extractDishroomGuide(data, 'cleaning'),
+      '',
+      ..._extractDishroomGuide(data, 'jobs'),
+      '',
+      ..._extractDishroomGuide(data, 'scullery'),
+    ];
+  }
+
+  List<String> _extractDishroomGuide(Map<String, dynamic> data, String key) {
+    return _extractNestedGuideSection(
+      data,
+      sectionKey: 'dishroom_guides',
+      guideKey: key,
+    );
+  }
+
+  List<String> _extractNightCustodialAllGuides(Map<String, dynamic> data) {
+    return <String>[
+      ..._extractNightCustodialGuide(data, 'dishroom_scullery'),
+      '',
+      ..._extractNightCustodialGuide(data, 'floors'),
+      '',
+      ..._extractNightCustodialGuide(data, 'equipment'),
+      '',
+      ..._extractNightCustodialGuide(data, 'stations'),
+    ];
+  }
+
+  List<String> _extractNightCustodialGuide(
+    Map<String, dynamic> data,
+    String key,
+  ) {
+    return _extractNestedGuideSection(
+      data,
+      sectionKey: 'night_custodial_guides',
+      guideKey: key,
+    );
+  }
+
+  List<String> _extractKitchenAllGuides(Map<String, dynamic> data) {
+    return <String>[
+      ..._extractKitchenGuide(data, 'salad_deli'),
+      '',
+      ..._extractKitchenGuide(data, 'desserts_fruit'),
+      '',
+      ..._extractKitchenGuide(data, 'weekend_setup'),
+    ];
+  }
+
+  List<String> _extractKitchenGuide(Map<String, dynamic> data, String key) {
+    return _extractNestedGuideSection(
+      data,
+      sectionKey: 'kitchen_guides',
+      guideKey: key,
+    );
+  }
+
   List<String> _extractAlohaChoices(Map<String, dynamic> data) {
     final jobs = data['jobs'] as Map<String, dynamic>? ?? const {};
     final aloha = jobs['aloha_plate'] as Map<String, dynamic>? ?? const {};

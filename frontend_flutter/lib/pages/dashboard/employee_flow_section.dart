@@ -5,6 +5,7 @@ class _EmployeeTaskSection extends StatefulWidget {
     required this.resetSignal,
     required this.backSignal,
     required this.onBackAtRoot,
+    required this.onReturnToDashboardHub,
     required this.taskBoard,
     required this.onSelectMeal,
     required this.onSelectJob,
@@ -15,6 +16,7 @@ class _EmployeeTaskSection extends StatefulWidget {
   final int resetSignal;
   final int backSignal;
   final VoidCallback onBackAtRoot;
+  final VoidCallback onReturnToDashboardHub;
   final TaskBoard? taskBoard;
   final Future<void> Function(String meal) onSelectMeal;
   final Future<void> Function(int jobId) onSelectJob;
@@ -49,6 +51,7 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
         action();
       });
     }
+
     if (widget.resetSignal != _lastResetSignal) {
       _lastResetSignal = widget.resetSignal;
       setState(() {
@@ -128,8 +131,8 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Row(
+            children: [
+              const Row(
                 children: [
                   Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 28),
                   SizedBox(width: 10),
@@ -143,12 +146,20 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                   ),
                 ],
               ),
-              SizedBox(height: 14),
-              Text(
+              const SizedBox(height: 14),
+              const Text(
                 'All tasks complete. Report to your supervisor.',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF264D76),
+                ),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: widget.onReturnToDashboardHub,
+                  child: const Text('Back to Dashboard'),
                 ),
               ),
             ],
@@ -432,21 +443,9 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: cleanupComplete && !_isTransitioning
-                            ? () async {
-                                if (selectedJobId == null) return;
-                                setState(() => _isTransitioning = true);
-                                final meal =
-                                    _selectedMeal ?? taskBoard.selectedMeal;
-                                await widget.onResetCompletedFlow(
-                                  meal,
-                                  selectedJobId,
-                                );
-                                if (!mounted) return;
+                            ? () {
                                 setState(() {
-                                  _step = 0;
-                                  _selectedMeal = meal;
-                                  _selectedJobId = null;
-                                  _isTransitioning = false;
+                                  _step = _finalStep;
                                 });
                               }
                             : null,

@@ -42,6 +42,7 @@ extension AppStateReports on AppState {
       _token!,
       meal: meal,
       payload: payload,
+      isPilotProfile: _runtimeConfig.isPilotProfile,
     );
     currentLineShiftReportError = null;
     _stateChanged();
@@ -66,5 +67,4 @@ extension AppStateReports on AppState {
     }
     _stateChanged();
   }
-
 }
