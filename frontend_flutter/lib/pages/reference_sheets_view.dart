@@ -292,6 +292,32 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (!widget.lockSection && widget.useOuterCard) ...[
+              TextField(
+                controller: _guideSearchController,
+                decoration: InputDecoration(
+                  labelText: 'Search guides',
+                  hintText: 'Search instructions, lockers, soups, desserts...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _guideSearchQuery.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear search',
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            _guideSearchController.clear();
+                            _updateReferenceState(() {
+                              _guideSearchQuery = '';
+                            });
+                          },
+                        ),
+                ),
+                onChanged: (value) {
+                  _updateReferenceState(() {
+                    _guideSearchQuery = value.trim();
+                  });
+                },
+              ),
+              const SizedBox(height: 14),
               Text('Guides', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 14),
             ],
@@ -316,32 +342,6 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
                 onChanged: (value) {
                   if (value == null) return;
                   _onReferenceSectionSelected(value);
-                },
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: _guideSearchController,
-                decoration: InputDecoration(
-                  labelText: 'Search guides',
-                  hintText: 'Search instructions, lockers, soups, desserts...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _guideSearchQuery.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Clear search',
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _guideSearchController.clear();
-                            _updateReferenceState(() {
-                              _guideSearchQuery = '';
-                            });
-                          },
-                        ),
-                ),
-                onChanged: (value) {
-                  _updateReferenceState(() {
-                    _guideSearchQuery = value.trim();
-                  });
                 },
               ),
               const SizedBox(height: 14),
