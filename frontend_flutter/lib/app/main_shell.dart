@@ -227,11 +227,7 @@ extension _MainShell on _MtcCafeteriaAppState {
           }
         });
       },
-      onReturnToDashboardHub: () {
-        _updateUi(() {
-          _resetDashboardSelectorsForRole(user.role);
-        });
-      },
+      onReturnToDashboardHub: () => _returnToDashboardHubAndReset(user.role),
       selectedTrack: effectiveDashboardView == _DashboardView.managerPortal
           ? 'Student Manager Portal'
           : effectiveDashboardView == _DashboardView.points

@@ -16,7 +16,7 @@ class _EmployeeTaskSection extends StatefulWidget {
   final int resetSignal;
   final int backSignal;
   final VoidCallback onBackAtRoot;
-  final VoidCallback onReturnToDashboardHub;
+  final Future<void> Function() onReturnToDashboardHub;
   final TaskBoard? taskBoard;
   final Future<void> Function(String meal) onSelectMeal;
   final Future<void> Function(int jobId) onSelectJob;
@@ -158,7 +158,9 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: widget.onReturnToDashboardHub,
+                  onPressed: () async {
+                    await widget.onReturnToDashboardHub();
+                  },
                   child: const Text('Back to Dashboard'),
                 ),
               ),

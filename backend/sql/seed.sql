@@ -52,47 +52,14 @@ INSERT INTO points (user_id, points) VALUES
   ((SELECT id FROM users WHERE email = 'dishtrainer@mtc.local'), 4)
 ON CONFLICT (user_id) DO NOTHING;
 
-INSERT INTO daily_shift_reports (
-  report_date,
-  meal_type,
-  track,
-  status,
-  submitted_by_user_id,
-  submitted_at,
-  payload
-)
-VALUES (
-  CURRENT_DATE,
-  'Breakfast',
-  'Line',
-  'Submitted',
-  (SELECT id FROM users WHERE email = 'supervisor@mtc.local'),
-  NOW(),
-  jsonb_build_object(
-    'count', '595 + 25 (J) + 14 (S) = 634',
-    'sackCount', '88 + 11 = 99',
-    'late', 'None',
-    'sick', 'Isabella Johnson, Zach Price',
-    'noShows', 'None',
-    'deepClean', 'Completed',
-    'seniorCashier', 'Aley Auna',
-    'juniorCashier', 'Volunteer',
-    'sackCashier', 'Quinn Goold',
-    'specialtyMealsAttendantAndPlateCount', 'Kirsten, 31 plates, 8 bowls',
-    'oneOnOne', 'None',
-    'shiftShoutout', 'Gabe Johnson',
-    'entreeItemOutage', 'None',
-    'productOutage', 'None',
-    'productSurplus', 'None',
-    'lockersChecked', 'Yes',
-    'maintenanceConcerns', 'Right juice machine on line 4 is warm',
-    'generalComments', 'No additional comments.',
-    'trainings', 'Completed',
-    'serviceMissionariesPresentForShift', 'Yes',
-    'summaries', 'Eggs count: 490. Pancakes count: 287.'
-  )
-)
-ON CONFLICT (report_date, meal_type, track, submitted_by_user_id) DO NOTHING;
+-- Remove the old prototype demo report if it exists. This is intentionally
+-- narrow so reseeding does not wipe legitimate production report history.
+DELETE FROM daily_shift_reports
+WHERE track = 'Line'
+  AND meal_type = 'Breakfast'
+  AND submitted_by_user_id = (SELECT id FROM users WHERE email = 'supervisor@mtc.local')
+  AND payload->>'summaries' = 'Eggs count: 490. Pancakes count: 287.'
+  AND payload->>'maintenanceConcerns' = 'Right juice machine on line 4 is warm';
 
 DELETE FROM announcements;
 

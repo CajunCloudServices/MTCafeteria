@@ -35,9 +35,11 @@ extension _ReferenceExtractors on _ReferenceSheetsViewState {
       '',
       ..._extractCondiments(data),
       '',
+      ...flattenLineDeepCleaningAssignments().map((item) => '- $item'),
+      '',
       ..._extractSecondaryAndCheckoff(data),
       '',
-      ..._extractGuideCards(data, 'line_misc_guides'),
+      ..._extractCardsAsLines(_lineMiscCards(data)),
       if (!_runtimeConfig.isPilotProfile) ...[
         '',
         ..._extractFoodPrep(data),

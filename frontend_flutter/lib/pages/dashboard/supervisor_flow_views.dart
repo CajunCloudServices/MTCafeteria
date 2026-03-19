@@ -1,6 +1,94 @@
 part of '../dashboard_page.dart';
 
 extension _SupervisorSectionViews on _SupervisorSectionState {
+  Widget _buildSupervisorInfoChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF4FF),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFB6C9E4)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF1A4E8A),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSupervisorAssignmentCard({
+    required String title,
+    required List<String> items,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFB6C9E4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.cleaning_services_outlined,
+                size: 18,
+                color: Color(0xFF1A4E8A),
+              ),
+              SizedBox(width: 8),
+            ],
+          ),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF123A65),
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    height: 7,
+                    width: 7,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1A4E8A),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: const TextStyle(
+                        color: Color(0xFF244668),
+                        fontSize: 16,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSupervisorCompletionCard({
     required SupervisorBoard supervisorBoard,
     required List<SupervisorJobItem> completedJobs,
@@ -67,7 +155,9 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: widget.onReturnToDashboardHub,
+                onPressed: () async {
+                  await widget.onReturnToDashboardHub();
+                },
                 child: const Text('Back to Dashboard'),
               ),
             ),
@@ -582,6 +672,12 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
   }
 
   Widget _buildDeepCleanView(SupervisorBoard supervisorBoard) {
+    final dayKey = weekdayNameLabel(DateTime.now().weekday).toLowerCase();
+    final assignment = lineDeepCleaningAssignmentFor(
+      dayKey,
+      supervisorBoard.selectedMeal,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -590,12 +686,28 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 6),
-        Text(weekdayNameLabel(DateTime.now().weekday)),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildSupervisorInfoChip(weekdayNameLabel(DateTime.now().weekday)),
+            _buildSupervisorInfoChip(supervisorBoard.selectedMeal),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _buildSupervisorAssignmentCard(
+          title: 'Today\'s Assignment',
+          items: [
+            ...lineDeepCleaningGeneralNotes,
+            assignment ??
+                'No deep cleaning assignment found for this day and meal.',
+          ],
+        ),
         CheckboxListTile(
           dense: false,
           controlAffinity: ListTileControlAffinity.leading,
           value: widget.deepCleanChecked,
-          title: const Text('Deep Clean'),
+          title: const Text('Deep Clean Completed'),
           onChanged: (value) {
             if (value != null) {
               widget.onDeepCleanToggle(value);

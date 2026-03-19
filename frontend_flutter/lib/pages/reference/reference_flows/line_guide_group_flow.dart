@@ -6,6 +6,7 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
       'Jobs',
       'Aloha + Choices',
       'Condiments Rotation',
+      'Deep Cleaning Assignments',
       'Secondary + Checkoff',
       'Misc',
       if (!_runtimeConfig.isPilotProfile) 'Fruit Prep (Grapes/Kiwi)',
@@ -30,16 +31,12 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
         child = _buildAlohaChoicesPanel(data);
       case 'Condiments Rotation':
         child = _buildCondimentsRotationFlow(data);
+      case 'Deep Cleaning Assignments':
+        child = _buildLineDeepCleanFlow();
       case 'Secondary + Checkoff':
         child = _buildLineSecondaryFlow(data);
       case 'Misc':
-        final cards =
-            ((data['line_misc_guides'] as Map<String, dynamic>? ??
-                            const {})['cards']
-                        as List<dynamic>? ??
-                    const [])
-                .whereType<Map<String, dynamic>>()
-                .toList();
+        final cards = _lineMiscCards(data);
         child = _buildReferencePanel(
           title: '',
           child: Column(
@@ -47,11 +44,10 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
             children: [
               for (final card in cards) ...[
                 _buildReferenceTaskCard(
-                  title: card['title']?.toString().trim() ?? 'Line Misc',
-                  items: ((card['items'] as List<dynamic>?) ?? const [])
-                      .map((item) => item.toString().trim())
-                      .where((item) => item.isNotEmpty)
-                      .toList(),
+                  title: _guideCardTitle(card).isEmpty
+                      ? 'Line Misc'
+                      : _guideCardTitle(card),
+                  items: _guideCardItems(card),
                   icon: Icons.layers_outlined,
                 ),
                 const SizedBox(height: 10),

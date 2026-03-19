@@ -1,6 +1,17 @@
 part of 'package:frontend_flutter/state/app_state.dart';
 
 extension AppStateSupervisor on AppState {
+  void _clearSupervisorWorkflowState() {
+    supervisorSecondaries = [
+      for (final item in AppState._defaultSupervisorSecondaries)
+        item.copyWith(checked: false),
+    ];
+    supervisorDeepCleanChecks = const {};
+    supervisorPanelMode = 'Jobs';
+    supervisorSelectedJobId = null;
+    supervisorJobTaskBoard = null;
+  }
+
   Future<void> refreshSupervisorBoard({String? meal}) async {
     if (!isAuthenticated || !canAccessSupervisorBoard) return;
     final board = await _apiClient.getSupervisorBoard(_token!, meal: meal);
@@ -35,17 +46,18 @@ extension AppStateSupervisor on AppState {
   }
 
   Future<void> resetSupervisorChecks() async {
+    _clearSupervisorWorkflowState();
+
     if (!isAuthenticated ||
         !canAccessSupervisorBoard ||
         supervisorBoard == null) {
+      _stateChanged();
       return;
     }
     await _apiClient.resetSupervisorBoard(
       _token!,
       meal: supervisorBoard!.selectedMeal,
     );
-    supervisorJobTaskBoard = null;
-    supervisorSelectedJobId = null;
     await refreshSupervisorBoard(meal: supervisorBoard!.selectedMeal);
   }
 
@@ -89,7 +101,8 @@ extension AppStateSupervisor on AppState {
 
   void resetSecondaryJobs() {
     supervisorSecondaries = [
-      for (final item in supervisorSecondaries) item.copyWith(checked: false),
+      for (final item in AppState._defaultSupervisorSecondaries)
+        item.copyWith(checked: false),
     ];
     supervisorDeepCleanChecks = const {};
     _stateChanged();
@@ -179,5 +192,4 @@ extension AppStateSupervisor on AppState {
       await openSupervisorJobTasks(jobId);
     }
   }
-
 }

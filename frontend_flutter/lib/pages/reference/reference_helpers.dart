@@ -1,6 +1,16 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _ReferenceHelpers on _ReferenceSheetsViewState {
+  List<Map<String, dynamic>> _lineMiscCards(Map<String, dynamic> data) {
+    final section =
+        data['line_misc_guides'] as Map<String, dynamic>? ?? const {};
+    return _guideCardsFromMap(section)
+        .where(
+          (card) => _guideCardTitle(card) != 'Line Deep Cleaning Assignments',
+        )
+        .toList();
+  }
+
   List<Map<String, dynamic>> _guideCardsFromMap(Map<String, dynamic> source) {
     return (source['cards'] as List<dynamic>? ?? const [])
         .whereType<Map<String, dynamic>>()
@@ -185,12 +195,16 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
       items: _extractCondiments(data),
     );
     addLineSection(
+      title: 'Deep Cleaning Assignments',
+      items: flattenLineDeepCleaningAssignments(),
+    );
+    addLineSection(
       title: 'Secondary + Checkoff',
       items: _extractSecondaryAndCheckoff(data),
     );
     addLineSection(
       title: 'Misc',
-      items: _extractGuideCards(data, 'line_misc_guides'),
+      items: _extractCardsAsLines(_lineMiscCards(data)),
     );
     if (!_runtimeConfig.isPilotProfile) {
       addLineSection(

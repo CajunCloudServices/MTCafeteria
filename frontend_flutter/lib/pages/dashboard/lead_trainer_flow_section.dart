@@ -21,7 +21,7 @@ class _LeadTrainerTaskSection extends StatefulWidget {
   final int resetSignal;
   final int backSignal;
   final VoidCallback onBackAtRoot;
-  final VoidCallback onReturnToDashboardHub;
+  final Future<void> Function() onReturnToDashboardHub;
 
   final TrainerBoard? trainerBoard;
   final int traineeCount;

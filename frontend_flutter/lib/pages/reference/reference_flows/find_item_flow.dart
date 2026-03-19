@@ -1,6 +1,56 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
+  Map<String, List<String>> _mergedLockerInventory(Map<String, dynamic> data) {
+    final raw = data['locker_inventory'] as Map<String, dynamic>? ?? const {};
+    final merged = <String, List<String>>{};
+
+    for (final entry in raw.entries) {
+      final items = switch (entry.value) {
+        List<dynamic> value => value.map((e) => e.toString().trim()).toList(),
+        String value => <String>[value.trim()],
+        _ => const <String>[],
+      };
+      merged[entry.key] = items.where((item) => item.isNotEmpty).toList();
+    }
+
+    for (final entry in _customLockerInventory.entries) {
+      final existing = merged[entry.key] ?? const <String>[];
+      final deduped = <String>[
+        ...existing,
+        ...entry.value.where(
+          (item) => !existing.any(
+            (existingItem) => existingItem.toLowerCase() == item.toLowerCase(),
+          ),
+        ),
+      ]..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      merged[entry.key] = deduped;
+    }
+
+    return merged;
+  }
+
+  List<String> _lockerLocationOptions(Map<String, List<String>> lockerData) {
+    final numeric =
+        lockerData.keys.where((key) => int.tryParse(key) != null).toList()
+          ..sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+    final named =
+        lockerData.keys
+            .where(
+              (key) =>
+                  int.tryParse(key) == null &&
+                  key != 'notes' &&
+                  key != 'unclear',
+            )
+            .toList()
+          ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return [...numeric, ...named];
+  }
+
+  String _lockerDisplayLabel(String location) {
+    return int.tryParse(location) != null ? 'Locker $location' : location;
+  }
+
   String _normalizeLockerSearchText(String value) {
     final lower = value.toLowerCase();
     final buffer = StringBuffer();
@@ -18,30 +68,15 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
   Widget _buildLockerFlow(Map<String, dynamic> data) {
     // Workers usually know the item they need, not the locker number, so the
     // experience starts from search instead of a locker list.
-    final lockerData =
-        data['locker_inventory'] as Map<String, dynamic>? ?? const {};
+    final lockerData = _mergedLockerInventory(data);
     final search = _lockerSearchQuery.trim().toLowerCase();
     final normalizedSearch = _normalizeLockerSearchText(search);
-    final lockerKeys =
-        lockerData.keys.where((key) => int.tryParse(key) != null).toList()
-          ..sort((a, b) {
-            final aNum = int.tryParse(a);
-            final bNum = int.tryParse(b);
-            if (aNum != null && bNum != null) {
-              return aNum.compareTo(bNum);
-            }
-            return a.compareTo(b);
-          });
+    final lockerKeys = _lockerLocationOptions(lockerData);
 
     final matchesByLocker = <String, List<String>>{};
     if (search.isNotEmpty) {
       for (final locker in lockerKeys) {
-        final rawItems = lockerData[locker];
-        final items = switch (rawItems) {
-          List<dynamic> value => value.map((e) => e.toString()).toList(),
-          String value => <String>[value],
-          _ => const <String>[],
-        };
+        final items = lockerData[locker] ?? const <String>[];
         final filteredItems = items.where((item) {
           final lowerItem = item.toLowerCase();
           if (lowerItem.contains(search)) return true;
@@ -94,13 +129,105 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: _buildReferenceTaskCard(
-                  title: 'Locker ${entry.key}',
+                  title: _lockerDisplayLabel(entry.key),
                   items: entry.value,
                   icon: Icons.inventory_2_outlined,
                 ),
               ),
             ),
         ],
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFB6C9E4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Add an Item',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF123A65),
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedLockerAddLocation,
+                decoration: const InputDecoration(labelText: 'Location'),
+                isExpanded: true,
+                items: _lockerLocationOptions(lockerData)
+                    .map(
+                      (location) => DropdownMenuItem<String>(
+                        value: location,
+                        child: Text(_lockerDisplayLabel(location)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  _updateReferenceState(() {
+                    _selectedLockerAddLocation = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _lockerAddItemController,
+                decoration: const InputDecoration(
+                  labelText: 'Item name',
+                  hintText: 'Type the item to add',
+                ),
+                onSubmitted: (_) async {
+                  final item = _lockerAddItemController.text.trim();
+                  if (item.isEmpty) return;
+                  await _addLockerInventoryItem(
+                    location: _selectedLockerAddLocation,
+                    item: item,
+                  );
+                  if (!mounted) return;
+                  _lockerAddItemController.clear();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Added "$item" to ${_lockerDisplayLabel(_selectedLockerAddLocation)}.',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () async {
+                    final item = _lockerAddItemController.text.trim();
+                    if (item.isEmpty) return;
+                    await _addLockerInventoryItem(
+                      location: _selectedLockerAddLocation,
+                      item: item,
+                    );
+                    if (!mounted) return;
+                    _lockerAddItemController.clear();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Added "$item" to ${_lockerDisplayLabel(_selectedLockerAddLocation)}.',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Add Item'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
 

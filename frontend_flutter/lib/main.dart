@@ -58,7 +58,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   bool _dashboardTrackConfirmed = false;
   String _dashboardMode = 'Employee';
   bool _dashboardRoleConfirmed = false;
-  final int _dashboardResetSignal = 0;
+  int _dashboardResetSignal = 0;
   int _dashboardBackSignal = 0;
   _DashboardView _dashboardView = _DashboardView.hub;
 
@@ -175,6 +175,35 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     _dashboardRoleConfirmed = modes.length <= 1;
   }
 
+  Future<void> _resetActiveDashboardFlowState() async {
+    final currentTrack = _dashboardTrack;
+    final currentMode = _dashboardMode;
+
+    if (currentTrack == 'Line' && currentMode == 'Supervisor') {
+      await _state.resetSupervisorChecks();
+    } else if (currentTrack == 'Line' && currentMode == 'Employee') {
+      final board = _state.taskBoard;
+      final jobId = board?.selectedJobId;
+      if (board != null && jobId != null) {
+        await _state.resetCurrentTaskFlow(
+          meal: board.selectedMeal,
+          jobId: jobId,
+        );
+      }
+    } else if (currentTrack == 'Line' && currentMode == 'Lead Trainer') {
+      _state.resetTrainerFlow();
+    }
+  }
+
+  Future<void> _returnToDashboardHubAndReset(String role) async {
+    await _resetActiveDashboardFlowState();
+    _updateUi(() {
+      _dashboardResetSignal += 1;
+      _dashboardBackSignal = 0;
+      _resetDashboardSelectorsForRole(role);
+    });
+  }
+
   void _handleDashboardBack({required _DashboardView effectiveDashboardView}) {
     // Non-workflow dashboard surfaces always return to the hub in one press.
     if (effectiveDashboardView != _DashboardView.workflow) {
@@ -209,7 +238,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     setState(() {
       if (effectiveIndex == 1) {
         _selectedIndex = 1;
-        _resetDashboardSelectorsForRole(role);
+        _returnToDashboardHubAndReset(role);
         return;
       }
       _selectedIndex = effectiveIndex;

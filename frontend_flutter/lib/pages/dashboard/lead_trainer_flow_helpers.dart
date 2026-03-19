@@ -70,7 +70,9 @@ extension _LeadTrainerFlowHelpers on _LeadTrainerTaskSectionState {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: widget.onReturnToDashboardHub,
+                onPressed: () async {
+                  await widget.onReturnToDashboardHub();
+                },
                 child: const Text('Back to Dashboard'),
               ),
             ),

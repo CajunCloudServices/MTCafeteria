@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/line_deep_clean_assignments.dart';
 import '../config/runtime_config.dart';
 
 part 'reference/reference_catalog.dart';
@@ -18,6 +20,7 @@ part 'reference/reference_flows/line_jobs_flow.dart';
 part 'reference/reference_flows/line_secondary_flow.dart';
 part 'reference/reference_flows/find_item_flow.dart';
 part 'reference/reference_flows/condiments_rotation_flow.dart';
+part 'reference/reference_flows/line_deep_clean_flow.dart';
 part 'reference/reference_flows/dining_map_flow.dart';
 
 /// Guided reference browser for line operations, item lookup, condiments, and
@@ -39,17 +42,23 @@ class ReferenceSheetsView extends StatefulWidget {
 }
 
 class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
+  static const String _customLockerItemsKey = 'custom_locker_items_v1';
   final AppRuntimeConfig _runtimeConfig = AppRuntimeConfig.fromEnvironment;
   late final Future<Map<String, dynamic>> _referenceFuture;
   final TransformationController _mapTransformationController =
       TransformationController();
   final TextEditingController _lockerSearchController = TextEditingController();
+  final TextEditingController _lockerAddItemController =
+      TextEditingController();
   final TextEditingController _guideSearchController = TextEditingController();
   String _selectedSection = 'Select';
   int _condimentStep = 0;
   String _selectedCondimentColor = 'green';
   String _selectedCondimentDay = 'monday';
   String _selectedCondimentMeal = 'Breakfast';
+  int _lineDeepCleanStep = 0;
+  String _selectedLineDeepCleanDay = 'monday';
+  String _selectedLineDeepCleanMeal = 'Breakfast';
   int _lineStep = 0;
   String _selectedLineMeal = 'Breakfast';
   String? _selectedLineJobKey;
@@ -61,6 +70,8 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   String _selectedNightCustodialCard = 'Select';
   String _selectedSafetyCard = 'Select';
   String _selectedGeneralInformationCard = 'Select';
+  String _selectedLockerAddLocation = '1';
+  Map<String, List<String>> _customLockerInventory = const {};
   int _lineSecondaryStep = 0;
   String _lineSecondaryMeal = 'Breakfast';
   String _lineSecondaryGroup = 'While Doors Open';
@@ -74,14 +85,72 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
     super.initState();
     _selectedSection = widget.initialSection;
     _referenceFuture = _loadReferenceData();
+    _loadCustomLockerInventory();
   }
 
   @override
   void dispose() {
     _mapTransformationController.dispose();
     _lockerSearchController.dispose();
+    _lockerAddItemController.dispose();
     _guideSearchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCustomLockerInventory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_customLockerItemsKey);
+    if (raw == null || raw.trim().isEmpty) return;
+
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final parsed = <String, List<String>>{};
+      for (final entry in decoded.entries) {
+        parsed[entry.key] = ((entry.value as List<dynamic>?) ?? const [])
+            .map((item) => item.toString().trim())
+            .where((item) => item.isNotEmpty)
+            .toList();
+      }
+      if (!mounted) return;
+      setState(() {
+        _customLockerInventory = parsed;
+      });
+    } catch (_) {
+      // Ignore malformed local cache and fall back to bundled inventory.
+    }
+  }
+
+  Future<void> _saveCustomLockerInventory() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _customLockerItemsKey,
+      jsonEncode(_customLockerInventory),
+    );
+  }
+
+  Future<void> _addLockerInventoryItem({
+    required String location,
+    required String item,
+  }) async {
+    final normalizedItem = item.trim();
+    if (normalizedItem.isEmpty) return;
+
+    final existing = _customLockerInventory[location] ?? const <String>[];
+    final alreadyExists = existing.any(
+      (entry) => entry.toLowerCase() == normalizedItem.toLowerCase(),
+    );
+    if (alreadyExists) return;
+
+    final updated = <String, List<String>>{
+      ..._customLockerInventory,
+      location: [...existing, normalizedItem]
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+    };
+
+    setState(() {
+      _customLockerInventory = updated;
+    });
+    await _saveCustomLockerInventory();
   }
 
   Future<Map<String, dynamic>> _loadReferenceData() async {

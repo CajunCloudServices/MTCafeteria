@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../config/line_deep_clean_assignments.dart';
 import '../models/daily_shift_report.dart';
 import '../models/point_assignment.dart';
 import '../models/supervisor_board.dart';
@@ -95,7 +96,7 @@ class DashboardPage extends StatelessWidget {
   final int resetFlowSignal;
   final int backSignal;
   final VoidCallback onBackAtWorkflowRoot;
-  final VoidCallback onReturnToDashboardHub;
+  final Future<void> Function() onReturnToDashboardHub;
   final String selectedTrack;
   final String selectedMode;
   final List<Training> trainings;

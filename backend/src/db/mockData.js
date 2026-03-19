@@ -587,43 +587,7 @@ const pointAssignments = [
   },
 ];
 
-const dailyShiftReports = [
-  {
-    id: 1,
-    reportDate: today,
-    mealType: 'Breakfast',
-    track: 'Line',
-    status: 'Submitted',
-    submittedByUserId: 3,
-    submittedByEmail: 'supervisor@mtc.local',
-    submittedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    payload: {
-      count: '595 + 25 (J) + 14 (S) = 634',
-      sackCount: '88 + 11 = 99',
-      late: 'None',
-      sick: 'Isabella Johnson, Zach Price',
-      noShows: 'None',
-      deepClean: 'Completed',
-      seniorCashier: 'Aley Auna',
-      juniorCashier: 'Volunteer',
-      sackCashier: 'Quinn Goold',
-      specialtyMealsAttendantAndPlateCount: 'Kirsten, 31 plates, 8 bowls',
-      oneOnOne: 'None',
-      shiftShoutout: 'Gabe Johnson',
-      entreeItemOutage: 'None',
-      productOutage: 'None',
-      productSurplus: 'None',
-      lockersChecked: 'Yes',
-      maintenanceConcerns: 'Right juice machine on line 4 is warm',
-      generalComments: 'No additional comments.',
-      trainings: 'Completed',
-      serviceMissionariesPresentForShift: 'Yes',
-      summaries: 'Eggs count: 490. Pancakes count: 287.',
-    },
-  },
-];
+const dailyShiftReports = [];
 
 const traineeIds = [1, 5, 6, 7];
 for (const meal of meals) {

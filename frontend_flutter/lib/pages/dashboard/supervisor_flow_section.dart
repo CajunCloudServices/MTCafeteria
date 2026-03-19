@@ -32,7 +32,7 @@ class _SupervisorSection extends StatefulWidget {
   final int resetSignal;
   final int backSignal;
   final VoidCallback onBackAtRoot;
-  final VoidCallback onReturnToDashboardHub;
+  final Future<void> Function() onReturnToDashboardHub;
   final SupervisorBoard? supervisorBoard;
   final SupervisorJobTaskBoard? jobTaskBoard;
   final int? selectedJobId;
