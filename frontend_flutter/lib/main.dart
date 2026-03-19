@@ -299,6 +299,56 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     });
   }
 
+  Future<void> _openReferenceOverlay(
+    BuildContext context, {
+    String initialSection = 'Select',
+    bool lockSection = false,
+  }) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: const Color(0xFFF4F8FE),
+      builder: (sheetContext) {
+        final mediaQuery = MediaQuery.of(sheetContext);
+        final isWide = mediaQuery.size.width >= 760;
+        return FractionallySizedBox(
+          heightFactor: isWide ? 0.9 : 0.96,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 12, 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        lockSection ? initialSection : 'Search Guides',
+                        style: Theme.of(sheetContext).textTheme.headlineSmall,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ReferenceSheetsView(
+                  initialSection: initialSection,
+                  lockSection: lockSection,
+                  useOuterCard: false,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF1A4E8A);
@@ -622,6 +672,29 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                         ),
                         icon: Icon(Icons.menu, size: isMobile ? 32 : 28),
                         onSelected: (value) {
+                          if (value == 'search-guides' && canViewReference) {
+                            _openReferenceOverlay(context);
+                            return;
+                          }
+
+                          if (value == 'find-item' && canViewReference) {
+                            _openReferenceOverlay(
+                              context,
+                              initialSection: 'Find an Item',
+                              lockSection: true,
+                            );
+                            return;
+                          }
+
+                          if (value == 'dining-map' && canViewReference) {
+                            _openReferenceOverlay(
+                              context,
+                              initialSection: 'Dining Map',
+                              lockSection: true,
+                            );
+                            return;
+                          }
+
                           if (value == 'trainings' && canViewTrainings) {
                             Navigator.of(context).push(
                               MaterialPageRoute<void>(
@@ -668,6 +741,42 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                               ),
                             ),
                           ),
+                          if (canViewReference)
+                            const PopupMenuItem<String>(
+                              key: ValueKey('menu-search-guides'),
+                              value: 'search-guides',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.menu_book_outlined, size: 18),
+                                  SizedBox(width: 10),
+                                  Text('Search Guides'),
+                                ],
+                              ),
+                            ),
+                          if (canViewReference)
+                            const PopupMenuItem<String>(
+                              key: ValueKey('menu-find-item'),
+                              value: 'find-item',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.search, size: 18),
+                                  SizedBox(width: 10),
+                                  Text('Find an Item'),
+                                ],
+                              ),
+                            ),
+                          if (canViewReference)
+                            const PopupMenuItem<String>(
+                              key: ValueKey('menu-dining-map'),
+                              value: 'dining-map',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.map_outlined, size: 18),
+                                  SizedBox(width: 10),
+                                  Text('Dining Map'),
+                                ],
+                              ),
+                            ),
                           if (canViewTrainings &&
                               _selectedIndex == 1 &&
                               !showTrackSelection &&

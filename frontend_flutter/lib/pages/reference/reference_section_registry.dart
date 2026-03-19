@@ -7,6 +7,7 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
       'Dishroom': _extractDishroomAllGuides(data),
       'Night Custodial': _extractNightCustodialAllGuides(data),
       'Kitchen': _extractKitchenAllGuides(data),
+      'Recipes': _extractRecipeGuides(),
       'Safety': _extractGuideCards(data, 'safety_guides'),
       'General Information': _extractGuideCards(
         data,
@@ -48,6 +49,9 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
     }
     if (_selectedSection == 'Kitchen') {
       return _buildKitchenGuideGroupPanel(data, sectionTitle: _selectedSection);
+    }
+    if (_selectedSection == 'Recipes') {
+      return _buildRecipeGuidePanel();
     }
     if (_selectedSection == 'Safety') {
       return _buildGenericGuideGroupPanel(
@@ -100,6 +104,8 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
         _selectedNightCustodialCard = 'Select';
       case 'Kitchen':
         _selectedKitchenCard = 'Select';
+      case 'Recipes':
+        _selectedRecipeCard = 'Select';
       case 'Safety':
         _selectedSafetyCard = 'Select';
       case 'General Information':

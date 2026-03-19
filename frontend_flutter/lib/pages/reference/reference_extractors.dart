@@ -111,6 +111,22 @@ extension _ReferenceExtractors on _ReferenceSheetsViewState {
     ];
   }
 
+  List<String> _extractRecipeGuides() {
+    final lines = <String>[];
+    for (final entry in _recipeGuideCards.entries) {
+      lines.add('${entry.key}:');
+      for (final section in entry.value.entries) {
+        lines.add('- ${section.key}:');
+        lines.addAll(section.value.map((item) => '  - $item'));
+      }
+      lines.add('');
+    }
+    if (lines.isNotEmpty) {
+      lines.removeLast();
+    }
+    return lines;
+  }
+
   List<String> _extractKitchenGuide(Map<String, dynamic> data, String key) {
     return _extractNestedGuideSection(
       data,

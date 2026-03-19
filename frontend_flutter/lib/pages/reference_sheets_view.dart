@@ -16,6 +16,7 @@ part 'reference/reference_flows/kitchen_guides_flow.dart';
 part 'reference/reference_flows/line_guide_group_flow.dart';
 part 'reference/reference_flows/misc_reference_group_flow.dart';
 part 'reference/reference_flows/night_custodial_guides_flow.dart';
+part 'reference/reference_flows/recipes_guides_flow.dart';
 part 'reference/reference_flows/line_jobs_flow.dart';
 part 'reference/reference_flows/line_secondary_flow.dart';
 part 'reference/reference_flows/find_item_flow.dart';
@@ -69,6 +70,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   String _selectedDishroomCard = 'Select';
   String _selectedKitchenCard = 'Select';
   String _selectedNightCustodialCard = 'Select';
+  String _selectedRecipeCard = 'Select';
   String _selectedSafetyCard = 'Select';
   String _selectedGeneralInformationCard = 'Select';
   String _selectedLockerAddLocation = '1';
