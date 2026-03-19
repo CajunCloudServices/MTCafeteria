@@ -512,22 +512,31 @@ WHERE NOT EXISTS (
 INSERT INTO task_progress (user_id, task_id, completed, supervisor_checked)
 VALUES
   ((SELECT id FROM users WHERE email = 'employee@mtc.local'), (SELECT id FROM tasks ORDER BY id LIMIT 1), true, false),
-  ((SELECT id FROM users WHERE email = 'trainer@mtc.local'), (SELECT id FROM tasks ORDER BY id LIMIT 1), true, true)
-ON CONFLICT (user_id, task_id) DO NOTHING;
+  ((SELECT id FROM users WHERE email = 'trainer@mtc.local'), (SELECT id FROM tasks ORDER BY id LIMIT 1), true, false)
+ON CONFLICT (user_id, task_id) DO UPDATE
+SET
+  completed = EXCLUDED.completed,
+  supervisor_checked = EXCLUDED.supervisor_checked;
 
 INSERT INTO supervisor_job_checks (meal_type, job_id, checked)
 VALUES
-  ('Breakfast', (SELECT j.id FROM jobs j JOIN shifts s ON s.id = j.shift_id WHERE s.meal_type = 'Breakfast' AND j.name = 'Sack Cashier' LIMIT 1), true)
-ON CONFLICT (meal_type, job_id) DO NOTHING;
+  ('Breakfast', (SELECT j.id FROM jobs j JOIN shifts s ON s.id = j.shift_id WHERE s.meal_type = 'Breakfast' AND j.name = 'Sack Cashier' LIMIT 1), false)
+ON CONFLICT (meal_type, job_id) DO UPDATE
+SET
+  checked = EXCLUDED.checked,
+  updated_at = NOW();
 
 INSERT INTO supervisor_task_checks (meal_type, job_id, task_id, checked)
 VALUES (
   'Breakfast',
   (SELECT j.id FROM jobs j JOIN shifts s ON s.id = j.shift_id WHERE s.meal_type = 'Breakfast' AND j.name = 'Sack Cashier' LIMIT 1),
   (SELECT t.id FROM tasks t JOIN jobs j ON j.id = t.job_id JOIN shifts s ON s.id = j.shift_id WHERE s.meal_type = 'Breakfast' AND j.name = 'Sack Cashier' AND t.phase = 'Cleanup' ORDER BY t.id LIMIT 1),
-  true
+  false
 )
-ON CONFLICT (meal_type, job_id, task_id) DO NOTHING;
+ON CONFLICT (meal_type, job_id, task_id) DO UPDATE
+SET
+  checked = EXCLUDED.checked,
+  updated_at = NOW();
 
 INSERT INTO trainer_assignments (trainer_user_id, trainee_user_id, job_id)
 VALUES
