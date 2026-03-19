@@ -62,7 +62,6 @@ flutter:
     - assets/branding/mtc_logo_clean.jpg
     - assets/reference/cafeteria_reference_data.json
     - assets/reference/MTC Dining Map (1).png
-    - assets/trainings/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

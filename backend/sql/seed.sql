@@ -95,12 +95,37 @@ VALUES (
 ON CONFLICT (report_date, meal_type, track, submitted_by_user_id) DO NOTHING;
 
 INSERT INTO announcements (type, title, content, start_date, end_date, created_by)
-VALUES (
-  'Announcement',
-  'Prototype Announcement',
-  'Use this board for reminders, activities, and VIP event updates.',
+VALUES
+(
+  'Reminder',
+  'Clean-Shaven Reminder',
+  'Come to work clean shaven and ready for your shift.',
   CURRENT_DATE,
-  CURRENT_DATE + INTERVAL '7 day',
+  CURRENT_DATE + INTERVAL '180 day',
+  (SELECT id FROM users WHERE email = 'manager@mtc.local')
+),
+(
+  'Reminder',
+  'Missionary-Appropriate Attire',
+  'Wear missionary-appropriate clothing when coming to work.',
+  CURRENT_DATE,
+  CURRENT_DATE + INTERVAL '180 day',
+  (SELECT id FROM users WHERE email = 'manager@mtc.local')
+),
+(
+  'Announcement',
+  'Spring and Summer Shift Sign-Up',
+  'Sign up for spring and summer shifts even if you will be away so we know who will and will not be here.',
+  CURRENT_DATE,
+  CURRENT_DATE + INTERVAL '180 day',
+  (SELECT id FROM users WHERE email = 'manager@mtc.local')
+),
+(
+  'Special Event',
+  'VIP Event Sign-Up',
+  'Sign up for next Tuesday''s VIP event if you are available to help.',
+  CURRENT_DATE + INTERVAL '1 day',
+  CURRENT_DATE + INTERVAL '180 day',
   (SELECT id FROM users WHERE email = 'manager@mtc.local')
 )
 ON CONFLICT DO NOTHING;
@@ -117,12 +142,20 @@ INSERT INTO shifts (shift_type, meal_type, name) VALUES
   ('Line Shift', 'Dinner', 'Dinner Line Shift')
 ON CONFLICT DO NOTHING;
 
+-- Replace legacy unsplit shared jobs with split variants.
+DELETE FROM jobs
+WHERE name IN ('Line Runner', 'Beverages', 'Beverages (A)', 'Beverages (B)')
+  AND shift_id IN (
+    SELECT id FROM shifts WHERE shift_type = 'Line Shift'
+  );
+
 WITH meal_jobs AS (
   SELECT * FROM (VALUES
     ('Breakfast', 'Sack Cashier'),
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
-    ('Breakfast', 'Line Runner'),
+    ('Breakfast', 'Line Running (Left)'),
+    ('Breakfast', 'Line Running (Right)'),
     ('Breakfast', 'Aloha Plate'),
     ('Breakfast', 'Choices'),
     ('Breakfast', 'Beverages'),
@@ -136,7 +169,8 @@ WITH meal_jobs AS (
     ('Lunch', 'Salads'),
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
-    ('Lunch', 'Line Runner'),
+    ('Lunch', 'Line Running (Left)'),
+    ('Lunch', 'Line Running (Right)'),
     ('Lunch', 'Aloha Plate'),
     ('Lunch', 'Choices'),
     ('Lunch', 'Beverages'),
@@ -147,7 +181,8 @@ WITH meal_jobs AS (
     ('Lunch', 'Condiments Host'),
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
-    ('Dinner', 'Line Runner'),
+    ('Dinner', 'Line Running (Left)'),
+    ('Dinner', 'Line Running (Right)'),
     ('Dinner', 'Aloha Plate'),
     ('Dinner', 'Choices'),
     ('Dinner', 'Beverages'),
@@ -322,22 +357,38 @@ generic_task_defs AS (
     ('Condiments Host', 'Cleanup', 'Wipe down all the condiment bars'),
     ('Condiments Host', 'Cleanup', 'Wipe down the condiment area of the salad bar'),
     ('Condiments Host', 'Cleanup', 'Move salad bar condiments to the student table'),
-    ('Line Runner', 'Setup', 'Fill wells with water'),
-    ('Line Runner', 'Setup', 'Turn on heat'),
-    ('Line Runner', 'Setup', 'Turn on heating elements'),
-    ('Line Runner', 'Setup', 'Put food out in correct order'),
-    ('Line Runner', 'Setup', 'Get utensils'),
-    ('Line Runner', 'Setup', 'Prepare plate stacks'),
-    ('Line Runner', 'During Shift', 'Keep food stocked'),
-    ('Line Runner', 'During Shift', 'Communicate with chefs as needed'),
-    ('Line Runner', 'During Shift', 'Put plates out 10 at a time'),
-    ('Line Runner', 'During Shift', 'Keep track of plate counts'),
-    ('Line Runner', 'Cleanup', 'Plates/bowls restocked'),
-    ('Line Runner', 'Cleanup', 'Heaters off'),
-    ('Line Runner', 'Cleanup', 'Surfaces clean and dry'),
-    ('Line Runner', 'Cleanup', 'Drain closed and bucket empty'),
-    ('Line Runner', 'Cleanup', 'Floors swept (including under station)'),
-    ('Line Runner', 'Cleanup', 'Trash emptied'),
+    ('Line Running (Left)', 'Setup', 'Fill wells with water'),
+    ('Line Running (Left)', 'Setup', 'Turn on heat'),
+    ('Line Running (Left)', 'Setup', 'Turn on heating elements'),
+    ('Line Running (Left)', 'Setup', 'Put food out in correct order'),
+    ('Line Running (Left)', 'Setup', 'Get utensils'),
+    ('Line Running (Left)', 'Setup', 'Prepare plate stacks'),
+    ('Line Running (Left)', 'During Shift', 'Keep food stocked'),
+    ('Line Running (Left)', 'During Shift', 'Communicate with chefs as needed'),
+    ('Line Running (Left)', 'During Shift', 'Put plates out 10 at a time'),
+    ('Line Running (Left)', 'During Shift', 'Keep track of plate counts'),
+    ('Line Running (Left)', 'Cleanup', 'Plates/bowls restocked'),
+    ('Line Running (Left)', 'Cleanup', 'Heaters off'),
+    ('Line Running (Left)', 'Cleanup', 'Surfaces clean and dry'),
+    ('Line Running (Left)', 'Cleanup', 'Drain closed and bucket empty'),
+    ('Line Running (Left)', 'Cleanup', 'Floors swept (including under station)'),
+    ('Line Running (Left)', 'Cleanup', 'Trash emptied'),
+    ('Line Running (Right)', 'Setup', 'Fill wells with water'),
+    ('Line Running (Right)', 'Setup', 'Turn on heat'),
+    ('Line Running (Right)', 'Setup', 'Turn on heating elements'),
+    ('Line Running (Right)', 'Setup', 'Put food out in correct order'),
+    ('Line Running (Right)', 'Setup', 'Get utensils'),
+    ('Line Running (Right)', 'Setup', 'Prepare plate stacks'),
+    ('Line Running (Right)', 'During Shift', 'Keep food stocked'),
+    ('Line Running (Right)', 'During Shift', 'Communicate with chefs as needed'),
+    ('Line Running (Right)', 'During Shift', 'Put plates out 10 at a time'),
+    ('Line Running (Right)', 'During Shift', 'Keep track of plate counts'),
+    ('Line Running (Right)', 'Cleanup', 'Plates/bowls restocked'),
+    ('Line Running (Right)', 'Cleanup', 'Heaters off'),
+    ('Line Running (Right)', 'Cleanup', 'Surfaces clean and dry'),
+    ('Line Running (Right)', 'Cleanup', 'Drain closed and bucket empty'),
+    ('Line Running (Right)', 'Cleanup', 'Floors swept (including under station)'),
+    ('Line Running (Right)', 'Cleanup', 'Trash emptied'),
     ('Aloha Plate', 'Setup', 'Fill wells with water'),
     ('Aloha Plate', 'Setup', 'Turn on heat'),
     ('Aloha Plate', 'Setup', 'Turn on heating elements'),
@@ -427,7 +478,8 @@ meal_jobs AS (
     ('Breakfast', 'Sack Cashier'),
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
-    ('Breakfast', 'Line Runner'),
+    ('Breakfast', 'Line Running (Left)'),
+    ('Breakfast', 'Line Running (Right)'),
     ('Breakfast', 'Aloha Plate'),
     ('Breakfast', 'Choices'),
     ('Breakfast', 'Beverages'),
@@ -441,7 +493,8 @@ meal_jobs AS (
     ('Lunch', 'Salads'),
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
-    ('Lunch', 'Line Runner'),
+    ('Lunch', 'Line Running (Left)'),
+    ('Lunch', 'Line Running (Right)'),
     ('Lunch', 'Aloha Plate'),
     ('Lunch', 'Choices'),
     ('Lunch', 'Beverages'),
@@ -452,7 +505,8 @@ meal_jobs AS (
     ('Lunch', 'Condiments Host'),
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
-    ('Dinner', 'Line Runner'),
+    ('Dinner', 'Line Running (Left)'),
+    ('Dinner', 'Line Running (Right)'),
     ('Dinner', 'Aloha Plate'),
     ('Dinner', 'Choices'),
     ('Dinner', 'Beverages'),

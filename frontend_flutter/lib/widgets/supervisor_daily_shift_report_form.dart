@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../config/runtime_config.dart';
 import '../models/daily_shift_report.dart';
 
 /// Dynamic supervisor form for the line daily shift report.
@@ -26,6 +27,8 @@ class SupervisorDailyShiftReportForm extends StatefulWidget {
 
 class _SupervisorDailyShiftReportFormState
     extends State<SupervisorDailyShiftReportForm> {
+  final AppRuntimeConfig _runtimeConfig = AppRuntimeConfig.fromEnvironment;
+
   // The total is computed from the individual count fields instead of being
   // directly editable.
   static const List<String> _countComponentKeys = [
@@ -90,7 +93,9 @@ class _SupervisorDailyShiftReportFormState
   }
 
   List<String> _missingRequiredFields() {
-    return lineShiftReportFields
+    return visibleLineShiftReportFields(
+          isPilotProfile: _runtimeConfig.isPilotProfile,
+        )
         .where(
           (field) =>
               field.required &&
@@ -102,6 +107,10 @@ class _SupervisorDailyShiftReportFormState
 
   @override
   Widget build(BuildContext context) {
+    final visibleFields = visibleLineShiftReportFields(
+      isPilotProfile: _runtimeConfig.isPilotProfile,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -153,7 +162,7 @@ class _SupervisorDailyShiftReportFormState
           // form matches the paper report supervisors already know.
           final sectionOrder = <String>[];
           final fieldsBySection = <String, List<DailyShiftReportField>>{};
-          for (final field in lineShiftReportFields) {
+          for (final field in visibleFields) {
             if (!fieldsBySection.containsKey(field.section)) {
               sectionOrder.add(field.section);
               fieldsBySection[field.section] = <DailyShiftReportField>[];

@@ -3,6 +3,7 @@ const { Roles } = require('../config/roles');
 
 const today = new Date().toISOString().slice(0, 10);
 const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const longFuture = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 const roles = [
   { id: 1, name: Roles.EMPLOYEE },
@@ -26,29 +27,39 @@ const users = [
 const announcements = [
   {
     id: 1,
-    type: 'Announcement',
-    title: 'Welcome to this Week',
-    content: 'Please review shift boards before your first shift.',
+    type: 'Reminder',
+    title: 'Clean-Shaven Reminder',
+    content: 'Come to work clean shaven and ready for your shift.',
     startDate: today,
-    endDate: tomorrow,
+    endDate: longFuture,
     createdBy: 4,
   },
   {
     id: 2,
     type: 'Reminder',
-    title: 'Hairnet Reminder',
-    content: 'Hairnets are required in all kitchen and line areas.',
+    title: 'Missionary-Appropriate Attire',
+    content: 'Wear missionary-appropriate clothing when coming to work.',
     startDate: today,
-    endDate: tomorrow,
+    endDate: longFuture,
     createdBy: 4,
   },
   {
     id: 3,
+    type: 'Announcement',
+    title: 'Spring and Summer Shift Sign-Up',
+    content:
+      'Sign up for spring and summer shifts even if you will be away so we know who will and will not be here.',
+    startDate: today,
+    endDate: longFuture,
+    createdBy: 4,
+  },
+  {
+    id: 4,
     type: 'Special Event',
-    title: 'VIP Dinner Service',
-    content: 'Special dinner setup starts 30 minutes earlier on Friday.',
+    title: 'VIP Event Sign-Up',
+    content: 'Sign up for next Tuesday’s VIP event if you are available to help.',
     startDate: tomorrow,
-    endDate: tomorrow,
+    endDate: longFuture,
     createdBy: 4,
   },
 ];
@@ -281,7 +292,35 @@ const jobDefinitions = [
     },
   },
   {
-    name: 'Line Runner',
+    name: 'Line Running (Left)',
+    meals: ['Breakfast', 'Lunch', 'Dinner'],
+    phases: {
+      Setup: [
+        'Fill wells with water',
+        'Turn on heat',
+        'Turn on heating elements',
+        'Put food out in correct order',
+        'Get utensils',
+        'Prepare plate stacks',
+      ],
+      'During Shift': [
+        'Keep food stocked',
+        'Communicate with chefs as needed',
+        'Put plates out 10 at a time',
+        'Keep track of plate counts',
+      ],
+      Cleanup: [
+        'Plates/bowls restocked',
+        'Heaters off',
+        'Surfaces clean and dry',
+        'Drain closed and bucket empty',
+        'Floors swept (including under station)',
+        'Trash emptied',
+      ],
+    },
+  },
+  {
+    name: 'Line Running (Right)',
     meals: ['Breakfast', 'Lunch', 'Dinner'],
     phases: {
       Setup: [

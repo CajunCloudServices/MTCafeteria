@@ -207,6 +207,82 @@ async function setTaskCompletion(requestUser, { taskId, completed }) {
   await pool.query(query, [userId, Number(taskId), Boolean(completed)]);
 }
 
+async function resetTaskFlowForUser(requestUser, { meal, jobId }) {
+  const userId = Number(requestUser.sub);
+  const selectedMeal = getMealFromInput(meal);
+  const targetJobId = Number(jobId);
+  if (!Number.isInteger(targetJobId) || targetJobId <= 0) {
+    return;
+  }
+
+  if (env.useMockData) {
+    const selectedJob = mockData.jobs.find((j) => j.id === targetJobId);
+    if (!selectedJob) return;
+
+    const selectedJobName = selectedJob.name;
+    const mealShift = getShiftForMeal(selectedMeal);
+    const scopedJob = mockData.jobs.find(
+      (j) => j.name === selectedJobName && j.shiftId === mealShift?.id
+    );
+    const effectiveJob = scopedJob || selectedJob;
+
+    const resettableTaskIds = new Set(
+      mockData.tasks
+        .filter(
+          (t) =>
+            t.jobId === effectiveJob.id &&
+            t.phase !== 'During Shift' &&
+            t.requiresCheckoff !== false
+        )
+        .map((t) => t.id)
+    );
+    if (resettableTaskIds.size == 0) return;
+
+    const retained = mockData.taskProgress.filter(
+      (p) => !(p.userId === userId && resettableTaskIds.has(p.taskId))
+    );
+    mockData.taskProgress.splice(0, mockData.taskProgress.length, ...retained);
+    return;
+  }
+
+  const selectedJobResult = await pool.query(
+    'SELECT id, name FROM jobs WHERE id = $1 LIMIT 1;',
+    [targetJobId]
+  );
+  if (selectedJobResult.rowCount === 0) return;
+
+  const selectedJobName = selectedJobResult.rows[0].name;
+  const scopedJobResult = await pool.query(
+    `
+      SELECT j.id
+      FROM jobs j
+      JOIN shifts s ON s.id = j.shift_id
+      WHERE j.name = $1 AND s.meal_type = $2
+      ORDER BY j.id
+      LIMIT 1;
+    `,
+    [selectedJobName, selectedMeal]
+  );
+  const effectiveJobId =
+    scopedJobResult.rowCount > 0
+      ? Number(scopedJobResult.rows[0].id)
+      : targetJobId;
+
+  await pool.query(
+    `
+      DELETE FROM task_progress
+      WHERE user_id = $1
+        AND task_id IN (
+          SELECT t.id
+          FROM tasks t
+          WHERE t.job_id = $2
+            AND t.phase <> 'During Shift'
+        );
+    `,
+    [userId, effectiveJobId]
+  );
+}
+
 async function getSupervisorBoard(requestUser, { meal }) {
   if (!canAccessSupervisorBoard(requestUser.role)) {
     throw new Error('Unauthorized');
@@ -673,6 +749,7 @@ async function setTrainerTraineeTaskCompletion(requestUser, { traineeUserId, tas
 module.exports = {
   getTaskBoardForUser,
   setTaskCompletion,
+  resetTaskFlowForUser,
   getSupervisorBoard,
   getSupervisorJobTasks,
   setSupervisorJobCheck,

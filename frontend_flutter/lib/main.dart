@@ -8,10 +8,13 @@ import 'pages/reference_sheets_view.dart';
 import 'pages/training_detail_page.dart';
 import 'config/app_features.dart';
 import 'config/runtime_config.dart';
+import 'models/user_session.dart';
 import 'state/app_state.dart';
 import 'widgets/daily_shift_reports_view.dart';
 import 'widgets/dashboard_hub_card.dart';
 import 'widgets/shift_selection_cards.dart';
+
+part 'app/main_shell.dart';
 
 void main() {
   runApp(const MtcCafeteriaApp());
@@ -56,7 +59,13 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   String _dashboardMode = 'Employee';
   bool _dashboardRoleConfirmed = false;
   final int _dashboardResetSignal = 0;
+  int _dashboardBackSignal = 0;
   _DashboardView _dashboardView = _DashboardView.hub;
+
+  void _updateUi(VoidCallback action) {
+    if (!mounted) return;
+    setState(action);
+  }
 
   static const List<String> _defaultShiftTracks = [
     'Line',
@@ -78,7 +87,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
       switch (role) {
         case 'Supervisor':
         case 'Student Manager':
-          return const ['Supervisor', 'Employee'];
+          return const ['Supervisor', 'Lead Trainer', 'Employee'];
         default:
           return const ['Employee'];
       }
@@ -133,6 +142,27 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     _resetDashboardSelectorsForRole(role);
     _dashboardView = _DashboardView.hub;
     _selectedIndex = 1;
+  }
+
+  void _handleDashboardBack({required _DashboardView effectiveDashboardView}) {
+    // Non-workflow dashboard surfaces always return to the hub in one press.
+    if (effectiveDashboardView != _DashboardView.workflow) {
+      _dashboardView = _DashboardView.hub;
+      return;
+    }
+
+    // Workflow back navigates exactly one level at a time.
+    if (!_dashboardTrackConfirmed) {
+      _dashboardView = _DashboardView.hub;
+      return;
+    }
+    if (!_dashboardRoleConfirmed) {
+      _dashboardTrackConfirmed = false;
+      return;
+    }
+
+    // Inside an active flow, defer to section-local step handling.
+    _dashboardBackSignal += 1;
   }
 
   void _handleBottomNavTap(int index) {
@@ -310,7 +340,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
         // drop the full brand lockup and still stay orienting.
         String backHeaderTitle = 'Dashboard';
         if (effectiveDashboardView == _DashboardView.reference) {
-          backHeaderTitle = 'Reference';
+          backHeaderTitle = 'Guides';
         } else if (effectiveDashboardView == _DashboardView.findItem) {
           backHeaderTitle = 'Find an Item';
         } else if (effectiveDashboardView == _DashboardView.diningMap) {
@@ -472,27 +502,9 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           icon: const Icon(Icons.arrow_back),
                           onPressed: () {
                             setState(() {
-                              if (_dashboardView != _DashboardView.workflow) {
-                                _dashboardView = _DashboardView.hub;
-                                return;
-                              }
-
-                              if (!_dashboardTrackConfirmed) {
-                                _dashboardView = _DashboardView.hub;
-                                return;
-                              }
-
-                              if (!_dashboardRoleConfirmed) {
-                                _dashboardTrackConfirmed = false;
-                                return;
-                              }
-
-                              if (availableModes.length > 1) {
-                                _dashboardRoleConfirmed = false;
-                              } else {
-                                _dashboardTrackConfirmed = false;
-                                _dashboardRoleConfirmed = false;
-                              }
+                              _handleDashboardBack(
+                                effectiveDashboardView: effectiveDashboardView,
+                              );
                             });
                           },
                         )
@@ -557,9 +569,6 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                             Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => TrainingDetailPage(
-                                  today: _state.trainingDate,
-                                  todaysTraining: _state.todaysTraining,
-                                  trainings: _state.trainings,
                                 ),
                               ),
                             );
@@ -632,448 +641,27 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           data: MediaQuery.of(
                             context,
                           ).copyWith(textScaler: textScaler),
-                          child: !isLoggedIn
-                              ? _runtimeConfig.isPilotProfile
-                                    ? PilotAccessPage(
-                                        isLoading: _state.isLoading,
-                                        error: _state.error,
-                                        onRetry: () => _state.initialize(),
-                                      )
-                                    : LoginPage(
-                                        isLoading: _state.isLoading,
-                                        error: _state.error,
-                                        onLogin: (email, password) async {
-                                          await _state.login(email, password);
-                                          if (_state.isAuthenticated &&
-                                              mounted) {
-                                            setState(() {
-                                              _selectedIndex = 0;
-                                              _resetDashboardSelectorsForRole(
-                                                _state.user!.role,
-                                              );
-                                            });
-                                          }
-                                        },
-                                      )
-                              : _selectedIndex == 0
-                              ? LandingPage(
-                                  items: _state.landingItems,
-                                  canManage: user!.canManageLanding,
-                                  onCreate: (payload) =>
-                                      _state.createLandingItem(payload),
-                                  onUpdate: (id, payload) =>
-                                      _state.updateLandingItem(id, payload),
-                                  onDelete: (id) =>
-                                      _state.deleteLandingItem(id),
-                                )
-                              : _selectedIndex == 1
-                              ? effectiveDashboardView == _DashboardView.hub
-                                    ? DashboardHubCard(
-                                        canOpenReference: canViewReference,
-                                        canOpenFindItem: canViewReference,
-                                        canOpenDiningMap: canViewReference,
-                                        canOpenManagerPortal:
-                                            canOpenManagerPortal,
-                                        canViewTrainings: canViewTrainings,
-                                        canAssignPoints: canAssignPoints,
-                                        canViewDailyShiftReports:
-                                            canViewDailyShiftReports,
-                                        onOpenWorkflow: () {
-                                          setState(() {
-                                            _dashboardView =
-                                                _DashboardView.workflow;
-                                          });
-                                        },
-                                        onOpenFindItem: () {
-                                          if (!canViewReference) return;
-                                          setState(() {
-                                            _dashboardView =
-                                                _DashboardView.findItem;
-                                          });
-                                        },
-                                        onOpenDiningMap: () {
-                                          if (!canViewReference) return;
-                                          setState(() {
-                                            _dashboardView =
-                                                _DashboardView.diningMap;
-                                          });
-                                        },
-                                        onOpenManagerPortal: () {
-                                          if (!canOpenManagerPortal) return;
-                                          setState(() {
-                                            _dashboardView =
-                                                _DashboardView.managerPortal;
-                                            _state.refreshPointCenter();
-                                          });
-                                        },
-                                        onOpenTrainings: () {
-                                          if (!canViewTrainings) return;
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute<void>(
-                                              builder: (_) =>
-                                                  TrainingDetailPage(
-                                                    today: _state.trainingDate,
-                                                    todaysTraining:
-                                                        _state.todaysTraining,
-                                                    trainings: _state.trainings,
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                        onOpenPoints: () {
-                                          if (!canAssignPoints) return;
-                                          setState(() {
-                                            _dashboardView =
-                                                _DashboardView.points;
-                                          });
-                                          _state.refreshPointCenter();
-                                        },
-                                        onOpenReference: () {
-                                          if (!canViewReference) return;
-                                          setState(() {
-                                            _dashboardView =
-                                                _DashboardView.reference;
-                                          });
-                                        },
-                                        onOpenDailyShiftReports: () {
-                                          if (!canViewDailyShiftReports) return;
-                                          setState(() {
-                                            _dashboardView = _DashboardView
-                                                .dailyShiftReports;
-                                          });
-                                          _state.refreshDailyShiftReports();
-                                        },
-                                      )
-                                    : effectiveDashboardView ==
-                                          _DashboardView.reference
-                                    ? const ReferenceSheetsView()
-                                    : effectiveDashboardView ==
-                                          _DashboardView.findItem
-                                    ? const ReferenceSheetsView(
-                                        initialSection: 'Find an Item',
-                                        lockSection: true,
-                                      )
-                                    : effectiveDashboardView ==
-                                          _DashboardView.diningMap
-                                    ? const ReferenceSheetsView(
-                                        initialSection: 'Dining Map',
-                                        lockSection: true,
-                                      )
-                                    : effectiveDashboardView ==
-                                          _DashboardView.dailyShiftReports
-                                    ? DailyShiftReportsView(
-                                        reports: _state.dailyShiftReports,
-                                        error: _state.dailyShiftReportsError,
-                                        onRefresh:
-                                            _state.refreshDailyShiftReports,
-                                      )
-                                    : effectiveDashboardView ==
-                                              _DashboardView.workflow &&
-                                          showTrackSelection
-                                    ? ShiftTrackSelectionCard(
-                                        availableTracks: availableTracks,
-                                        selectedTrack: _dashboardTrack,
-                                        onTrackChanged: (track) => setState(
-                                          () => _dashboardTrack = track,
-                                        ),
-                                        onContinue: () {
-                                          if (user == null) return;
-                                          setState(() {
-                                            _applyTrackSelection(
-                                              user.role,
-                                              _dashboardTrack,
-                                            );
-                                          });
-                                        },
-                                      )
-                                    : effectiveDashboardView ==
-                                              _DashboardView.workflow &&
-                                          showModeSelection
-                                    ? ShiftRoleSelectionCard(
-                                        title: _dashboardTrack == 'Dishroom'
-                                            ? 'Select Dishroom Role'
-                                            : 'Select Role',
-                                        availableModes: availableModes,
-                                        selectedMode: _dashboardMode,
-                                        onModeChanged: (mode) => setState(
-                                          () => _dashboardMode = mode,
-                                        ),
-                                        onContinue: () {
-                                          setState(() {
-                                            _dashboardRoleConfirmed = true;
-                                          });
-                                          if (_dashboardTrack == 'Line' &&
-                                              _dashboardMode == 'Supervisor') {
-                                            _state.refreshSupervisorBoard();
-                                          }
-                                        },
-                                      )
-                                    : DashboardPage(
-                                        user: user!,
-                                        resetFlowSignal: _dashboardResetSignal,
-                                        selectedTrack:
-                                            effectiveDashboardView ==
-                                                _DashboardView.managerPortal
-                                            ? 'Student Manager Portal'
-                                            : effectiveDashboardView ==
-                                                  _DashboardView.points
-                                            ? 'Student Manager Portal'
-                                            : _dashboardTrack,
-                                        selectedMode:
-                                            effectiveDashboardView ==
-                                                _DashboardView.managerPortal
-                                            ? 'Student Manager'
-                                            : effectiveDashboardView ==
-                                                  _DashboardView.points
-                                            ? 'Leadership'
-                                            : _dashboardMode,
-                                        trainings: _state.trainings,
-                                        todaysTraining: _state.todaysTraining,
-                                        trainingDate: _state.trainingDate,
-                                        taskBoard: _state.taskBoard,
-                                        trainerBoard: _state.trainerBoard,
-                                        supervisorBoard: _state.supervisorBoard,
-                                        supervisorJobTaskBoard:
-                                            _state.supervisorJobTaskBoard,
-                                        supervisorSelectedJobId:
-                                            _state.supervisorSelectedJobId,
-                                        supervisorPanelMode:
-                                            _state.supervisorPanelMode,
-                                        supervisorSecondaries:
-                                            _state.supervisorSecondaries,
-                                        supervisorDeepCleanChecked:
-                                            _state.isSupervisorDeepCleanChecked,
-                                        currentLineShiftReport:
-                                            _state.currentLineShiftReport,
-                                        onSelectMeal: (meal) =>
-                                            _state.selectMealKeepJob(meal),
-                                        onSelectJob: (jobId) =>
-                                            _state.refreshTaskBoard(
-                                              meal: _state
-                                                  .taskBoard
-                                                  ?.selectedMeal,
-                                              jobId: jobId,
-                                            ),
-                                        onTaskToggle: (taskId, completed) =>
-                                            _state.setTaskCompletion(
-                                              taskId: taskId,
-                                              completed: completed,
-                                            ),
-                                        onSelectTrainerMeal: (meal) => _state
-                                            .refreshTrainerBoard(meal: meal),
-                                        trainerTraineeCount:
-                                            _state.trainerTraineeCount,
-                                        trainerSelectedTraineeSlot:
-                                            _state.trainerSelectedTraineeSlot,
-                                        trainerTraineeJobBySlot:
-                                            _state.trainerTraineeJobBySlot,
-                                        trainerSlotTasks:
-                                            _state.trainerSlotTasks,
-                                        onSetTrainerTraineeCount: (count) =>
-                                            _state.setTrainerTraineeCount(
-                                              count,
-                                            ),
-                                        onSetTrainerTraineeJob: (slot, jobId) =>
-                                            _state.setTrainerTraineeJob(
-                                              slot: slot,
-                                              jobId: jobId,
-                                            ),
-                                        onSelectTrainerTraineeSlot: (slot) =>
-                                            _state.selectTrainerTraineeSlot(
-                                              slot,
-                                            ),
-                                        onTrainerSlotTaskToggle:
-                                            (slot, taskId, completed) => _state
-                                                .setTrainerSlotTaskCompletion(
-                                                  slot: slot,
-                                                  taskId: taskId,
-                                                  completed: completed,
-                                                ),
-                                        onSelectTrainerJobs: (jobIds) async {},
-                                        onTrainerTaskToggle:
-                                            (
-                                              traineeUserId,
-                                              taskId,
-                                              completed,
-                                            ) async {},
-                                        onSelectSupervisorMeal: (meal) => _state
-                                            .refreshSupervisorBoard(meal: meal),
-                                        onSupervisorOpenJob: (jobId) => _state
-                                            .openSupervisorJobTasks(jobId),
-                                        onSupervisorCloseJob: () =>
-                                            _state.closeSupervisorJobTasks(),
-                                        onSupervisorTaskToggle:
-                                            (taskId, checked) =>
-                                                _state.setSupervisorTaskCheck(
-                                                  taskId: taskId,
-                                                  checked: checked,
-                                                ),
-                                        onSupervisorBulkTaskToggle:
-                                            (taskIds, checked) => _state
-                                                .setSupervisorTaskChecksBulk(
-                                                  taskIds: taskIds,
-                                                  checked: checked,
-                                                ),
-                                        onSupervisorPanelModeChanged: (mode) =>
-                                            _state.setSupervisorPanelMode(mode),
-                                        onSupervisorSecondaryToggle:
-                                            (index, checked) =>
-                                                _state.toggleSecondaryJob(
-                                                  index,
-                                                  checked,
-                                                ),
-                                        onSupervisorDeepCleanToggle:
-                                            (checked) => _state
-                                                .toggleSupervisorDeepClean(
-                                                  checked,
-                                                ),
-                                        onSupervisorResetSecondaries: () =>
-                                            _state.resetSecondaryJobs(),
-                                        onResetSupervisorChecks: () =>
-                                            _state.resetSupervisorChecks(),
-                                        onReloadSupervisorBoard: () =>
-                                            _state.refreshSupervisorBoard(),
-                                        onLoadCurrentLineShiftReport: (meal) =>
-                                            _state.loadCurrentLineShiftReport(
-                                              meal: meal,
-                                            ),
-                                        onSaveCurrentLineShiftReport:
-                                            (meal, payload) => _state
-                                                .saveCurrentLineShiftReportDraft(
-                                                  meal: meal,
-                                                  payload: payload,
-                                                ),
-                                        onSubmitCurrentLineShiftReport:
-                                            (meal, payload) => _state
-                                                .submitCurrentLineShiftReport(
-                                                  meal: meal,
-                                                  payload: payload,
-                                                ),
-                                        pendingAssignments: _state.pointInbox,
-                                        pointSentAssignments: _state.pointSent,
-                                        pointApprovalAssignments:
-                                            _state.pointApprovalQueue,
-                                        pointAssignableUsers:
-                                            _state.pointAssignableUsers,
-                                        pointInboxError: _state.pointInboxError,
-                                        pointSentError: _state.pointSentError,
-                                        pointAssignableUsersError:
-                                            _state.pointAssignableUsersError,
-                                        pointApprovalQueueError:
-                                            _state.pointApprovalQueueError,
-                                        onAcceptPointAssignment:
-                                            (assignmentId, initials) =>
-                                                _state.acceptAssignedPoints(
-                                                  assignmentId: assignmentId,
-                                                  initials: initials,
-                                                ),
-                                        onAssignPoints:
-                                            ({
-                                              required assignedToUserId,
-                                              required pointsDelta,
-                                              required assignmentDate,
-                                              required reason,
-                                              required assignmentDescription,
-                                            }) => _state.assignPoints(
-                                              assignedToUserId:
-                                                  assignedToUserId,
-                                              pointsDelta: pointsDelta,
-                                              assignmentDate: assignmentDate,
-                                              reason: reason,
-                                              assignmentDescription:
-                                                  assignmentDescription,
-                                            ),
-                                        onApprovePointAssignment:
-                                            (assignmentId) =>
-                                                _state.approvePointAssignment(
-                                                  assignmentId: assignmentId,
-                                                ),
-                                        onRefreshPointCenter: () =>
-                                            _state.refreshPointCenter(),
-                                      )
-                              : !_runtimeConfig.isPilotProfile &&
-                                    _selectedIndex == 2
-                              ? ProfilePage(user: user!)
-                              : LandingPage(
-                                  items: _state.landingItems,
-                                  canManage: user!.canManageLanding,
-                                  onCreate: (payload) =>
-                                      _state.createLandingItem(payload),
-                                  onUpdate: (id, payload) =>
-                                      _state.updateLandingItem(id, payload),
-                                  onDelete: (id) =>
-                                      _state.deleteLandingItem(id),
-                                ),
+                          child: _buildMainShellContent(
+                            context: context,
+                            isLoggedIn: isLoggedIn,
+                            user: user,
+                            canViewReference: canViewReference,
+                            canOpenManagerPortal: canOpenManagerPortal,
+                            canViewTrainings: canViewTrainings,
+                            canAssignPoints: canAssignPoints,
+                            canViewDailyShiftReports: canViewDailyShiftReports,
+                            effectiveDashboardView: effectiveDashboardView,
+                            showTrackSelection: showTrackSelection,
+                            showModeSelection: showModeSelection,
+                            availableTracks: availableTracks,
+                            availableModes: availableModes,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-                bottomNavigationBar: isLoggedIn
-                    ? Container(
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFF8FBFF),
-                          border: Border(
-                            top: BorderSide(color: Color(0xFFD1DFEE)),
-                          ),
-                        ),
-                        child: SafeArea(
-                          top: false,
-                          minimum: const EdgeInsets.only(bottom: 2),
-                          child: BottomNavigationBar(
-                            type: BottomNavigationBarType.fixed,
-                            currentIndex:
-                                _runtimeConfig.isPilotProfile &&
-                                    _selectedIndex > 1
-                                ? 0
-                                : _selectedIndex,
-                            onTap: _handleBottomNavTap,
-                            iconSize: 24,
-                            selectedFontSize: 14,
-                            unselectedFontSize: 14,
-                            backgroundColor: const Color(0xFFF8FBFF),
-                            selectedItemColor: const Color(0xFF1A4E8A),
-                            unselectedItemColor: const Color(0xFF5A7090),
-                            selectedLabelStyle: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                            ),
-                            unselectedLabelStyle: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                            items: _runtimeConfig.isPilotProfile
-                                ? const [
-                                    BottomNavigationBarItem(
-                                      icon: Icon(Icons.home_outlined),
-                                      activeIcon: Icon(Icons.home),
-                                      label: 'Home',
-                                    ),
-                                    BottomNavigationBarItem(
-                                      icon: Icon(Icons.dashboard_outlined),
-                                      activeIcon: Icon(Icons.dashboard),
-                                      label: 'Dashboard',
-                                    ),
-                                  ]
-                                : const [
-                                    BottomNavigationBarItem(
-                                      icon: Icon(Icons.home_outlined),
-                                      activeIcon: Icon(Icons.home),
-                                      label: 'Home',
-                                    ),
-                                    BottomNavigationBarItem(
-                                      icon: Icon(Icons.dashboard_outlined),
-                                      activeIcon: Icon(Icons.dashboard),
-                                      label: 'Dashboard',
-                                    ),
-                                    BottomNavigationBarItem(
-                                      icon: Icon(Icons.person_outline),
-                                      activeIcon: Icon(Icons.person),
-                                      label: 'Profile',
-                                    ),
-                                  ],
-                          ),
-                        ),
-                      )
-                    : null,
+                bottomNavigationBar: _buildBottomNav(isLoggedIn),
               );
             },
           ),

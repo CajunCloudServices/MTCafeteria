@@ -24,6 +24,16 @@ async function toggleTaskCompletion(req, res, next) {
   }
 }
 
+async function resetTaskFlow(req, res, next) {
+  try {
+    const { meal, jobId } = req.body;
+    await taskBoardService.resetTaskFlowForUser(req.user, { meal, jobId });
+    return res.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function getSupervisorBoard(req, res, next) {
   try {
     const board = await taskBoardService.getSupervisorBoard(req.user, {
@@ -136,6 +146,7 @@ async function toggleTrainerTraineeTaskCompletion(req, res, next) {
 module.exports = {
   getTaskBoard,
   toggleTaskCompletion,
+  resetTaskFlow,
   getSupervisorBoard,
   getSupervisorJobTasks,
   toggleSupervisorJobCheck,

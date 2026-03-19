@@ -53,15 +53,19 @@ class LandingPage extends StatelessWidget {
 
                         return Container(
                           decoration: BoxDecoration(
-                            color: Color.alphaBlend(
-                              accent.withValues(alpha: 0.03),
-                              Colors.white,
-                            ),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: const Color(0xFFC1D1E4),
                               width: 1,
                             ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x0F183A63),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +82,7 @@ class LandingPage extends StatelessWidget {
                               ),
                               Expanded(
                                 child: Padding(
-                                  padding: EdgeInsets.all(isMobile ? 10 : 12),
+                                  padding: EdgeInsets.all(isMobile ? 12 : 14),
                                   child: isMobile
                                       ? Column(
                                           crossAxisAlignment:
@@ -181,31 +185,33 @@ class LandingPage extends StatelessWidget {
       children: [
         Text(
           item.title,
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: item.type.toLowerCase() == 'announcement' ? 18 : 16,
             fontWeight: FontWeight.w800,
             color: Color(0xFF16385F),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           item.content,
           style: const TextStyle(
             color: Color(0xFF324F73),
             height: 1.3,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             fontSize: 14,
           ),
         ),
         const SizedBox(height: 8),
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 4,
           children: [
             const Icon(Icons.event, size: 14, color: Color(0xFF446488)),
-            const SizedBox(width: 6),
             Text(
               _formatDateRange(item.startDate, item.endDate),
               style: const TextStyle(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF446488),
                 fontSize: 13,
               ),
@@ -219,18 +225,18 @@ class LandingPage extends StatelessWidget {
   Widget _typeBadge(String type) {
     final color = _typeColor(type);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.28)),
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Text(
         type,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w800,
-          letterSpacing: 0.2,
+          fontSize: 13,
         ),
       ),
     );
@@ -393,22 +399,17 @@ class _HeaderPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1C4F8A), Color(0xFF2E6AA4)],
-        ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: const Color(0xFF124374).withValues(alpha: 0.4),
-        ),
+        color: const Color(0xFFEAF3FF),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF9FB9DB), width: 1.2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x33113A67),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            color: Color(0x14183A63),
+            blurRadius: 10,
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -419,22 +420,24 @@ class _HeaderPanel extends StatelessWidget {
                 const Text(
                   'Announcements',
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 0.2,
+                    color: Color(0xFF16385F),
                   ),
                 ),
                 if (canManage) ...[
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: onAdd,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xB3FFFFFF)),
-                      backgroundColor: const Color(0x1FFFFFFF),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: onAdd,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1C4F8A),
+                        side: const BorderSide(color: Color(0xFFC1D1E4)),
+                        backgroundColor: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -452,8 +455,7 @@ class _HeaderPanel extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 0.2,
+                          color: Color(0xFF16385F),
                         ),
                       ),
                     ],
@@ -465,9 +467,9 @@ class _HeaderPanel extends StatelessWidget {
                     icon: const Icon(Icons.add),
                     label: const Text('Add'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xB3FFFFFF)),
-                      backgroundColor: const Color(0x1FFFFFFF),
+                      foregroundColor: const Color(0xFF1C4F8A),
+                      side: const BorderSide(color: Color(0xFFC1D1E4)),
+                      backgroundColor: Colors.white,
                     ),
                   ),
               ],

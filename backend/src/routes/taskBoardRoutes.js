@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.get('/task-board', requireAuth, taskBoardController.getTaskBoard);
 router.post('/task-board/tasks/:taskId/completion', requireAuth, taskBoardController.toggleTaskCompletion);
+router.post('/task-board/reset-flow', requireAuth, taskBoardController.resetTaskFlow);
 
 router.get('/supervisor-board', requireAuth, taskBoardController.getSupervisorBoard);
 router.post('/supervisor-board/jobs/:jobId/check', requireAuth, taskBoardController.toggleSupervisorJobCheck);

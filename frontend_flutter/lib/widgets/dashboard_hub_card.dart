@@ -96,7 +96,7 @@ class DashboardHubCard extends StatelessWidget {
                     child: OutlinedButton(
                       key: const ValueKey('hub-open-reference'),
                       onPressed: onOpenReference,
-                      child: const Text('References'),
+                      child: const Text('Guides'),
                     ),
                   ),
                 ],

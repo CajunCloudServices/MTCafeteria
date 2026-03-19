@@ -14,15 +14,40 @@ function normalizeAnnouncement(row) {
   };
 }
 
+function announcementFingerprint(item) {
+  // Duplicate rows often differ only by DB id.
+  // Fingerprint the content fields so list responses stay clean.
+  const safe = (value) => String(value ?? '').trim().toLowerCase();
+  return [
+    safe(item.type),
+    safe(item.title),
+    safe(item.content),
+    safe(item.startDate),
+    safe(item.endDate),
+  ].join('|');
+}
+
+function dedupeAnnouncements(items) {
+  const seen = new Set();
+  const unique = [];
+  for (const item of items) {
+    const key = announcementFingerprint(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(item);
+  }
+  return unique;
+}
+
 async function listLandingItems() {
   if (env.useMockData) {
-    return mockData.announcements;
+    return dedupeAnnouncements(mockData.announcements.map(normalizeAnnouncement));
   }
 
   const { rows } = await pool.query(
     `SELECT id, type, title, content, start_date, end_date, created_by FROM announcements ORDER BY start_date DESC, id DESC;`
   );
-  return rows.map(normalizeAnnouncement);
+  return dedupeAnnouncements(rows.map(normalizeAnnouncement));
 }
 
 async function createLandingItem(item) {
