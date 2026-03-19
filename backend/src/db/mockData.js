@@ -218,6 +218,27 @@ const jobDefinitions = [
     },
   },
   {
+    name: 'Volunteer Coordinator',
+    meals: ['Breakfast', 'Lunch', 'Dinner'],
+    phases: {
+      Setup: [
+        'Meet the volunteer missionaries when they arrive',
+        'Make sure they get aprons, gloves, and hairnets',
+        'Explain their assigned work clearly before they start',
+        'Coordinate with supervisors and line leads so volunteers are placed where they are needed most',
+      ],
+      'During Shift': [
+        'Check in on volunteers and redirect them if needs change',
+        'Switch out the current volunteer group when the next district arrives halfway through the shift',
+        'Keep volunteers working in the highest-need areas instead of standing idle',
+      ],
+      Cleanup: [
+        'Direct volunteers to wipe tables, vacuum, and help with dining-room cleanup at the end of the shift',
+        'Collect aprons and make sure shared supplies are returned',
+      ],
+    },
+  },
+  {
     name: 'Paninis',
     meals: ['Lunch', 'Dinner'],
     phases: {
@@ -360,7 +381,7 @@ const jobDefinitions = [
   },
   {
     name: 'Aloha Plate',
-    meals: ['Breakfast', 'Lunch', 'Dinner'],
+    meals: ['Lunch', 'Dinner'],
     phases: {
       Setup: [
         'Fill wells with water',
@@ -388,7 +409,7 @@ const jobDefinitions = [
   },
   {
     name: 'Choices',
-    meals: ['Breakfast', 'Lunch', 'Dinner'],
+    meals: ['Lunch', 'Dinner'],
     phases: {
       Setup: [
         'Fill wells with water',

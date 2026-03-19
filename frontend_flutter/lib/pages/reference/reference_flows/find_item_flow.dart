@@ -1,6 +1,12 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
+  static const List<String> _namedLockerLocations = <String>[
+    'Basement',
+    'The Cage',
+    'The Cove',
+  ];
+
   Map<String, List<String>> _mergedLockerInventory(Map<String, dynamic> data) {
     final raw = data['locker_inventory'] as Map<String, dynamic>? ?? const {};
     final merged = <String, List<String>>{};
@@ -27,23 +33,35 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
       merged[entry.key] = deduped;
     }
 
-    return merged;
+    final filtered = <String, List<String>>{};
+    for (final entry in merged.entries) {
+      final deletedItems = _deletedLockerInventory[entry.key] ?? const [];
+      final items = entry.value
+          .where(
+            (item) => !deletedItems.any(
+              (deleted) => deleted.toLowerCase() == item.toLowerCase(),
+            ),
+          )
+          .toList();
+      if (items.isNotEmpty) {
+        filtered[entry.key] = items;
+      }
+    }
+
+    return filtered;
   }
 
   List<String> _lockerLocationOptions(Map<String, List<String>> lockerData) {
     final numeric =
         lockerData.keys.where((key) => int.tryParse(key) != null).toList()
           ..sort((a, b) => int.parse(a).compareTo(int.parse(b)));
-    final named =
-        lockerData.keys
-            .where(
-              (key) =>
-                  int.tryParse(key) == null &&
-                  key != 'notes' &&
-                  key != 'unclear',
-            )
-            .toList()
-          ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final named = {
+      ...lockerData.keys.where(
+        (key) =>
+            int.tryParse(key) == null && key != 'notes' && key != 'unclear',
+      ),
+      ..._namedLockerLocations,
+    }.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     return [...numeric, ...named];
   }
 
@@ -63,6 +81,252 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
       }
     }
     return buffer.toString();
+  }
+
+  Future<void> _submitLockerAdd() async {
+    final item = _lockerAddItemController.text.trim();
+    if (item.isEmpty) return;
+    await _addLockerInventoryItem(
+      location: _selectedLockerAddLocation,
+      item: item,
+    );
+    if (!mounted) return;
+    _lockerAddItemController.clear();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Added "$item" to ${_lockerDisplayLabel(_selectedLockerAddLocation)}.',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLockerBrowsePanel(Map<String, List<String>> lockerData) {
+    final lockerKeys = _lockerLocationOptions(lockerData);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFB6C9E4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'Back to item search',
+                onPressed: () {
+                  _updateReferenceState(() {
+                    _showLockerBrowsePanel = false;
+                    _showLockerAddPanel = false;
+                    _showLockerDeleteMode = false;
+                  });
+                },
+                icon: const Icon(Icons.arrow_back),
+              ),
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text(
+                  'All Items',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF123A65),
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_showLockerAddPanel) ...[
+            DropdownButtonFormField<String>(
+              initialValue: _selectedLockerAddLocation,
+              decoration: const InputDecoration(labelText: 'Location'),
+              isExpanded: true,
+              items: _lockerLocationOptions(lockerData)
+                  .map(
+                    (location) => DropdownMenuItem<String>(
+                      value: location,
+                      child: Text(_lockerDisplayLabel(location)),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                _updateReferenceState(() {
+                  _selectedLockerAddLocation = value;
+                });
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _lockerAddItemController,
+              decoration: const InputDecoration(
+                labelText: 'Item name',
+                hintText: 'Type the item to add',
+              ),
+              onSubmitted: (_) async => _submitLockerAdd(),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      _lockerAddItemController.clear();
+                      _updateReferenceState(() {
+                        _showLockerAddPanel = false;
+                      });
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _submitLockerAdd,
+                    child: const Text('Add Item'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ] else ...[
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _updateReferenceState(() {
+                        _showLockerAddPanel = true;
+                        _showLockerDeleteMode = false;
+                      });
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _updateReferenceState(() {
+                        _showLockerDeleteMode = !_showLockerDeleteMode;
+                      });
+                    },
+                    icon: Icon(
+                      _showLockerDeleteMode
+                          ? Icons.close
+                          : Icons.delete_outline,
+                    ),
+                    label: Text(
+                      _showLockerDeleteMode ? 'Done' : 'Delete',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+          ...lockerKeys.map((location) {
+            final items = lockerData[location] ?? const <String>[];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7FAFF),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFB6C9E4)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _lockerDisplayLabel(location),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF123A65),
+                        fontSize: 17,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...items.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(top: 1),
+                              child: Icon(
+                                Icons.circle,
+                                size: 6,
+                                color: Color(0xFF123A65),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                item,
+                                style: const TextStyle(
+                                  color: Color(0xFF123A65),
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                            if (_showLockerDeleteMode) ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                tooltip: 'Delete item',
+                                visualDensity: VisualDensity.compact,
+                                constraints: const BoxConstraints(
+                                  minWidth: 32,
+                                  minHeight: 32,
+                                ),
+                                padding: EdgeInsets.zero,
+                                splashRadius: 18,
+                                onPressed: () async {
+                                  await _deleteLockerInventoryItem(
+                                    location: location,
+                                    item: item,
+                                  );
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Deleted "$item" from ${_lockerDisplayLabel(location)}.',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Color(0xFF123A65),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
   }
 
   Widget _buildLockerFlow(Map<String, dynamic> data) {
@@ -94,140 +358,66 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
     final searchBody = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: _lockerSearchController,
-          decoration: InputDecoration(
-            labelText: 'Find an item',
-            hintText: 'Example: meat shop, hard boiled eggs, ice cream',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: _lockerSearchQuery.trim().isEmpty
-                ? null
-                : IconButton(
-                    tooltip: 'Clear',
-                    onPressed: () {
-                      _lockerSearchController.clear();
-                      _updateReferenceState(() => _lockerSearchQuery = '');
-                    },
-                    icon: const Icon(Icons.close),
-                  ),
-          ),
-          onChanged: (value) =>
-              _updateReferenceState(() => _lockerSearchQuery = value),
-        ),
-        if (search.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          if (matchesByLocker.isEmpty)
-            Text(
-              'No locker match found for "$_lockerSearchQuery".',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF123A65),
-              ),
-            )
-          else
-            ...matchesByLocker.entries.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _buildReferenceTaskCard(
-                  title: _lockerDisplayLabel(entry.key),
-                  items: entry.value,
-                  icon: Icons.inventory_2_outlined,
-                ),
-              ),
-            ),
-        ],
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFB6C9E4)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Add an Item',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF123A65),
-                  fontSize: 18,
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedLockerAddLocation,
-                decoration: const InputDecoration(labelText: 'Location'),
-                isExpanded: true,
-                items: _lockerLocationOptions(lockerData)
-                    .map(
-                      (location) => DropdownMenuItem<String>(
-                        value: location,
-                        child: Text(_lockerDisplayLabel(location)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-                  _updateReferenceState(() {
-                    _selectedLockerAddLocation = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _lockerAddItemController,
-                decoration: const InputDecoration(
-                  labelText: 'Item name',
-                  hintText: 'Type the item to add',
-                ),
-                onSubmitted: (_) async {
-                  final item = _lockerAddItemController.text.trim();
-                  if (item.isEmpty) return;
-                  await _addLockerInventoryItem(
-                    location: _selectedLockerAddLocation,
-                    item: item,
-                  );
-                  if (!mounted) return;
-                  _lockerAddItemController.clear();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Added "$item" to ${_lockerDisplayLabel(_selectedLockerAddLocation)}.',
-                      ),
+        if (_showLockerBrowsePanel)
+          _buildLockerBrowsePanel(lockerData)
+        else ...[
+          TextField(
+            controller: _lockerSearchController,
+            decoration: InputDecoration(
+              labelText: 'Find an item',
+              hintText: 'Example: meat shop, hard boiled eggs, ice cream',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _lockerSearchQuery.trim().isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Clear',
+                      onPressed: () {
+                        _lockerSearchController.clear();
+                        _updateReferenceState(() => _lockerSearchQuery = '');
+                      },
+                      icon: const Icon(Icons.close),
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () async {
-                    final item = _lockerAddItemController.text.trim();
-                    if (item.isEmpty) return;
-                    await _addLockerInventoryItem(
-                      location: _selectedLockerAddLocation,
-                      item: item,
-                    );
-                    if (!mounted) return;
-                    _lockerAddItemController.clear();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Added "$item" to ${_lockerDisplayLabel(_selectedLockerAddLocation)}.',
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text('Add Item'),
+            ),
+            onChanged: (value) =>
+                _updateReferenceState(() => _lockerSearchQuery = value),
+          ),
+          if (search.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            if (matchesByLocker.isEmpty)
+              Text(
+                'No locker match found for "$_lockerSearchQuery".',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF123A65),
+                ),
+              )
+            else
+              ...matchesByLocker.entries.map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _buildReferenceTaskCard(
+                    title: _lockerDisplayLabel(entry.key),
+                    items: entry.value,
+                    icon: Icons.inventory_2_outlined,
+                  ),
                 ),
               ),
-            ],
+          ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                _updateReferenceState(() {
+                  _showLockerBrowsePanel = true;
+                  _showLockerAddPanel = false;
+                });
+              },
+              icon: const Icon(Icons.inventory_2_outlined),
+              label: const Text('See All Items'),
+            ),
           ),
-        ),
+        ],
       ],
     );
 

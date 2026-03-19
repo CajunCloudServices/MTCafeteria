@@ -7,6 +7,26 @@ String _normalizeTaskBoardJobName(String name) {
   return trimmed;
 }
 
+bool _isLineJobAvailableToday(String meal, String jobName) {
+  final normalizedJobName = _normalizeTaskBoardJobName(jobName);
+  if (meal == 'Breakfast' &&
+      (normalizedJobName == 'Aloha Plate' || normalizedJobName == 'Choices')) {
+    return false;
+  }
+
+  final weekday = DateTime.now().weekday;
+  final isWeekend =
+      weekday == DateTime.saturday || weekday == DateTime.sunday;
+  if (isWeekend &&
+      (normalizedJobName == 'Aloha Plate' ||
+          normalizedJobName == 'Choices' ||
+          normalizedJobName == 'Paninis')) {
+    return false;
+  }
+
+  return true;
+}
+
 /// Lightweight job selector option used by the employee task flow.
 class JobOption {
   const JobOption({required this.id, required this.name});
@@ -70,6 +90,9 @@ class TaskBoard {
     final seenNames = <String>{};
     for (final job in rawJobs) {
       final normalizedName = _normalizeTaskBoardJobName(job.name);
+      if (!_isLineJobAvailableToday(json['selectedMeal'] as String, normalizedName)) {
+        continue;
+      }
       if (seenNames.add(normalizedName)) {
         uniqueJobs.add(JobOption(id: job.id, name: normalizedName));
       }

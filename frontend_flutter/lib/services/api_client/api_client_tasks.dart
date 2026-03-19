@@ -61,7 +61,6 @@ extension ApiClientTasks on ApiClient {
       throw Exception('Failed to reset task flow');
     }
   }
-
   Future<TrainerBoard> getTrainerBoard(
     String token, {
     String? meal,

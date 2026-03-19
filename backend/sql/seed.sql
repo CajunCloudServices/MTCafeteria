@@ -109,16 +109,22 @@ WHERE name IN ('Line Runner', 'Beverages', 'Beverages (A)', 'Beverages (B)')
     SELECT id FROM shifts WHERE shift_type = 'Line Shift'
   );
 
+DELETE FROM jobs
+WHERE name IN ('Aloha Plate', 'Choices')
+  AND shift_id IN (
+    SELECT id FROM shifts
+    WHERE shift_type = 'Line Shift' AND meal_type = 'Breakfast'
+  );
+
 WITH meal_jobs AS (
   SELECT * FROM (VALUES
     ('Breakfast', 'Sack Cashier'),
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
     ('Breakfast', 'Server'),
+    ('Breakfast', 'Volunteer Coordinator'),
     ('Breakfast', 'Line Running (Left)'),
     ('Breakfast', 'Line Running (Right)'),
-    ('Breakfast', 'Aloha Plate'),
-    ('Breakfast', 'Choices'),
     ('Breakfast', 'Beverages'),
     ('Breakfast', 'Senior Cash'),
     ('Breakfast', 'Junior Cash'),
@@ -129,6 +135,7 @@ WITH meal_jobs AS (
     ('Lunch', 'Sack Runner'),
     ('Lunch', 'Salads'),
     ('Lunch', 'Server'),
+    ('Lunch', 'Volunteer Coordinator'),
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
     ('Lunch', 'Line Running (Left)'),
@@ -142,6 +149,7 @@ WITH meal_jobs AS (
     ('Lunch', 'Condiments Prep'),
     ('Lunch', 'Condiments Host'),
     ('Dinner', 'Server'),
+    ('Dinner', 'Volunteer Coordinator'),
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
     ('Dinner', 'Line Running (Left)'),
@@ -277,6 +285,15 @@ generic_task_defs AS (
     ('Server', 'During Shift', 'Serve the food'),
     ('Server', 'During Shift', 'Communicate your needs to the runner as they come up'),
     ('Server', 'Cleanup', 'Clean up the serving line and make sure the heaters and light are turned off'),
+    ('Volunteer Coordinator', 'Setup', 'Meet the volunteer missionaries when they arrive'),
+    ('Volunteer Coordinator', 'Setup', 'Make sure they get aprons, gloves, and hairnets'),
+    ('Volunteer Coordinator', 'Setup', 'Explain their assigned work clearly before they start'),
+    ('Volunteer Coordinator', 'Setup', 'Coordinate with supervisors and line leads so volunteers are placed where they are needed most'),
+    ('Volunteer Coordinator', 'During Shift', 'Check in on volunteers and redirect them if needs change'),
+    ('Volunteer Coordinator', 'During Shift', 'Switch out the current volunteer group when the next district arrives halfway through the shift'),
+    ('Volunteer Coordinator', 'During Shift', 'Keep volunteers working in the highest-need areas instead of standing idle'),
+    ('Volunteer Coordinator', 'Cleanup', 'Direct volunteers to wipe tables, vacuum, and help with dining-room cleanup at the end of the shift'),
+    ('Volunteer Coordinator', 'Cleanup', 'Collect aprons and make sure shared supplies are returned'),
     ('Paninis', 'Setup', 'Turn on panini machines'),
     ('Paninis', 'During Shift', 'Prepare paninis'),
     ('Paninis', 'During Shift', 'Press paninis in machines'),
@@ -448,10 +465,9 @@ meal_jobs AS (
     ('Breakfast', 'Sack Runner'),
     ('Breakfast', 'Salads'),
     ('Breakfast', 'Server'),
+    ('Breakfast', 'Volunteer Coordinator'),
     ('Breakfast', 'Line Running (Left)'),
     ('Breakfast', 'Line Running (Right)'),
-    ('Breakfast', 'Aloha Plate'),
-    ('Breakfast', 'Choices'),
     ('Breakfast', 'Beverages'),
     ('Breakfast', 'Senior Cash'),
     ('Breakfast', 'Junior Cash'),
@@ -462,6 +478,7 @@ meal_jobs AS (
     ('Lunch', 'Sack Runner'),
     ('Lunch', 'Salads'),
     ('Lunch', 'Server'),
+    ('Lunch', 'Volunteer Coordinator'),
     ('Lunch', 'Ice Cream'),
     ('Lunch', 'Paninis'),
     ('Lunch', 'Line Running (Left)'),
@@ -475,6 +492,7 @@ meal_jobs AS (
     ('Lunch', 'Condiments Prep'),
     ('Lunch', 'Condiments Host'),
     ('Dinner', 'Server'),
+    ('Dinner', 'Volunteer Coordinator'),
     ('Dinner', 'Ice Cream'),
     ('Dinner', 'Paninis'),
     ('Dinner', 'Line Running (Left)'),

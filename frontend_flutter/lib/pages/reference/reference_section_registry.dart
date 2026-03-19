@@ -112,6 +112,9 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
   void _onReferenceSectionSelected(String value) {
     _updateReferenceState(() {
       _selectedSection = value;
+      _showLockerBrowsePanel = false;
+      _showLockerAddPanel = false;
+      _showLockerDeleteMode = false;
       _resetGuideSelectionStateForSection(value);
     });
   }

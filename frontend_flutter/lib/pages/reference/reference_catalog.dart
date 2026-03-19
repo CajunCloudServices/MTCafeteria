@@ -6,10 +6,9 @@ const Map<String, List<String>> _mealLineJobs = {
     'Sack Runner',
     'Salads',
     'Server',
+    'Volunteer Coordinator',
     'Line Running (Left)',
     'Line Running (Right)',
-    'Aloha Plate',
-    'Choices',
     'Beverages',
     'Senior Cash',
     'Junior Cash',
@@ -22,6 +21,7 @@ const Map<String, List<String>> _mealLineJobs = {
     'Sack Runner',
     'Salads',
     'Server',
+    'Volunteer Coordinator',
     'Ice Cream',
     'Paninis',
     'Line Running (Left)',
@@ -37,6 +37,7 @@ const Map<String, List<String>> _mealLineJobs = {
   ],
   'Dinner': [
     'Server',
+    'Volunteer Coordinator',
     'Ice Cream',
     'Paninis',
     'Line Running (Left)',
@@ -51,6 +52,21 @@ const Map<String, List<String>> _mealLineJobs = {
     'Condiments Host',
   ],
 };
+
+List<String> availableLineJobsForMeal(String meal) {
+  final baseJobs = List<String>.from(_mealLineJobs[meal] ?? const <String>[]);
+  final weekday = DateTime.now().weekday;
+  final isWeekend =
+      weekday == DateTime.saturday || weekday == DateTime.sunday;
+
+  if (isWeekend) {
+    baseJobs.remove('Aloha Plate');
+    baseJobs.remove('Choices');
+    baseJobs.remove('Paninis');
+  }
+
+  return baseJobs;
+}
 
 const Map<String, Map<String, Map<String, List<String>>>>
 _lineReferenceCatalog = {
@@ -125,6 +141,23 @@ _lineReferenceCatalog = {
       ],
       'Cleanup': [
         'Clean up the serving line and make sure the heaters and light are turned off',
+      ],
+    },
+    'Volunteer Coordinator': {
+      'Setup': [
+        'Meet the volunteer missionaries when they arrive',
+        'Make sure they get aprons, gloves, and hairnets',
+        'Explain their assigned work clearly before they start',
+        'Coordinate with supervisors and line leads so volunteers are placed where they are needed most',
+      ],
+      'During Shift': [
+        'Check in on volunteers and redirect them if needs change',
+        'Switch out the current volunteer group when the next district arrives halfway through the shift',
+        'Keep volunteers working in the highest-need areas instead of standing idle',
+      ],
+      'Cleanup': [
+        'Direct volunteers to wipe tables, vacuum, and help with dining-room cleanup at the end of the shift',
+        'Collect aprons and make sure shared supplies are returned',
       ],
     },
     'Line Running (Left)': {
@@ -416,6 +449,23 @@ _lineReferenceCatalog = {
         'Clean up the serving line and make sure the heaters and light are turned off',
       ],
     },
+    'Volunteer Coordinator': {
+      'Setup': [
+        'Meet the volunteer missionaries when they arrive',
+        'Make sure they get aprons, gloves, and hairnets',
+        'Explain their assigned work clearly before they start',
+        'Coordinate with supervisors and line leads so volunteers are placed where they are needed most',
+      ],
+      'During Shift': [
+        'Check in on volunteers and redirect them if needs change',
+        'Switch out the current volunteer group when the next district arrives halfway through the shift',
+        'Keep volunteers working in the highest-need areas instead of standing idle',
+      ],
+      'Cleanup': [
+        'Direct volunteers to wipe tables, vacuum, and help with dining-room cleanup at the end of the shift',
+        'Collect aprons and make sure shared supplies are returned',
+      ],
+    },
     'Ice Cream': {
       'Setup': [
         'Get ice cream',
@@ -675,6 +725,23 @@ _lineReferenceCatalog = {
       ],
       'Cleanup': [
         'Clean up the serving line and make sure the heaters and light are turned off',
+      ],
+    },
+    'Volunteer Coordinator': {
+      'Setup': [
+        'Meet the volunteer missionaries when they arrive',
+        'Make sure they get aprons, gloves, and hairnets',
+        'Explain their assigned work clearly before they start',
+        'Coordinate with supervisors and line leads so volunteers are placed where they are needed most',
+      ],
+      'During Shift': [
+        'Check in on volunteers and redirect them if needs change',
+        'Switch out the current volunteer group when the next district arrives halfway through the shift',
+        'Keep volunteers working in the highest-need areas instead of standing idle',
+      ],
+      'Cleanup': [
+        'Direct volunteers to wipe tables, vacuum, and help with dining-room cleanup at the end of the shift',
+        'Collect aprons and make sure shared supplies are returned',
       ],
     },
     'Ice Cream': {

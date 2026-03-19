@@ -261,7 +261,9 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                           ? null
                           : (value) {
                               if (value != null) {
-                                setState(() => _selectedJobId = value);
+                                setState(() {
+                                  _selectedJobId = value;
+                                });
                               }
                             },
                     ),

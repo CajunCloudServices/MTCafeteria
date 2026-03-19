@@ -40,6 +40,13 @@ const Map<String, List<String>> jobQuickReference = {
     'After doors close, clean up the serving line and make sure the heaters and light are turned off.',
     'Some shift-specific duties may still come up beyond this core guide.',
   ],
+  'Volunteer Coordinator': [
+    'Meet the volunteer missionaries when they arrive and make sure they are not standing around waiting for direction.',
+    'Get them aprons, gloves, and hairnets before they start work.',
+    'Explain what they need to do and place them where the line or dining room needs help most.',
+    'Halfway through the shift, switch out the current volunteer group when the next district arrives.',
+    'At the end of the shift, direct volunteers to wipe tables, vacuum, and help finish cleanup before they leave.',
+  ],
   'Beverages': [],
   'Senior Cash': [],
   'Junior Cash': [],

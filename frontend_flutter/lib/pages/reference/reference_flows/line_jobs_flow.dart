@@ -2,7 +2,7 @@ part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _LineJobsReferenceFlow on _ReferenceSheetsViewState {
   Widget _buildLineJobsFlow(Map<String, dynamic> data) {
-    final jobsForMeal = _mealLineJobs[_selectedLineMeal] ?? const <String>[];
+    final jobsForMeal = availableLineJobsForMeal(_selectedLineMeal);
     if (_selectedLineJobKey == null && jobsForMeal.isNotEmpty) {
       _selectedLineJobKey = jobsForMeal.first;
     }
@@ -37,7 +37,7 @@ extension _LineJobsReferenceFlow on _ReferenceSheetsViewState {
                 if (value == null) return;
                 _updateReferenceState(() {
                   _selectedLineMeal = value;
-                  final mealJobs = _mealLineJobs[value] ?? const <String>[];
+                  final mealJobs = availableLineJobsForMeal(value);
                   _selectedLineJobKey = mealJobs.isEmpty
                       ? null
                       : mealJobs.first;

@@ -40,7 +40,6 @@ function parseJobIdsInput(jobIdsInput) {
     .map((v) => Number(v.trim()))
     .filter((v) => Number.isInteger(v) && v > 0);
 }
-
 async function getTaskBoardForUser(requestUser, { meal, jobId, preferredJobName }) {
   const selectedMeal = getMealFromInput(meal);
 
@@ -66,7 +65,6 @@ async function getTaskBoardForUser(requestUser, { meal, jobId, preferredJobName 
     const selectedJobId = Number(jobId || preferredJob?.id || jobs[0]?.id || 0);
     const selectedJob = jobs.find((j) => j.id === selectedJobId) || jobs[0];
     const selectedJobName = selectedJob?.name;
-
     const taskJob = selectedJobName
       ? (mockData.jobs.find((j) => {
           const shift = mockData.shifts.find((s) => s.id === j.shiftId);

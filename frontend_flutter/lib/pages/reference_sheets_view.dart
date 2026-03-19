@@ -43,6 +43,7 @@ class ReferenceSheetsView extends StatefulWidget {
 
 class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   static const String _customLockerItemsKey = 'custom_locker_items_v1';
+  static const String _deletedLockerItemsKey = 'deleted_locker_items_v1';
   final AppRuntimeConfig _runtimeConfig = AppRuntimeConfig.fromEnvironment;
   late final Future<Map<String, dynamic>> _referenceFuture;
   final TransformationController _mapTransformationController =
@@ -71,7 +72,11 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   String _selectedSafetyCard = 'Select';
   String _selectedGeneralInformationCard = 'Select';
   String _selectedLockerAddLocation = '1';
+  bool _showLockerBrowsePanel = false;
+  bool _showLockerAddPanel = false;
+  bool _showLockerDeleteMode = false;
   Map<String, List<String>> _customLockerInventory = const {};
+  Map<String, List<String>> _deletedLockerInventory = const {};
   int _lineSecondaryStep = 0;
   String _lineSecondaryMeal = 'Breakfast';
   String _lineSecondaryGroup = 'While Doors Open';
@@ -86,6 +91,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
     _selectedSection = widget.initialSection;
     _referenceFuture = _loadReferenceData();
     _loadCustomLockerInventory();
+    _loadDeletedLockerInventory();
   }
 
   @override
@@ -98,7 +104,12 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   }
 
   Future<void> _loadCustomLockerInventory() async {
-    final prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return;
+    }
     final raw = prefs.getString(_customLockerItemsKey);
     if (raw == null || raw.trim().isEmpty) return;
 
@@ -120,11 +131,57 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
     }
   }
 
+  Future<void> _loadDeletedLockerInventory() async {
+    SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return;
+    }
+    final raw = prefs.getString(_deletedLockerItemsKey);
+    if (raw == null || raw.trim().isEmpty) return;
+
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final parsed = <String, List<String>>{};
+      for (final entry in decoded.entries) {
+        parsed[entry.key] = ((entry.value as List<dynamic>?) ?? const [])
+            .map((item) => item.toString().trim())
+            .where((item) => item.isNotEmpty)
+            .toList();
+      }
+      if (!mounted) return;
+      setState(() {
+        _deletedLockerInventory = parsed;
+      });
+    } catch (_) {
+      // Ignore malformed local cache and fall back to bundled inventory.
+    }
+  }
+
   Future<void> _saveCustomLockerInventory() async {
-    final prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return;
+    }
     await prefs.setString(
       _customLockerItemsKey,
       jsonEncode(_customLockerInventory),
+    );
+  }
+
+  Future<void> _saveDeletedLockerInventory() async {
+    SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return;
+    }
+    await prefs.setString(
+      _deletedLockerItemsKey,
+      jsonEncode(_deletedLockerInventory),
     );
   }
 
@@ -146,11 +203,59 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
       location: [...existing, normalizedItem]
         ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
     };
+    final deletedForLocation = _deletedLockerInventory[location] ?? const [];
+    final updatedDeleted = <String, List<String>>{
+      ..._deletedLockerInventory,
+      if (deletedForLocation.isNotEmpty)
+        location: deletedForLocation
+            .where(
+              (entry) => entry.toLowerCase() != normalizedItem.toLowerCase(),
+            )
+            .toList(),
+    }..removeWhere((_, value) => value.isEmpty);
 
     setState(() {
       _customLockerInventory = updated;
+      _deletedLockerInventory = updatedDeleted;
     });
     await _saveCustomLockerInventory();
+    await _saveDeletedLockerInventory();
+  }
+
+  Future<void> _deleteLockerInventoryItem({
+    required String location,
+    required String item,
+  }) async {
+    final normalizedItem = item.trim();
+    if (normalizedItem.isEmpty) return;
+
+    final existingCustom = _customLockerInventory[location] ?? const [];
+    final updatedCustom = <String, List<String>>{
+      ..._customLockerInventory,
+      location: existingCustom
+          .where((entry) => entry.toLowerCase() != normalizedItem.toLowerCase())
+          .toList(),
+    }..removeWhere((_, value) => value.isEmpty);
+
+    final existingDeleted = _deletedLockerInventory[location] ?? const [];
+    final alreadyDeleted = existingDeleted.any(
+      (entry) => entry.toLowerCase() == normalizedItem.toLowerCase(),
+    );
+    final updatedDeleted = <String, List<String>>{
+      ..._deletedLockerInventory,
+      location:
+          alreadyDeleted
+                ? existingDeleted
+                : [...existingDeleted, normalizedItem]
+            ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+    };
+
+    setState(() {
+      _customLockerInventory = updatedCustom;
+      _deletedLockerInventory = updatedDeleted;
+    });
+    await _saveCustomLockerInventory();
+    await _saveDeletedLockerInventory();
   }
 
   Future<Map<String, dynamic>> _loadReferenceData() async {
