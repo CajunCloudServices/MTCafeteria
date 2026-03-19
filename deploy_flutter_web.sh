@@ -19,6 +19,27 @@ if [ ! -d "$SOURCE_DIR" ] || [ ! -f "$SOURCE_DIR/index.html" ]; then
   exit 1
 fi
 
+required_files=(
+  "index.html"
+  "main.dart.js"
+  "flutter_bootstrap.js"
+  "flutter_service_worker.js"
+)
+
+for rel in "${required_files[@]}"; do
+  if [ ! -f "$SOURCE_DIR/$rel" ]; then
+    echo "ERROR: Missing required Flutter artifact '$rel' in '$SOURCE_DIR'."
+    echo "Run a fresh Flutter web build and retry."
+    exit 1
+  fi
+done
+
+if [ ! -s "$SOURCE_DIR/main.dart.js" ]; then
+  echo "ERROR: '$SOURCE_DIR/main.dart.js' is empty."
+  echo "Run a fresh Flutter web build and retry."
+  exit 1
+fi
+
 mkdir -p "$TARGET_DIR"
 rsync -av --delete "$SOURCE_DIR"/ "$TARGET_DIR"/
 

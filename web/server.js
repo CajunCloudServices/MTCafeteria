@@ -65,7 +65,15 @@ app.use(
     index: false,
     setHeaders(res, filePath) {
       const name = path.basename(filePath);
-      if (name === 'index.html' || name === 'flutter_service_worker.js') {
+      // Flutter's bootstrap chain uses stable filenames (not content-hashed),
+      // so these must always revalidate to avoid stale edge-cache rollouts.
+      if (
+        name === 'index.html' ||
+        name === 'main.dart.js' ||
+        name === 'flutter_bootstrap.js' ||
+        name === 'flutter.js' ||
+        name === 'flutter_service_worker.js'
+      ) {
         res.setHeader('Cache-Control', 'no-store');
         return;
       }
