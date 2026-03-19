@@ -77,14 +77,16 @@ extension _LineDeepCleanReferenceFlow on _ReferenceSheetsViewState {
               ],
             ),
             const SizedBox(height: 10),
-            if (lineDeepCleaningGeneralNotes.isNotEmpty) ...[
-              _buildReferenceTaskCard(
-                title: 'Line Deep Cleaning',
-                items: [...lineDeepCleaningGeneralNotes, ...?assignmentItems],
-                icon: Icons.cleaning_services_outlined,
-              ),
-              const SizedBox(height: 12),
-            ],
+            _buildReferenceTaskCard(
+              title: 'Line Deep Cleaning',
+              items:
+                  assignmentItems ??
+                  const [
+                    'No deep cleaning assignment found for this day and meal.',
+                  ],
+              icon: Icons.cleaning_services_outlined,
+            ),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(

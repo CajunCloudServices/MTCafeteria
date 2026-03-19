@@ -223,9 +223,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
                           ? Icons.close
                           : Icons.delete_outline,
                     ),
-                    label: Text(
-                      _showLockerDeleteMode ? 'Done' : 'Delete',
-                    ),
+                    label: Text(_showLockerDeleteMode ? 'Done' : 'Delete'),
                   ),
                 ),
               ],
@@ -424,17 +422,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
     // Locked mode (opened directly from dashboard) should match the same
     // single-card style rhythm as other locked reference surfaces.
     if (widget.lockSection) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Find an Item',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 14),
-          searchBody,
-        ],
-      );
+      return searchBody;
     }
 
     return _buildReferencePanel(title: 'Find an Item', child: searchBody);

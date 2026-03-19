@@ -291,9 +291,11 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
         final content = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (!widget.lockSection) ...[
+            if (!widget.lockSection && widget.useOuterCard) ...[
               Text('Guides', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 14),
+            ],
+            if (!widget.lockSection) ...[
               DropdownButtonFormField<String>(
                 key: ValueKey('reference-section-$_selectedSection'),
                 initialValue: _selectedSection,
@@ -353,20 +355,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
         if (widget.lockSection && !widget.useOuterCard) {
           return SingleChildScrollView(
             padding: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.initialSection,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 14),
-                  content,
-                ],
-              ),
-            ),
+            child: Padding(padding: const EdgeInsets.all(18), child: content),
           );
         }
 

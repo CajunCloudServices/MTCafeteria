@@ -698,7 +698,6 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
         _buildSupervisorAssignmentCard(
           title: 'Today\'s Assignment',
           items: [
-            ...lineDeepCleaningGeneralNotes,
             assignment ??
                 'No deep cleaning assignment found for this day and meal.',
           ],

@@ -5,7 +5,7 @@ extension _DiningMapReferenceFlow on _ReferenceSheetsViewState {
     // InteractiveViewer provides zoom/pan without introducing a separate map
     // library for what is ultimately a static floorplan image.
     return _buildReferencePanel(
-      title: 'Dining Map',
+      title: widget.useOuterCard ? 'Dining Map' : '',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -8,6 +8,7 @@ class LandingPage extends StatelessWidget {
     super.key,
     required this.items,
     required this.canManage,
+    required this.isPilotProfile,
     required this.onCreate,
     required this.onUpdate,
     required this.onDelete,
@@ -15,6 +16,7 @@ class LandingPage extends StatelessWidget {
 
   final List<LandingItem> items;
   final bool canManage;
+  final bool isPilotProfile;
   final Future<void> Function(Map<String, dynamic>) onCreate;
   final Future<void> Function(int id, Map<String, dynamic>) onUpdate;
   final Future<void> Function(int id) onDelete;
@@ -173,10 +175,31 @@ class LandingPage extends StatelessWidget {
                       },
                     ),
             ),
+            if (isPilotProfile) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _promptForPilotAnnouncementCreate(context),
+                  icon: const Icon(Icons.add_comment_outlined),
+                  label: const Text('Add Announcement'),
+                ),
+              ),
+            ],
           ],
         );
       },
     );
+  }
+
+  Future<void> _promptForPilotAnnouncementCreate(BuildContext context) async {
+    final isApproved = await showDialog<bool>(
+      context: context,
+      builder: (_) => const _PilotAnnouncementPasswordDialog(),
+    );
+    if (isApproved != true) return;
+    if (!context.mounted) return;
+    await _showLandingDialog(context, onSave: onCreate);
   }
 
   Widget _content(LandingItem item) {
@@ -288,62 +311,172 @@ class LandingPage extends StatelessWidget {
     LandingItem? existing,
     required Future<void> Function(Map<String, dynamic>) onSave,
   }) async {
-    // One dialog handles both create and edit so validation stays consistent.
-    final typeController = TextEditingController(
-      text: existing?.type ?? 'Announcement',
-    );
-    final titleController = TextEditingController(text: existing?.title ?? '');
-    final contentController = TextEditingController(
-      text: existing?.content ?? '',
-    );
-    final startDateController = TextEditingController(
-      text:
-          existing?.startDate ??
-          DateTime.now().toIso8601String().split('T').first,
-    );
-    final endDateController = TextEditingController(
-      text:
-          existing?.endDate ??
-          DateTime.now().toIso8601String().split('T').first,
-    );
-
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          existing == null ? 'Add Announcement' : 'Edit Announcement',
+      builder: (_) => _LandingEditorDialog(existing: existing, onSave: onSave),
+    );
+  }
+}
+
+class _PilotAnnouncementPasswordDialog extends StatefulWidget {
+  const _PilotAnnouncementPasswordDialog();
+
+  @override
+  State<_PilotAnnouncementPasswordDialog> createState() =>
+      _PilotAnnouncementPasswordDialogState();
+}
+
+class _PilotAnnouncementPasswordDialogState
+    extends State<_PilotAnnouncementPasswordDialog> {
+  final TextEditingController _passwordController = TextEditingController();
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_passwordController.text.trim() == 'admin') {
+      Navigator.of(context).pop(true);
+      return;
+    }
+    setState(() {
+      _errorText = 'Incorrect password';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Admin Password'),
+      content: SizedBox(
+        width: 360,
+        child: TextField(
+          controller: _passwordController,
+          obscureText: true,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: 'Password',
+            errorText: _errorText,
+          ),
+          onSubmitted: (_) => _submit(),
         ),
-        content: SizedBox(
-          width: 460,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Continue')),
+      ],
+    );
+  }
+}
+
+class _LandingEditorDialog extends StatefulWidget {
+  const _LandingEditorDialog({this.existing, required this.onSave});
+
+  final LandingItem? existing;
+  final Future<void> Function(Map<String, dynamic>) onSave;
+
+  @override
+  State<_LandingEditorDialog> createState() => _LandingEditorDialogState();
+}
+
+class _LandingEditorDialogState extends State<_LandingEditorDialog> {
+  late final TextEditingController _typeController;
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
+  late final TextEditingController _startDateController;
+  late final TextEditingController _endDateController;
+
+  @override
+  void initState() {
+    super.initState();
+    _typeController = TextEditingController(
+      text: widget.existing?.type ?? 'Announcement',
+    );
+    _titleController = TextEditingController(
+      text: widget.existing?.title ?? '',
+    );
+    _contentController = TextEditingController(
+      text: widget.existing?.content ?? '',
+    );
+    _startDateController = TextEditingController(
+      text:
+          widget.existing?.startDate ??
+          DateTime.now().toIso8601String().split('T').first,
+    );
+    _endDateController = TextEditingController(
+      text:
+          widget.existing?.endDate ??
+          DateTime.now().toIso8601String().split('T').first,
+    );
+  }
+
+  @override
+  void dispose() {
+    _typeController.dispose();
+    _titleController.dispose();
+    _contentController.dispose();
+    _startDateController.dispose();
+    _endDateController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final payload = {
+      'type': _typeController.text.trim(),
+      'title': _titleController.text.trim(),
+      'content': _contentController.text.trim(),
+      'startDate': _startDateController.text.trim(),
+      'endDate': _endDateController.text.trim(),
+    };
+    await widget.onSave(payload);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        widget.existing == null ? 'Add Announcement' : 'Edit Announcement',
+      ),
+      content: SizedBox(
+        width: 460,
+        child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: typeController,
+                controller: _typeController,
                 decoration: const InputDecoration(labelText: 'Type'),
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: titleController,
+                controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Title'),
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: contentController,
+                controller: _contentController,
                 minLines: 2,
                 maxLines: 4,
                 decoration: const InputDecoration(labelText: 'Content'),
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: startDateController,
+                controller: _startDateController,
                 decoration: const InputDecoration(
                   labelText: 'Start Date (YYYY-MM-DD)',
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: endDateController,
+                controller: _endDateController,
                 decoration: const InputDecoration(
                   labelText: 'End Date (YYYY-MM-DD)',
                 ),
@@ -351,36 +484,15 @@ class LandingPage extends StatelessWidget {
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final payload = {
-                'type': typeController.text.trim(),
-                'title': titleController.text.trim(),
-                'content': contentController.text.trim(),
-                'startDate': startDateController.text.trim(),
-                'endDate': endDateController.text.trim(),
-              };
-              await onSave(payload);
-              if (context.mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _save, child: const Text('Save')),
+      ],
     );
-
-    typeController.dispose();
-    titleController.dispose();
-    contentController.dispose();
-    startDateController.dispose();
-    endDateController.dispose();
   }
 }
 

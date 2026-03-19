@@ -43,6 +43,7 @@ extension _MainShell on _MtcCafeteriaAppState {
       return LandingPage(
         items: _state.landingItems,
         canManage: user!.canManageLanding,
+        isPilotProfile: _runtimeConfig.isPilotProfile,
         onCreate: (payload) => _state.createLandingItem(payload),
         onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
         onDelete: (id) => _state.deleteLandingItem(id),
@@ -73,6 +74,7 @@ extension _MainShell on _MtcCafeteriaAppState {
     return LandingPage(
       items: _state.landingItems,
       canManage: user!.canManageLanding,
+      isPilotProfile: _runtimeConfig.isPilotProfile,
       onCreate: (payload) => _state.createLandingItem(payload),
       onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
       onDelete: (id) => _state.deleteLandingItem(id),

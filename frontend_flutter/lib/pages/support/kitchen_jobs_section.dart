@@ -20,7 +20,6 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
   int _step = 0;
   String _station = 'Main Dish';
   String _mainDishItem = 'Eggs';
-  String? _mainDishSection;
   String? _dessertSection;
   String? _saladSection;
   int _lastReset = 0;
@@ -128,58 +127,26 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
   static const Map<String, Map<String, List<String>>>
   _mainDishSections = <String, Map<String, List<String>>>{
     'Eggs': <String, List<String>>{
-      'Setup + Staging': <String>[
-        'Stage the eggs, oil or butter, spatulas, pans, and towels before the rush starts so the flat top can stay focused on production.',
-        'Liquid eggs are kept in Locker 13, so confirm you have enough product staged before service if the cook has already pulled them.',
-        'Talk with the cook and the runner before service about when they want low-food callouts and how many pans or hotel pans they want held at a time.',
-        'If grease or heavy residue is going to build up during service, make sure there is a grease bucket available early rather than scrambling for one later.',
-      ],
-      'Cooking + Quality': <String>[
-        'Preheat the flat top fully before starting and keep the work area organized so batches stay consistent.',
-        'Cook in smaller controlled batches when needed rather than overloading the surface and dropping quality.',
-        'Fold and pull eggs before they overcook so texture stays soft through the hold window.',
-        'If the texture starts drifting, adjust with the cook right away instead of repeating a bad batch.',
-      ],
-      'Service + Handoff': <String>[
-        'Keep communicating with the runner about what is getting low so cooks are not surprised when the line needs more food.',
-        'Label and date any leftover egg product correctly and put it back in the right cooler location if the cook wants it saved.',
-        'After service, clean the flat top area and surrounding surfaces so the next shift is not inheriting buildup.',
+      'Eggs': <String>[
+        'Stage eggs, oil or butter, spatulas, and pans before the rush starts.',
+        'Preheat the flat top fully before cooking.',
+        'Cook in controlled batches and pull the eggs before they overcook.',
+        'Keep communicating with the runner and the cook when food is getting low.',
       ],
     },
     'French Toast Sticks': <String, List<String>>{
-      'Setup + Oven Prep': <String>[
-        'Preheat the oven to the temperature the cook specifies before loading pans.',
-        'Stage sheet pans, parchment or liners if the cooks use them, towels, and holding pans before the first batch goes in.',
-        'Confirm with the cook how many pans should be ready ahead and when the runner should call low food during service.',
-      ],
-      'Cooking + Batch Control': <String>[
-        'Arrange French toast sticks in a single layer so they heat evenly and do not steam each other.',
-        'Cook in timed batches and rotate pans partway through if the oven cooks unevenly.',
-        'Keep an eye on color and crispness rather than relying only on the timer, especially on later batches.',
-        'Do not overfill holding pans so product stays serviceable instead of going soggy.',
-      ],
-      'Hold + Service Support': <String>[
-        'Hold hot product where the cook wants it and keep the freshest batch moving forward for service first.',
-        'Communicate early when only a few pans are left so the next batch can be started in time.',
-        'When service slows down, adjust batch size downward so extra product is not wasted.',
+      'French Toast Sticks': <String>[
+        'French toast sticks should be fried for 4 minutes.',
+        'Cook in controlled batches so they stay crisp and do not get soggy.',
+        'Tell the runner or cook early when you are getting low.',
       ],
     },
     'Fried Chicken': <String, List<String>>{
-      'Safety + Setup': <String>[
-        'Confirm fryer setup and safety checks with the cook before starting any batch.',
-        'Make sure the gas and electrical connections are solid if equipment has been moved. In Main Dish, the plug rotates to lock and unlock, and the gas hose should snap firmly into place.',
-        'A green light issue usually points to the electrical connection, and a pilot-light issue usually points to the gas connection.',
-        'Always return moved Main Dish equipment in the same order it was pulled: flat top, flat top, table, grill, fryer, SM grill.',
-      ],
-      'Frying + Batch Control': <String>[
-        'Load chicken in controlled batches and do not overcrowd the fryer.',
-        'Let the cook set the timing and doneness standard, especially for any product-size differences across batches.',
-        'Keep the area organized for raw-to-cooked flow so pans, tongs, and holding space do not get crossed up during the rush.',
-      ],
-      'Holding + Cleanup': <String>[
-        'Transfer finished chicken to the hold pan the cook wants, label batch timing if that is part of the shift routine, and keep it service-ready.',
-        'If the item throws off a lot of grease, make sure the grease bucket is being used and emptied instead of letting that become an end-of-shift problem.',
-        'After service, help reset the fryer area, label leftovers correctly, and leave the station ready for the next crew.',
+      'Fried Chicken': <String>[
+        'Confirm fryer setup and safety checks with the cook before starting.',
+        'Do not overcrowd the fryer.',
+        'Let the cook set the timing and doneness standard for the batch.',
+        'Keep the hold pan stocked and the fryer area clean and organized.',
       ],
     },
   };
@@ -208,7 +175,6 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
         _step = 0;
         _station = 'Main Dish';
         _mainDishItem = 'Eggs';
-        _mainDishSection = null;
         _dessertSection = null;
         _saladSection = null;
       });
@@ -259,7 +225,6 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
               .toList(),
           onChanged: (value) => setState(() {
             _station = value ?? _station;
-            _mainDishSection = null;
             _dessertSection = null;
             _saladSection = null;
           }),
@@ -356,38 +321,55 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
           items: _mainDishItems
               .map((item) => DropdownMenuItem(value: item, child: Text(item)))
               .toList(),
-          onChanged: (value) => setState(() {
-            _mainDishItem = value ?? _mainDishItem;
-            _mainDishSection = null;
-          }),
+          onChanged: (value) =>
+              setState(() => _mainDishItem = value ?? _mainDishItem),
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String?>(
-          key: ValueKey<String>(
-            'main-dish-$_mainDishItem-${_mainDishSection ?? 'select'}',
-          ),
-          initialValue: _mainDishSection,
-          isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Instruction Section'),
-          items: <DropdownMenuItem<String?>>[
-            const DropdownMenuItem<String?>(value: null, child: Text('Select')),
-            ...sections.keys.map(
-              (section) => DropdownMenuItem<String?>(
-                value: section,
-                child: Text(section),
+        _buildSectionedInstructionPanel(sections),
+      ],
+    );
+  }
+
+  Widget _buildSectionedInstructionPanel(Map<String, List<String>> sections) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F8FD),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFBFD2EA)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final entry in sections.entries) ...[
+            Text(
+              entry.key,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF123A64),
               ),
             ),
+            const SizedBox(height: 8),
+            ...[
+              for (int i = 0; i < entry.value.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    '${i + 1}. ${entry.value[i]}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.38,
+                      color: Color(0xFF274564),
+                    ),
+                  ),
+                ),
+            ],
+            if (entry.key != sections.keys.last) const SizedBox(height: 10),
           ],
-          onChanged: (value) => setState(() => _mainDishSection = value),
-        ),
-        const SizedBox(height: 12),
-        if (_mainDishSection == null)
-          _buildEmptySectionState(
-            'Choose a Main Dish section to view the job instructions.',
-          )
-        else
-          _buildInstructionPanel(sections[_mainDishSection]!),
-      ],
+        ],
+      ),
     );
   }
 
