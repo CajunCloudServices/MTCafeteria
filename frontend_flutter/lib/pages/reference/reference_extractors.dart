@@ -211,23 +211,20 @@ extension _ReferenceExtractors on _ReferenceSheetsViewState {
       ),
     ];
 
-    return _buildReferencePanel(
-      title: '',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final card in cards) ...[
-            _buildReferenceTaskCard(
-              title: card.title,
-              items: card.items.isEmpty
-                  ? const ['No extra notes listed.']
-                  : card.items,
-              icon: Icons.menu_book_outlined,
-            ),
-            const SizedBox(height: 10),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final card in cards) ...[
+          _buildReferenceTaskCard(
+            title: card.title,
+            items: card.items.isEmpty
+                ? const ['No extra notes listed.']
+                : card.items,
+            icon: Icons.menu_book_outlined,
+          ),
+          const SizedBox(height: 10),
         ],
-      ),
+      ],
     );
   }
 

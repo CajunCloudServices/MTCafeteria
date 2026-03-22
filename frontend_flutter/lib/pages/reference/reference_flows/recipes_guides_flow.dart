@@ -32,7 +32,7 @@ extension _RecipeGuidesFlow on _ReferenceSheetsViewState {
     final sections = _recipeGuideCards[_selectedRecipeCard];
 
     return _buildReferencePanel(
-      title: 'Recipes',
+      title: '',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

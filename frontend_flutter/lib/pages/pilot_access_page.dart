@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_ui_tokens.dart';
+
 /// Neutral bootstrap screen used in pilot mode so workers never see auth UI.
 class PilotAccessPage extends StatelessWidget {
   const PilotAccessPage({
@@ -60,7 +62,9 @@ class PilotAccessPage extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF3F2),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        AppUiTokens.cardRadius,
+                      ),
                       border: Border.all(
                         color: const Color(0xFFBF2C1E).withValues(alpha: 0.28),
                       ),

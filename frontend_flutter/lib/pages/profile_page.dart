@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_session.dart';
+import '../theme/app_ui_tokens.dart';
 
 /// Personal profile and point summary for the authenticated user.
 class ProfilePage extends StatelessWidget {
@@ -50,7 +51,7 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
                   child: LinearProgressIndicator(
                     value: (user.points.clamp(0, 20)) / 20,
                     minHeight: 10,
@@ -64,7 +65,7 @@ class ProfilePage extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: status.color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
                     border: Border.all(
                       color: status.color.withValues(alpha: 0.3),
                     ),

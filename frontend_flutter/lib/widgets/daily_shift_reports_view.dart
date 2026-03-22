@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/daily_shift_report.dart';
+import '../theme/app_ui_tokens.dart';
 
 /// Leadership view of submitted daily shift reports.
 class DailyShiftReportsView extends StatelessWidget {
@@ -67,8 +68,10 @@ class DailyShiftReportsView extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FBFF),
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppUiTokens.panelSurface,
+                        borderRadius: BorderRadius.circular(
+                          AppUiTokens.cardRadius,
+                        ),
                         border: Border.all(color: const Color(0xFFB7CAE4)),
                       ),
                       child: Column(

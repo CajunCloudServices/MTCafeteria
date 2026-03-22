@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_ui_tokens.dart';
+
 /// First dashboard step for choosing the worker's operating area.
 class ShiftTrackSelectionCard extends StatelessWidget {
   const ShiftTrackSelectionCard({
@@ -17,20 +19,30 @@ class ShiftTrackSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620),
-        child: Card(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
+            border: Border.all(color: AppUiTokens.shellBorder),
+            boxShadow: AppUiTokens.shellShadowSoft,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Select Area',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF123A65),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
@@ -58,6 +70,9 @@ class ShiftTrackSelectionCard extends StatelessWidget {
                   child: FilledButton(
                     key: const ValueKey('shift-area-continue-button'),
                     onPressed: onContinue,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                     child: const Text('Continue'),
                   ),
                 ),
@@ -90,18 +105,31 @@ class ShiftRoleSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620),
-        child: Card(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
+            border: Border.all(color: AppUiTokens.shellBorder),
+            boxShadow: AppUiTokens.shellShadowSoft,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF123A65),
+                  ),
+                ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
                   key: const ValueKey('shift-role-dropdown'),
@@ -130,6 +158,9 @@ class ShiftRoleSelectionCard extends StatelessWidget {
                   child: FilledButton(
                     key: const ValueKey('shift-area-continue-button'),
                     onPressed: onContinue,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                     child: const Text('Continue'),
                   ),
                 ),

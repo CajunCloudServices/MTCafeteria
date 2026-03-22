@@ -35,7 +35,7 @@ extension _DiningMapReferenceFlow on _ReferenceSheetsViewState {
               final isMobile = MediaQuery.of(context).size.width < 760;
               final mapHeight = isMobile ? 430.0 : 640.0;
               return ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
                 child: Container(
                   color: Colors.white,
                   constraints: BoxConstraints(

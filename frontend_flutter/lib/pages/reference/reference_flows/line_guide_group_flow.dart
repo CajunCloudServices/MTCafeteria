@@ -37,23 +37,20 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
         child = _buildLineSecondaryFlow(data);
       case 'Misc':
         final cards = _lineMiscCards(data);
-        child = _buildReferencePanel(
-          title: '',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final card in cards) ...[
-                _buildReferenceTaskCard(
-                  title: _guideCardTitle(card).isEmpty
-                      ? 'Line Misc'
-                      : _guideCardTitle(card),
-                  items: _guideCardItems(card),
-                  icon: Icons.layers_outlined,
-                ),
-                const SizedBox(height: 10),
-              ],
+        child = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final card in cards) ...[
+              _buildReferenceTaskCard(
+                title: _guideCardTitle(card).isEmpty
+                    ? 'Line Misc'
+                    : _guideCardTitle(card),
+                items: _guideCardItems(card),
+                icon: Icons.layers_outlined,
+              ),
+              const SizedBox(height: 10),
             ],
-          ),
+          ],
         );
       case 'Fruit Prep (Grapes/Kiwi)':
         child = Container(
@@ -61,7 +58,7 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: const Color(0xFFF7FAFF),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
             border: Border.all(color: const Color(0xFFB6C9E4)),
           ),
           child: _buildReadableLines(_extractFoodPrep(data)),
@@ -72,7 +69,7 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: const Color(0xFFF7FAFF),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
             border: Border.all(color: const Color(0xFFB6C9E4)),
           ),
           child: _buildReadableLines(_extractMealTimes(data)),
@@ -83,7 +80,7 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: const Color(0xFFF7FAFF),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
             border: Border.all(color: const Color(0xFFB6C9E4)),
           ),
           child: _buildReadableLines(_extractSafety(data)),
@@ -93,7 +90,7 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
     }
 
     return _buildReferencePanel(
-      title: 'Line',
+      title: '',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

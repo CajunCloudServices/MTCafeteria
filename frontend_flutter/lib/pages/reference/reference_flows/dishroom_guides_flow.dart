@@ -6,7 +6,7 @@ extension _DishroomGuidesFlow on _ReferenceSheetsViewState {
     required String sectionTitle,
   }) {
     return _buildGuideCardSelectorPanel(
-      panelTitle: sectionTitle,
+      panelTitle: '',
       fieldLabel: 'Dishroom section',
       selectedCard: _selectedDishroomCard,
       onSelected: (value) {

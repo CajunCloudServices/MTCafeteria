@@ -85,7 +85,7 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFFF7FAFF),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
         border: Border.all(color: const Color(0xFFB6C9E4)),
       ),
       child: _buildReadableLines(lines),

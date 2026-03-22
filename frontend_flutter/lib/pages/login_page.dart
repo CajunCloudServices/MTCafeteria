@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_ui_tokens.dart';
+
 /// Standard email/password login used outside pilot mode.
 class LoginPage extends StatefulWidget {
   const LoginPage({
@@ -76,7 +78,9 @@ class _LoginPageState extends State<LoginPage> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF3F2),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        AppUiTokens.cardRadius,
+                      ),
                       border: Border.all(
                         color: const Color(0xFFBF2C1E).withValues(alpha: 0.28),
                       ),

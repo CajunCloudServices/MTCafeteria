@@ -6,7 +6,7 @@ extension _KitchenGuidesFlow on _ReferenceSheetsViewState {
     required String sectionTitle,
   }) {
     return _buildGuideCardSelectorPanel(
-      panelTitle: sectionTitle,
+      panelTitle: '',
       fieldLabel: 'Kitchen section',
       selectedCard: _selectedKitchenCard,
       onSelected: (value) {

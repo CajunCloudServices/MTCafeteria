@@ -10,6 +10,7 @@ import 'config/app_features.dart';
 import 'config/runtime_config.dart';
 import 'models/user_session.dart';
 import 'state/app_state.dart';
+import 'theme/app_ui_tokens.dart';
 import 'widgets/daily_shift_reports_view.dart';
 import 'widgets/dashboard_hub_card.dart';
 import 'widgets/shift_selection_cards.dart';
@@ -512,7 +513,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
               elevation: 2,
               shadowColor: const Color(0xFF0A2F53).withValues(alpha: 0.12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
                 side: BorderSide(color: primary.withValues(alpha: 0.32)),
               ),
               margin: EdgeInsets.zero,
@@ -528,15 +529,17 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                 vertical: 14,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppUiTokens.inputRadius),
                 borderSide: BorderSide(color: primary.withValues(alpha: 0.22)),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppUiTokens.inputRadius),
                 borderSide: BorderSide(color: primary.withValues(alpha: 0.22)),
               ),
               focusedBorder: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(6)),
+                borderRadius: BorderRadius.all(
+                  Radius.circular(AppUiTokens.inputRadius),
+                ),
                 borderSide: BorderSide(color: primary, width: 2),
               ),
             ),
@@ -545,7 +548,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                 backgroundColor: primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppUiTokens.buttonRadius),
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 18,
@@ -562,7 +565,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF1F5E9C),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppUiTokens.buttonRadius),
                 ),
                 side: BorderSide(color: primary.withValues(alpha: 0.25)),
                 minimumSize: const Size(0, 54),

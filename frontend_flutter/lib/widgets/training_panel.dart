@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/training.dart';
+import '../theme/app_ui_tokens.dart';
 
 /// Legacy compact training summary panel used in simpler dashboard contexts.
 class TrainingPanel extends StatelessWidget {
@@ -39,7 +40,7 @@ class TrainingPanel extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
                   border: Border.all(color: Colors.green.shade300),
                 ),
                 child: Column(

@@ -12,7 +12,7 @@ extension _MiscReferenceGroupFlow on _ReferenceSheetsViewState {
   }) {
     final section = data[sectionKey] as Map<String, dynamic>? ?? const {};
     return _buildGuideCardSelectorPanel(
-      panelTitle: sectionTitle,
+      panelTitle: '',
       fieldLabel: fieldLabel,
       selectedCard: selectedCard,
       onSelected: onSelected,

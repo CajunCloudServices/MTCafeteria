@@ -12,7 +12,7 @@ class InstructionCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F9FF),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
         border: Border.all(
           color: const Color(0xFF1F5E9C).withValues(alpha: 0.28),
         ),
@@ -51,7 +51,7 @@ class LocalPhaseChecklist extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
         border: Border.all(
           color: const Color(0xFF9AB3CF).withValues(alpha: 0.7),
         ),

@@ -109,7 +109,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
         border: Border.all(color: const Color(0xFFB6C9E4)),
       ),
       child: Column(
@@ -242,7 +242,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7FAFF),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
                   border: Border.all(color: const Color(0xFFB6C9E4)),
                 ),
                 child: Column(

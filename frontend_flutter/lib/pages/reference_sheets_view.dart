@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/line_deep_clean_assignments.dart';
 import '../config/runtime_config.dart';
+import '../theme/app_ui_tokens.dart';
 
 part 'reference/reference_catalog.dart';
 part 'reference/reference_section_registry.dart';
@@ -317,8 +318,14 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
                   });
                 },
               ),
-              const SizedBox(height: 14),
-              Text('Guides', style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 18),
+              Text(
+                'Guides',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF123A65),
+                ),
+              ),
               const SizedBox(height: 14),
             ],
             if (!widget.lockSection) ...[
@@ -365,9 +372,15 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 860),
-              child: Card(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppUiTokens.shellSurface,
+                  borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
+                  border: Border.all(color: AppUiTokens.shellBorder),
+                  boxShadow: AppUiTokens.shellShadowSoft,
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(20),
                   child: content,
                 ),
               ),

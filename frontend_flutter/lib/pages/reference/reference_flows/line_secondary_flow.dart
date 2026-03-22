@@ -43,109 +43,105 @@ extension _LineSecondaryReferenceFlow on _ReferenceSheetsViewState {
       _ => const <String>[],
     };
 
-    return _buildReferencePanel(
-      title: '',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_lineSecondaryStep == 0) ...[
-            DropdownButtonFormField<String>(
-              initialValue: _lineSecondaryMeal,
-              decoration: const InputDecoration(labelText: 'Meal'),
-              isExpanded: true,
-              items: const [
-                DropdownMenuItem(value: 'Breakfast', child: Text('Breakfast')),
-                DropdownMenuItem(value: 'Lunch', child: Text('Lunch')),
-                DropdownMenuItem(value: 'Dinner', child: Text('Dinner')),
-              ],
-              onChanged: (value) {
-                if (value == null) return;
-                _updateReferenceState(() => _lineSecondaryMeal = value);
-              },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_lineSecondaryStep == 0) ...[
+          DropdownButtonFormField<String>(
+            initialValue: _lineSecondaryMeal,
+            decoration: const InputDecoration(labelText: 'Meal'),
+            isExpanded: true,
+            items: const [
+              DropdownMenuItem(value: 'Breakfast', child: Text('Breakfast')),
+              DropdownMenuItem(value: 'Lunch', child: Text('Lunch')),
+              DropdownMenuItem(value: 'Dinner', child: Text('Dinner')),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+              _updateReferenceState(() => _lineSecondaryMeal = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () =>
+                  _updateReferenceState(() => _lineSecondaryStep = 1),
+              child: const Text('Next'),
             ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () =>
-                    _updateReferenceState(() => _lineSecondaryStep = 1),
-                child: const Text('Next'),
+          ),
+        ] else if (_lineSecondaryStep == 1) ...[
+          DropdownButtonFormField<String>(
+            initialValue: _lineSecondaryGroup,
+            decoration: const InputDecoration(labelText: 'Section'),
+            isExpanded: true,
+            items: const [
+              DropdownMenuItem(
+                value: 'While Doors Open',
+                child: Text('While Doors Open'),
               ),
-            ),
-          ] else if (_lineSecondaryStep == 1) ...[
-            DropdownButtonFormField<String>(
-              initialValue: _lineSecondaryGroup,
-              decoration: const InputDecoration(labelText: 'Section'),
-              isExpanded: true,
-              items: const [
-                DropdownMenuItem(
-                  value: 'While Doors Open',
-                  child: Text('While Doors Open'),
-                ),
-                DropdownMenuItem(
-                  value: 'After Doors Close',
-                  child: Text('After Doors Close'),
-                ),
-                DropdownMenuItem(
-                  value: 'Shift-Specific',
-                  child: Text('Shift-Specific'),
-                ),
-                DropdownMenuItem(
-                  value: 'Supervisor Checkoff',
-                  child: Text('Supervisor Checkoff'),
-                ),
-                DropdownMenuItem(
-                  value: 'Lead Trainer Checkoff',
-                  child: Text('Lead Trainer Checkoff'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value == null) return;
-                _updateReferenceState(() => _lineSecondaryGroup = value);
-              },
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () =>
-                    _updateReferenceState(() => _lineSecondaryStep = 2),
-                child: const Text('Next'),
+              DropdownMenuItem(
+                value: 'After Doors Close',
+                child: Text('After Doors Close'),
               ),
-            ),
-          ] else ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildReferenceSummaryChip(_lineSecondaryMeal),
-                _buildReferenceSummaryChip(_lineSecondaryGroup),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _buildReferenceTaskCard(
-              title: _lineSecondaryGroup,
-              items: selectedLines.isEmpty
-                  ? const ['No items listed for this selection.']
-                  : selectedLines,
-              icon: _lineSecondaryGroup.contains('Checkoff')
-                  ? Icons.fact_check_outlined
-                  : Icons.checklist_rtl_outlined,
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => _updateReferenceState(
-                  () =>
-                      _lineSecondaryStep = (_lineSecondaryStep - 1).clamp(0, 2),
-                ),
-                child: const Text('Back'),
+              DropdownMenuItem(
+                value: 'Shift-Specific',
+                child: Text('Shift-Specific'),
               ),
+              DropdownMenuItem(
+                value: 'Supervisor Checkoff',
+                child: Text('Supervisor Checkoff'),
+              ),
+              DropdownMenuItem(
+                value: 'Lead Trainer Checkoff',
+                child: Text('Lead Trainer Checkoff'),
+              ),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+              _updateReferenceState(() => _lineSecondaryGroup = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () =>
+                  _updateReferenceState(() => _lineSecondaryStep = 2),
+              child: const Text('Next'),
             ),
-          ],
+          ),
+        ] else ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildReferenceSummaryChip(_lineSecondaryMeal),
+              _buildReferenceSummaryChip(_lineSecondaryGroup),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _buildReferenceTaskCard(
+            title: _lineSecondaryGroup,
+            items: selectedLines.isEmpty
+                ? const ['No items listed for this selection.']
+                : selectedLines,
+            icon: _lineSecondaryGroup.contains('Checkoff')
+                ? Icons.fact_check_outlined
+                : Icons.checklist_rtl_outlined,
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _updateReferenceState(
+                () => _lineSecondaryStep = (_lineSecondaryStep - 1).clamp(0, 2),
+              ),
+              child: const Text('Back'),
+            ),
+          ),
         ],
-      ),
+      ],
     );
   }
 }

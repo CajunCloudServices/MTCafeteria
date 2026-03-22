@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/point_assignment.dart';
+import '../theme/app_ui_tokens.dart';
 import '../models/user_session.dart';
 
 /// Reporting screen for point notifications, assignments, and approvals.
@@ -83,7 +84,9 @@ class ReportingPage extends StatelessWidget {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEAF4FF),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(
+                          AppUiTokens.cardRadius,
+                        ),
                         border: Border.all(
                           color: const Color(
                             0xFF1F5E9C,
@@ -473,7 +476,9 @@ class _PointCenterSectionState extends State<_PointCenterSection> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFF4F8FE),
                       border: Border.all(color: const Color(0xFFB4C8E3)),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        AppUiTokens.cardRadius,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -593,7 +598,7 @@ class _SectionErrorBanner extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF4E5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
         border: Border.all(color: const Color(0xFFD77F00)),
       ),
       child: Text(

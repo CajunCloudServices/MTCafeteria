@@ -6,7 +6,7 @@ extension _NightCustodialGuidesFlow on _ReferenceSheetsViewState {
     required String sectionTitle,
   }) {
     return _buildGuideCardSelectorPanel(
-      panelTitle: sectionTitle,
+      panelTitle: '',
       fieldLabel: 'Night Custodial section',
       selectedCard: _selectedNightCustodialCard,
       onSelected: (value) {

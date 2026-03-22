@@ -331,15 +331,21 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7FAFF),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFB6C9E4)),
+        color: AppUiTokens.panelSurface,
+        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
+        border: Border.all(color: AppUiTokens.shellBorderMuted),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (hasTitle) ...[
-            Text(title, style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF123A65),
+              ),
+            ),
             const SizedBox(height: 14),
           ],
           child,
@@ -355,11 +361,12 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFB6C9E4)),
+        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
+        border: Border.all(color: AppUiTokens.shellBorder),
+        boxShadow: AppUiTokens.cardShadowSoft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,7 +382,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF123A65),
-                    fontSize: 18,
+                    fontSize: 19,
                   ),
                 ),
               ),
@@ -422,7 +429,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFEAF4FF),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppUiTokens.chipRadius),
         border: Border.all(color: const Color(0xFFB6C9E4)),
       ),
       child: Text(
@@ -484,7 +491,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
                     border: Border.all(color: const Color(0xFFB6C9E4)),
                   ),
                   child: Column(
@@ -535,7 +542,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: entry.onOpen,
-                          child: const Text('Open Section'),
+                          child: const Text('Open'),
                         ),
                       ),
                     ],
