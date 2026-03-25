@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/landing_item.dart';
 import '../theme/app_ui_tokens.dart';
+
+const String _pilotFeedbackUrl =
+    'https://docs.google.com/forms/d/e/1FAIpQLSdpUPvjK-C2K9TbxKC0-L57WfJe2OFBVqHQpXwuFklC8DNI_Q/viewform?usp=header';
 
 Color _landingTypeColor(String type) {
   switch (type.toLowerCase()) {
@@ -63,6 +67,14 @@ class LandingPage extends StatelessWidget {
   final Future<void> Function(int id, Map<String, dynamic>) onUpdate;
   final Future<void> Function(int id) onDelete;
 
+  Future<void> _openPilotFeedbackForm(BuildContext context) async {
+    final opened = await launchUrl(Uri.parse(_pilotFeedbackUrl));
+    if (opened || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not open the feedback form.')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -79,52 +91,45 @@ class LandingPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Expanded(
-              child: items.isEmpty
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(
-                          AppUiTokens.cardRadius,
+              child: ListView.separated(
+                itemCount: items.length + 1,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  if (index < items.length) {
+                    final item = items[index];
+                    return _AnnouncementCard(
+                      item: item,
+                      isMobile: isMobile,
+                      canManage: canManage,
+                      onOpen: () => _showAnnouncementDetails(
+                        context,
+                        item: item,
+                        canManage: canManage,
+                        onEdit: () => _showLandingDialog(
+                          context,
+                          existing: item,
+                          onSave: (payload) => onUpdate(item.id, payload),
                         ),
-                        border: Border.all(color: AppUiTokens.shellBorder),
+                        onDelete: () => onDelete(item.id),
                       ),
-                      child: const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(28),
-                          child: Text(
-                            'No announcements yet.',
-                            style: TextStyle(
-                              color: Color(0xFF4F6786),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      itemCount: items.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        return _AnnouncementCard(
-                          item: item,
-                          isMobile: isMobile,
-                          canManage: canManage,
-                          onOpen: () => _showAnnouncementDetails(
-                            context,
-                            item: item,
-                            canManage: canManage,
-                            onEdit: () => _showLandingDialog(
-                              context,
-                              existing: item,
-                              onSave: (payload) => onUpdate(item.id, payload),
-                            ),
-                            onDelete: () => onDelete(item.id),
-                          ),
-                        );
-                      },
+                    );
+                  }
+
+                  return _AnnouncementCard(
+                    item: const LandingItem(
+                      id: -1,
+                      type: 'Announcement',
+                      title: 'Pilot Feedback',
+                      content: 'Tell us how the app worked on your shift.',
+                      startDate: '',
+                      endDate: '',
                     ),
+                    isMobile: isMobile,
+                    canManage: false,
+                    onOpen: () => _openPilotFeedbackForm(context),
+                  );
+                },
+              ),
             ),
             if (canManage) ...[
               const SizedBox(height: 12),
