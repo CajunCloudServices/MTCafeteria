@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'training/training_text_data.dart';
+import '../widgets/app_bottom_nav.dart';
+import '../widgets/app_header.dart';
 import '../widgets/shift_selection_cards.dart';
 
 /// Full-screen manual 2-minute training viewer with rotating daily default
@@ -9,7 +11,16 @@ import '../widgets/shift_selection_cards.dart';
 /// It does not consume the legacy backend `/api/trainings` feed that still
 /// exists for older prototype flows.
 class TrainingDetailPage extends StatefulWidget {
-  const TrainingDetailPage({super.key});
+  const TrainingDetailPage({
+    super.key,
+    required this.isPilotProfile,
+    required this.navIndex,
+    required this.onSelectNav,
+  });
+
+  final bool isPilotProfile;
+  final int navIndex;
+  final ValueChanged<int> onSelectNav;
 
   @override
   State<TrainingDetailPage> createState() => _TrainingDetailPageState();
@@ -145,11 +156,46 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
     });
   }
 
+  void _handleBottomNavSelection(int index) {
+    widget.onSelectNav(index);
+    if (index != widget.navIndex) {
+      Navigator.of(context).maybePop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_selectedTrack == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('2-Minute Trainings')),
+        appBar: AppBar(
+          toolbarHeight: appHeaderToolbarHeight(context),
+          centerTitle: true,
+          leading: BackButton(
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
+          title: buildAppHeaderTitle(context, 'Shift Area'),
+          actions: [
+            AppHeaderMenuButton(
+              onSelected: (value) {
+                if (value == 'close') {
+                  Navigator.of(context).maybePop();
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem<String>(
+                  value: 'close',
+                  child: Row(
+                    children: [
+                      Icon(Icons.close, size: 18),
+                      SizedBox(width: 10),
+                      Text('Close'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         body: DecoratedBox(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -174,6 +220,11 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
             ),
           ),
         ),
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: widget.navIndex,
+          isPilotProfile: widget.isPilotProfile,
+          onTap: _handleBottomNavSelection,
+        ),
       );
     }
 
@@ -197,6 +248,8 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
       },
       child: Scaffold(
         appBar: AppBar(
+          toolbarHeight: appHeaderToolbarHeight(context),
+          centerTitle: true,
           leading: BackButton(
             onPressed: () {
               if (_selectedTrack != null) {
@@ -211,7 +264,65 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
               Navigator.of(context).maybePop();
             },
           ),
-          title: Text('2-Minute Trainings • ${_trackLabel(_selectedTrack!)}'),
+          title: buildAppHeaderTitle(context, '2-Minute Trainings'),
+          actions: [
+            AppHeaderMenuButton(
+              onSelected: (value) {
+                if (value == 'switch-area') {
+                  setState(() {
+                    _selectedTrack = null;
+                    _pendingTrack = _TrainingTrack.line;
+                    _showAllTrainings = false;
+                    _selectedTrainingIndex = 0;
+                  });
+                  return;
+                }
+                if (value == 'toggle-all') {
+                  setState(() {
+                    _showAllTrainings = !_showAllTrainings;
+                  });
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  enabled: false,
+                  height: 38,
+                  value: 'current-area',
+                  child: Text(_trackLabel(_selectedTrack!)),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'switch-area',
+                  child: Row(
+                    children: [
+                      Icon(Icons.swap_horiz, size: 18),
+                      SizedBox(width: 10),
+                      Text('Switch Area'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'toggle-all',
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showAllTrainings
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(_showAllTrainings ? 'Hide All' : 'See All'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: widget.navIndex,
+          isPilotProfile: widget.isPilotProfile,
+          onTap: _handleBottomNavSelection,
         ),
         body: DecoratedBox(
           decoration: const BoxDecoration(

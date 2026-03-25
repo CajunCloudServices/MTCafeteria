@@ -6,7 +6,20 @@ extension _LineDeepCleanReferenceFlow on _ReferenceSheetsViewState {
       _selectedLineDeepCleanDay,
       _selectedLineDeepCleanMeal,
     );
-    final assignmentItems = assignment == null ? null : [assignment];
+    final overrideKey = _guideOverrideKey(
+      topSection: 'Line',
+      guideKey: 'line_deep_clean',
+      cardTitle: [
+        _selectedLineDeepCleanDay,
+        _selectedLineDeepCleanMeal,
+      ].join('_'),
+    );
+    final assignmentItems = _guideItemsForKey(
+      overrideKey,
+      assignment == null
+          ? const ['No deep cleaning assignment found for this day and meal.']
+          : <String>[assignment],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,11 +90,7 @@ extension _LineDeepCleanReferenceFlow on _ReferenceSheetsViewState {
           const SizedBox(height: 10),
           _buildReferenceTaskCard(
             title: 'Line Deep Cleaning',
-            items:
-                assignmentItems ??
-                const [
-                  'No deep cleaning assignment found for this day and meal.',
-                ],
+            items: assignmentItems,
             icon: Icons.cleaning_services_outlined,
           ),
           const SizedBox(height: 12),

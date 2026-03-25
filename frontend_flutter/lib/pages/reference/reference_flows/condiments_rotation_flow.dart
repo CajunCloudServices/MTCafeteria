@@ -1,9 +1,7 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _CondimentsRotationReferenceFlow on _ReferenceSheetsViewState {
-  Widget _buildCondimentsRotationFlow(Map<String, dynamic> data) {
-    // This is reference-only. The stepped flow narrows the visible condiment
-    // list without implying that workers are "completing" anything.
+  List<String> _currentCondimentItems(Map<String, dynamic> data) {
     final rotation =
         data['condiments_rotation'] as Map<String, dynamic>? ?? const {};
     final colorMap =
@@ -11,9 +9,30 @@ extension _CondimentsRotationReferenceFlow on _ReferenceSheetsViewState {
     final dayMap =
         colorMap[_selectedCondimentDay] as Map<String, dynamic>? ?? const {};
     final mealKey = _selectedCondimentMeal.toLowerCase();
-    final condiments = ((dayMap[mealKey] as List<dynamic>?) ?? const [])
+    return ((dayMap[mealKey] as List<dynamic>?) ?? const [])
         .map((e) => e.toString())
         .toList();
+  }
+
+  Widget _buildCondimentsRotationFlow(Map<String, dynamic> data) {
+    // This is reference-only. The stepped flow narrows the visible condiment
+    // list without implying that workers are "completing" anything.
+    final condiments = _currentCondimentItems(data);
+    final overrideKey = _guideOverrideKey(
+      topSection: 'Line',
+      guideKey: 'condiments_rotation',
+      cardTitle: [
+        _selectedCondimentColor,
+        _selectedCondimentDay,
+        _selectedCondimentMeal,
+      ].join('_'),
+    );
+    final effectiveItems = _guideItemsForKey(
+      overrideKey,
+      condiments.isEmpty
+          ? const ['Nothing extra for this selection.']
+          : condiments,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,9 +124,7 @@ extension _CondimentsRotationReferenceFlow on _ReferenceSheetsViewState {
           const SizedBox(height: 10),
           _buildReferenceTaskCard(
             title: condiments.isEmpty ? 'No Extra Condiments' : 'Put Out',
-            items: condiments.isEmpty
-                ? const ['Nothing extra for this selection.']
-                : condiments,
+            items: effectiveItems,
             icon: Icons.kitchen_outlined,
           ),
           const SizedBox(height: 12),

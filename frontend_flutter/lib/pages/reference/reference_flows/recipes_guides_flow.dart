@@ -30,6 +30,19 @@ _recipeGuideCards = <String, Map<String, List<String>>>{
 extension _RecipeGuidesFlow on _ReferenceSheetsViewState {
   Widget _buildRecipeGuidePanel() {
     final sections = _recipeGuideCards[_selectedRecipeCard];
+    final overrideKey = _selectedRecipeCard == 'Select'
+        ? null
+        : _guideOverrideKey(
+            topSection: 'Recipes',
+            guideKey: 'recipes',
+            cardTitle: _selectedRecipeCard,
+          );
+    final overrideItems = overrideKey == null
+        ? null
+        : _guideItemsForKey(
+            overrideKey,
+            (sections?.values ?? const []).expand((items) => items).toList(),
+          );
 
     return _buildReferencePanel(
       title: '',
@@ -63,14 +76,12 @@ extension _RecipeGuidesFlow on _ReferenceSheetsViewState {
           ),
           if (sections != null) ...[
             const SizedBox(height: 14),
-            ...sections.entries.map(
-              (section) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _buildReferenceTaskCard(
-                  title: section.key,
-                  items: section.value,
-                  icon: Icons.restaurant_menu,
-                ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildReferenceTaskCard(
+                title: _selectedRecipeCard,
+                items: overrideItems ?? const [],
+                icon: Icons.restaurant_menu,
               ),
             ),
           ],

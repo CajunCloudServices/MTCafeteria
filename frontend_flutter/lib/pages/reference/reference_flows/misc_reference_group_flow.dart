@@ -19,12 +19,18 @@ extension _MiscReferenceGroupFlow on _ReferenceSheetsViewState {
       icon: icon,
       selectorKeyPrefix: sectionKey,
       entries: _guideCardsFromMap(section)
-          .map(
-            (card) => (
-              cardTitle: _guideCardTitle(card),
-              items: _guideCardItems(card),
-            ),
-          )
+          .map((card) {
+            final title = _guideCardTitle(card);
+            final key = _guideOverrideKey(
+              topSection: sectionTitle,
+              guideKey: sectionKey,
+              cardTitle: title,
+            );
+            return (
+              cardTitle: title,
+              items: _guideItemsForKey(key, _guideCardItems(card)),
+            );
+          })
           .where((entry) => entry.cardTitle.isNotEmpty)
           .toList(),
     );

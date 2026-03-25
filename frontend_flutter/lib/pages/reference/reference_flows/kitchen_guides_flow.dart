@@ -17,6 +17,7 @@ extension _KitchenGuidesFlow on _ReferenceSheetsViewState {
       entries:
           _nestedGuideEntries(
                 data,
+                topSection: 'Kitchen',
                 sectionKey: 'kitchen_guides',
                 orderedGuideKeys: const [
                   'salad_deli',

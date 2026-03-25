@@ -33,11 +33,13 @@ class ReferenceSheetsView extends StatefulWidget {
     this.initialSection = 'Select',
     this.lockSection = false,
     this.useOuterCard = true,
+    this.adminModeEnabled = false,
   });
 
   final String initialSection;
   final bool lockSection;
   final bool useOuterCard;
+  final bool adminModeEnabled;
 
   @override
   State<ReferenceSheetsView> createState() => _ReferenceSheetsViewState();
@@ -46,6 +48,7 @@ class ReferenceSheetsView extends StatefulWidget {
 class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   static const String _customLockerItemsKey = 'custom_locker_items_v1';
   static const String _deletedLockerItemsKey = 'deleted_locker_items_v1';
+  static const String _guideOverridesKey = 'guide_overrides_v1';
   final AppRuntimeConfig _runtimeConfig = AppRuntimeConfig.fromEnvironment;
   late final Future<Map<String, dynamic>> _referenceFuture;
   final TransformationController _mapTransformationController =
@@ -80,6 +83,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   bool _showLockerDeleteMode = false;
   Map<String, List<String>> _customLockerInventory = const {};
   Map<String, List<String>> _deletedLockerInventory = const {};
+  Map<String, List<String>> _guideOverrides = const {};
   int _lineSecondaryStep = 0;
   String _lineSecondaryMeal = 'Breakfast';
   String _lineSecondaryGroup = 'While Doors Open';
@@ -95,6 +99,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
     _referenceFuture = _loadReferenceData();
     _loadCustomLockerInventory();
     _loadDeletedLockerInventory();
+    _loadGuideOverrides();
   }
 
   @override
@@ -188,6 +193,74 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
     );
   }
 
+  Future<void> _loadGuideOverrides() async {
+    SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return;
+    }
+    final raw = prefs.getString(_guideOverridesKey);
+    if (raw == null || raw.trim().isEmpty) return;
+
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final parsed = <String, List<String>>{};
+      for (final entry in decoded.entries) {
+        parsed[entry.key] = ((entry.value as List<dynamic>?) ?? const [])
+            .map((item) => item.toString().trim())
+            .where((item) => item.isNotEmpty)
+            .toList();
+      }
+      if (!mounted) return;
+      setState(() {
+        _guideOverrides = parsed;
+      });
+    } catch (_) {
+      // Ignore malformed local cache and fall back to bundled guide content.
+    }
+  }
+
+  Future<void> _saveGuideOverrides() async {
+    SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return;
+    }
+    await prefs.setString(_guideOverridesKey, jsonEncode(_guideOverrides));
+  }
+
+  String _guideOverrideKey({
+    required String topSection,
+    required String guideKey,
+    required String cardTitle,
+  }) => '$topSection::$guideKey::$cardTitle';
+
+  List<String> _guideItemsForKey(String key, List<String> fallback) {
+    final override = _guideOverrides[key];
+    if (override == null) return fallback;
+    return override;
+  }
+
+  Future<void> _setGuideOverride({
+    required String key,
+    required List<String> items,
+  }) async {
+    setState(() {
+      _guideOverrides = <String, List<String>>{..._guideOverrides, key: items};
+    });
+    await _saveGuideOverrides();
+  }
+
+  Future<void> _clearGuideOverride(String key) async {
+    final updated = <String, List<String>>{..._guideOverrides}..remove(key);
+    setState(() {
+      _guideOverrides = updated;
+    });
+    await _saveGuideOverrides();
+  }
+
   Future<void> _addLockerInventoryItem({
     required String location,
     required String item,
@@ -270,6 +343,267 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
     return jsonDecode(raw) as Map<String, dynamic>;
   }
 
+  bool _isEditableGuideSection(String section) {
+    return const {
+      'Line',
+      'Dishroom',
+      'Kitchen',
+      'Night Custodial',
+      'Recipes',
+      'Safety',
+      'General Information',
+    }.contains(section);
+  }
+
+  ({String key, String title, List<String> items, bool hasOverride})?
+  _currentGuideEditTarget(Map<String, dynamic> data) {
+    switch (_selectedSection) {
+      case 'Dishroom':
+        if (_selectedDishroomCard == 'Select') return null;
+        final entry =
+            _nestedGuideEntries(
+                  data,
+                  topSection: 'Dishroom',
+                  sectionKey: 'dishroom_guides',
+                  orderedGuideKeys: const [
+                    'operations',
+                    'chemicals',
+                    'cleaning',
+                    'jobs',
+                    'scullery',
+                  ],
+                )
+                .where((entry) => entry.cardTitle == _selectedDishroomCard)
+                .firstOrNull;
+        if (entry == null) return null;
+        final key = _guideOverrideKey(
+          topSection: 'Dishroom',
+          guideKey: entry.guideKey,
+          cardTitle: entry.cardTitle,
+        );
+        return (
+          key: key,
+          title: entry.cardTitle,
+          items: entry.items,
+          hasOverride: _guideOverrides.containsKey(key),
+        );
+      case 'Kitchen':
+        if (_selectedKitchenCard == 'Select') return null;
+        final entry = _nestedGuideEntries(
+          data,
+          topSection: 'Kitchen',
+          sectionKey: 'kitchen_guides',
+          orderedGuideKeys: const [
+            'salad_deli',
+            'desserts_fruit',
+            'weekend_setup',
+          ],
+        ).where((entry) => entry.cardTitle == _selectedKitchenCard).firstOrNull;
+        if (entry == null) return null;
+        final key = _guideOverrideKey(
+          topSection: 'Kitchen',
+          guideKey: entry.guideKey,
+          cardTitle: entry.cardTitle,
+        );
+        return (
+          key: key,
+          title: entry.cardTitle,
+          items: entry.items,
+          hasOverride: _guideOverrides.containsKey(key),
+        );
+      case 'Night Custodial':
+        if (_selectedNightCustodialCard == 'Select') return null;
+        final entry =
+            _nestedGuideEntries(
+                  data,
+                  topSection: 'Night Custodial',
+                  sectionKey: 'night_custodial_guides',
+                  orderedGuideKeys: const [
+                    'dishroom_scullery',
+                    'floors',
+                    'equipment',
+                    'stations',
+                  ],
+                )
+                .where(
+                  (entry) => entry.cardTitle == _selectedNightCustodialCard,
+                )
+                .firstOrNull;
+        if (entry == null) return null;
+        final key = _guideOverrideKey(
+          topSection: 'Night Custodial',
+          guideKey: entry.guideKey,
+          cardTitle: entry.cardTitle,
+        );
+        return (
+          key: key,
+          title: entry.cardTitle,
+          items: entry.items,
+          hasOverride: _guideOverrides.containsKey(key),
+        );
+      case 'Safety':
+        if (_selectedSafetyCard == 'Select') return null;
+        final key = _guideOverrideKey(
+          topSection: 'Safety',
+          guideKey: 'safety_guides',
+          cardTitle: _selectedSafetyCard,
+        );
+        final items = _guideCardItemsForSection(
+          data,
+          sectionKey: 'safety_guides',
+          cardTitle: _selectedSafetyCard,
+          topSection: 'Safety',
+        );
+        return items == null
+            ? null
+            : (
+                key: key,
+                title: _selectedSafetyCard,
+                items: items,
+                hasOverride: _guideOverrides.containsKey(key),
+              );
+      case 'General Information':
+        if (_selectedGeneralInformationCard == 'Select') return null;
+        final key = _guideOverrideKey(
+          topSection: 'General Information',
+          guideKey: 'general_information_guides',
+          cardTitle: _selectedGeneralInformationCard,
+        );
+        final items = _guideCardItemsForSection(
+          data,
+          sectionKey: 'general_information_guides',
+          cardTitle: _selectedGeneralInformationCard,
+          topSection: 'General Information',
+        );
+        return items == null
+            ? null
+            : (
+                key: key,
+                title: _selectedGeneralInformationCard,
+                items: items,
+                hasOverride: _guideOverrides.containsKey(key),
+              );
+      case 'Recipes':
+        if (_selectedRecipeCard == 'Select') return null;
+        final key = _guideOverrideKey(
+          topSection: 'Recipes',
+          guideKey: 'recipes',
+          cardTitle: _selectedRecipeCard,
+        );
+        final fallback =
+            (_recipeGuideCards[_selectedRecipeCard]?.values ?? const [])
+                .expand((items) => items)
+                .toList();
+        return (
+          key: key,
+          title: _selectedRecipeCard,
+          items: _guideItemsForKey(key, fallback),
+          hasOverride: _guideOverrides.containsKey(key),
+        );
+      case 'Line':
+        switch (_selectedLineGuideSection) {
+          case 'Deep Cleaning Assignments':
+            if (_lineDeepCleanStep < 2) return null;
+            final key = _guideOverrideKey(
+              topSection: 'Line',
+              guideKey: 'line_deep_clean',
+              cardTitle: [
+                _selectedLineDeepCleanDay,
+                _selectedLineDeepCleanMeal,
+              ].join('_'),
+            );
+            final assignment = lineDeepCleaningAssignmentFor(
+              _selectedLineDeepCleanDay,
+              _selectedLineDeepCleanMeal,
+            );
+            final fallback = assignment == null
+                ? const [
+                    'No deep cleaning assignment found for this day and meal.',
+                  ]
+                : <String>[assignment];
+            return (
+              key: key,
+              title: 'Line Deep Cleaning',
+              items: _guideItemsForKey(key, fallback),
+              hasOverride: _guideOverrides.containsKey(key),
+            );
+          case 'Secondary + Checkoff':
+            if (_lineSecondaryStep < 2) return null;
+            final key = _guideOverrideKey(
+              topSection: 'Line',
+              guideKey: 'line_secondary',
+              cardTitle: [_lineSecondaryMeal, _lineSecondaryGroup].join('_'),
+            );
+            final fallback = _currentLineSecondaryItems(data);
+            return (
+              key: key,
+              title: _lineSecondaryGroup,
+              items: _guideItemsForKey(key, fallback),
+              hasOverride: _guideOverrides.containsKey(key),
+            );
+          case 'Condiments Rotation':
+            if (_condimentStep < 3) return null;
+            final key = _guideOverrideKey(
+              topSection: 'Line',
+              guideKey: 'condiments_rotation',
+              cardTitle: [
+                _selectedCondimentColor,
+                _selectedCondimentDay,
+                _selectedCondimentMeal,
+              ].join('_'),
+            );
+            final fallback = _currentCondimentItems(data);
+            return (
+              key: key,
+              title: fallback.isEmpty ? 'No Extra Condiments' : 'Put Out',
+              items: _guideItemsForKey(
+                key,
+                fallback.isEmpty
+                    ? const ['Nothing extra for this selection.']
+                    : fallback,
+              ),
+              hasOverride: _guideOverrides.containsKey(key),
+            );
+          default:
+            return null;
+        }
+      default:
+        return null;
+    }
+  }
+
+  Future<void> _openGuideEditor(Map<String, dynamic> data) async {
+    final target = _currentGuideEditTarget(data);
+    if (target == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Open a specific guide card or final guide step first.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final result = await showDialog<({List<String>? items, bool reset})>(
+      context: context,
+      builder: (_) => _GuideEditDialog(
+        title: target.title,
+        initialItems: target.items,
+        canReset: target.hasOverride,
+      ),
+    );
+
+    if (result == null || !mounted) return;
+    if (result.reset) {
+      await _clearGuideOverride(target.key);
+      return;
+    }
+    final items = result.items;
+    if (items == null) return;
+    await _setGuideOverride(key: target.key, items: items);
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -281,6 +615,12 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
         final data = snapshot.data!;
         final sections = _buildSections(data);
         final lockedStandaloneSections = <String>{'Find an Item', 'Dining Map'};
+        final showGuideEditAction =
+            widget.useOuterCard &&
+            !widget.lockSection &&
+            _guideSearchQuery.isEmpty &&
+            widget.adminModeEnabled &&
+            _isEditableGuideSection(_selectedSection);
         _selectedSection =
             _selectedSection == 'Select' ||
                 sections.containsKey(_selectedSection) ||
@@ -318,14 +658,6 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
                   });
                 },
               ),
-              const SizedBox(height: 18),
-              Text(
-                'Guides',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF123A65),
-                ),
-              ),
               const SizedBox(height: 14),
             ],
             if (!widget.lockSection) ...[
@@ -356,6 +688,17 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
             _guideSearchQuery.isNotEmpty
                 ? _buildGuideSearchPanel(data)
                 : _buildSectionContent(context, data, sections),
+            if (showGuideEditAction) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _openGuideEditor(data),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Edit'),
+                ),
+              ),
+            ],
           ],
         );
 
@@ -388,6 +731,75 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
           ),
         );
       },
+    );
+  }
+}
+
+class _GuideEditDialog extends StatefulWidget {
+  const _GuideEditDialog({
+    required this.title,
+    required this.initialItems,
+    required this.canReset,
+  });
+
+  final String title;
+  final List<String> initialItems;
+  final bool canReset;
+
+  @override
+  State<_GuideEditDialog> createState() => _GuideEditDialogState();
+}
+
+class _GuideEditDialogState extends State<_GuideEditDialog> {
+  late final TextEditingController _itemsController = TextEditingController(
+    text: widget.initialItems.join('\n'),
+  );
+
+  @override
+  void dispose() {
+    _itemsController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final items = _itemsController.text
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    Navigator.of(context).pop((items: items, reset: false));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: SizedBox(
+        width: 440,
+        child: TextField(
+          controller: _itemsController,
+          minLines: 8,
+          maxLines: 16,
+          decoration: const InputDecoration(
+            labelText: 'Lines',
+            hintText: 'One bullet per line',
+            alignLabelWithHint: true,
+          ),
+        ),
+      ),
+      actions: [
+        if (widget.canReset)
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop((items: null, reset: true)),
+            child: const Text('Reset'),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _save, child: const Text('Save')),
+      ],
     );
   }
 }

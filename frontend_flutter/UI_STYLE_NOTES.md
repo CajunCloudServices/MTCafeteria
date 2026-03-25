@@ -12,6 +12,22 @@ This app should feel like one system, not a collection of one-off screens.
 - Modal/detail sheets use a `16` radius.
 - Tiny accent bars and drag handles can stay tighter at `3`.
 
+## Header Rules
+
+- Use the task-flow header as the baseline for full-screen pages.
+- Back-enabled screen headers use the same title sizing as task flows:
+  - mobile: `26`
+  - desktop/tablet: `24`
+- Header titles use `FontWeight.w800` with slight positive letter spacing.
+- Mobile/desktop toolbar heights should stay aligned with the main shell:
+  - mobile: `108`
+  - desktop/tablet: `96`
+- Right-side menu icons should match the main shell sizing and padding:
+  - mobile icon: `32`
+  - desktop/tablet icon: `28`
+- Obvious exceptions are allowed only when the screen is intentionally not a
+  normal app page, such as a dialog, bottom sheet, or embedded overlay.
+
 ## Where Tokens Live
 
 - Shared tokens are in [`/Users/lajicpajam/Development/active/Apps/MTCafeteria/frontend_flutter/lib/theme/app_ui_tokens.dart`](/Users/lajicpajam/Development/active/Apps/MTCafeteria/frontend_flutter/lib/theme/app_ui_tokens.dart)

@@ -126,12 +126,13 @@ class LandingPage extends StatelessWidget {
                       },
                     ),
             ),
-            if (isPilotProfile) ...[
+            if (canManage) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => _promptForPilotAnnouncementCreate(context),
+                  onPressed: () =>
+                      _showLandingDialog(context, onSave: onCreate),
                   icon: const Icon(Icons.add_comment_outlined),
                   label: const Text('Add Announcement'),
                 ),
@@ -169,16 +170,6 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Future<void> _promptForPilotAnnouncementCreate(BuildContext context) async {
-    final isApproved = await showDialog<bool>(
-      context: context,
-      builder: (_) => const _PilotAnnouncementPasswordDialog(),
-    );
-    if (isApproved != true) return;
-    if (!context.mounted) return;
-    await _showLandingDialog(context, onSave: onCreate);
-  }
-
   Future<void> _showLandingDialog(
     BuildContext context, {
     LandingItem? existing,
@@ -187,63 +178,6 @@ class LandingPage extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (_) => _LandingEditorDialog(existing: existing, onSave: onSave),
-    );
-  }
-}
-
-class _PilotAnnouncementPasswordDialog extends StatefulWidget {
-  const _PilotAnnouncementPasswordDialog();
-
-  @override
-  State<_PilotAnnouncementPasswordDialog> createState() =>
-      _PilotAnnouncementPasswordDialogState();
-}
-
-class _PilotAnnouncementPasswordDialogState
-    extends State<_PilotAnnouncementPasswordDialog> {
-  final TextEditingController _passwordController = TextEditingController();
-  String? _errorText;
-
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (_passwordController.text.trim() == 'admin') {
-      Navigator.of(context).pop(true);
-      return;
-    }
-    setState(() {
-      _errorText = 'Incorrect password';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Admin Password'),
-      content: SizedBox(
-        width: 360,
-        child: TextField(
-          controller: _passwordController,
-          obscureText: true,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: 'Password',
-            errorText: _errorText,
-          ),
-          onSubmitted: (_) => _submit(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(onPressed: _submit, child: const Text('Continue')),
-      ],
     );
   }
 }

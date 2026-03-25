@@ -142,7 +142,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
             ],
           ),
           const SizedBox(height: 12),
-          if (_showLockerAddPanel) ...[
+          if (_showLockerAddPanel && widget.adminModeEnabled) ...[
             DropdownButtonFormField<String>(
               initialValue: _selectedLockerAddLocation,
               decoration: const InputDecoration(labelText: 'Location'),
@@ -195,7 +195,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
               ],
             ),
             const SizedBox(height: 16),
-          ] else ...[
+          ] else if (widget.adminModeEnabled) ...[
             Row(
               children: [
                 Expanded(
@@ -282,7 +282,8 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
                                 ),
                               ),
                             ),
-                            if (_showLockerDeleteMode) ...[
+                            if (_showLockerDeleteMode &&
+                                widget.adminModeEnabled) ...[
                               const SizedBox(width: 8),
                               IconButton(
                                 tooltip: 'Delete item',
@@ -363,7 +364,7 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
             controller: _lockerSearchController,
             decoration: InputDecoration(
               labelText: 'Find an item',
-              hintText: 'Example: meat shop, hard boiled eggs, ice cream',
+              hintText: 'Chicken breasts, French toast sticks, frozen fruit',
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _lockerSearchQuery.trim().isEmpty
                   ? null
@@ -422,6 +423,10 @@ extension _FindItemReferenceFlow on _ReferenceSheetsViewState {
     // Locked mode (opened directly from dashboard) should match the same
     // single-card style rhythm as other locked reference surfaces.
     if (widget.lockSection) {
+      return searchBody;
+    }
+
+    if (_showLockerBrowsePanel) {
       return searchBody;
     }
 

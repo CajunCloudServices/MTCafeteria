@@ -11,6 +11,9 @@ import 'config/runtime_config.dart';
 import 'models/user_session.dart';
 import 'state/app_state.dart';
 import 'theme/app_ui_tokens.dart';
+import 'widgets/app_bottom_nav.dart';
+import 'widgets/app_header.dart';
+import 'widgets/admin_password_dialog.dart';
 import 'widgets/daily_shift_reports_view.dart';
 import 'widgets/dashboard_hub_card.dart';
 import 'widgets/shift_selection_cards.dart';
@@ -62,6 +65,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   int _dashboardResetSignal = 0;
   int _dashboardBackSignal = 0;
   _DashboardView _dashboardView = _DashboardView.hub;
+  bool _adminModeEnabled = false;
 
   static final DateTime _mealRotationAnchor = DateTime(2026, 3, 16);
   static const List<String> _mealWeekOrder = [
@@ -161,6 +165,16 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
       default:
         return const [];
     }
+  }
+
+  bool _modeRequiresAdmin(String track, String mode) {
+    if (track == 'Line' && (mode == 'Supervisor' || mode == 'Lead Trainer')) {
+      return true;
+    }
+    if (track == 'Dishroom' && mode == 'Dishroom Lead Trainer') {
+      return true;
+    }
+    return false;
   }
 
   void _resetDashboardSelectorsForRole(String role) {
@@ -291,6 +305,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     if (shouldLogout != true || !mounted) return;
     _state.logout();
     setState(() {
+      _adminModeEnabled = false;
       _selectedIndex = 0;
       _dashboardTrack = 'Line';
       _dashboardTrackConfirmed = false;
@@ -341,6 +356,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                   initialSection: initialSection,
                   lockSection: lockSection,
                   useOuterCard: false,
+                  adminModeEnabled: _adminModeEnabled,
                 ),
               ),
             ],
@@ -348,6 +364,17 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
         );
       },
     );
+  }
+
+  Future<void> _enableAdminMode(BuildContext context) async {
+    final approved = await promptForAdminPassword(
+      context,
+      title: 'Enter Admin Password',
+    );
+    if (!approved || !mounted) return;
+    _updateUi(() {
+      _adminModeEnabled = true;
+    });
   }
 
   @override
@@ -603,7 +630,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
 
               return Scaffold(
                 appBar: AppBar(
-                  toolbarHeight: isMobile ? 108 : 96,
+                  toolbarHeight: appHeaderToolbarHeight(context),
                   centerTitle: showDashboardBack,
                   leading: showDashboardBack
                       ? IconButton(
@@ -620,17 +647,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                         )
                       : null,
                   title: showDashboardBack
-                      ? Text(
-                          backHeaderTitle,
-                          style: TextStyle(
-                            fontSize: isMobile ? 26 : 24,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                            color: text,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )
+                      ? buildAppHeaderTitle(context, backHeaderTitle)
                       : Row(
                           children: [
                             Image.asset(
@@ -666,15 +683,21 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                         ),
                   actions: [
                     if (isLoggedIn)
-                      PopupMenuButton<String>(
+                      AppHeaderMenuButton(
                         key: const ValueKey('app-menu-button'),
-                        tooltip: 'Menu',
-                        padding: EdgeInsets.only(
-                          left: 8,
-                          right: isMobile ? 14 : 10,
-                        ),
-                        icon: Icon(Icons.menu, size: isMobile ? 32 : 28),
                         onSelected: (value) {
+                          if (value == 'enter-admin') {
+                            _enableAdminMode(context);
+                            return;
+                          }
+
+                          if (value == 'exit-admin') {
+                            _updateUi(() {
+                              _adminModeEnabled = false;
+                            });
+                            return;
+                          }
+
                           if (value == 'search-guides' && canViewReference) {
                             _openReferenceOverlay(context);
                             return;
@@ -701,7 +724,15 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           if (value == 'trainings' && canViewTrainings) {
                             Navigator.of(context).push(
                               MaterialPageRoute<void>(
-                                builder: (_) => TrainingDetailPage(),
+                                builder: (_) => TrainingDetailPage(
+                                  isPilotProfile: _runtimeConfig.isPilotProfile,
+                                  navIndex:
+                                      _runtimeConfig.isPilotProfile &&
+                                          _selectedIndex > 1
+                                      ? 0
+                                      : _selectedIndex,
+                                  onSelectNav: _handleBottomNavTap,
+                                ),
                               ),
                             );
                             return;
@@ -742,6 +773,28 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                                   ),
                                 ],
                               ),
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            key: const ValueKey('menu-admin-mode'),
+                            value: _adminModeEnabled
+                                ? 'exit-admin'
+                                : 'enter-admin',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _adminModeEnabled
+                                      ? Icons.lock_open_outlined
+                                      : Icons.lock_outline,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  _adminModeEnabled
+                                      ? 'Hide Admin Buttons'
+                                      : 'Enter Admin Password',
+                                ),
+                              ],
                             ),
                           ),
                           if (canViewReference)

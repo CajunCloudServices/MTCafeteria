@@ -31,6 +31,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
   List<({String guideKey, String cardTitle, List<String> items})>
   _nestedGuideEntries(
     Map<String, dynamic> data, {
+    required String topSection,
     required String sectionKey,
     required List<String> orderedGuideKeys,
   }) {
@@ -43,15 +44,40 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
       for (final card in _guideCardsFromMap(guide)) {
         final title = _guideCardTitle(card);
         if (title.isEmpty) continue;
+        final key = _guideOverrideKey(
+          topSection: topSection,
+          guideKey: guideKey,
+          cardTitle: title,
+        );
         entries.add((
           guideKey: guideKey,
           cardTitle: title,
-          items: _guideCardItems(card),
+          items: _guideItemsForKey(key, _guideCardItems(card)),
         ));
       }
     }
 
     return entries;
+  }
+
+  List<String>? _guideCardItemsForSection(
+    Map<String, dynamic> data, {
+    required String sectionKey,
+    required String cardTitle,
+    required String topSection,
+  }) {
+    final section = data[sectionKey] as Map<String, dynamic>? ?? const {};
+    for (final card in _guideCardsFromMap(section)) {
+      final title = _guideCardTitle(card);
+      if (title != cardTitle) continue;
+      final key = _guideOverrideKey(
+        topSection: topSection,
+        guideKey: sectionKey,
+        cardTitle: title,
+      );
+      return _guideItemsForKey(key, _guideCardItems(card));
+    }
+    return null;
   }
 
   Widget _buildGuideCardSelectorPanel({
@@ -141,6 +167,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
             ).map((card) => (guideKey: sectionKey, card: card))
           : _nestedGuideEntries(
               data,
+              topSection: topSection,
               sectionKey: sectionKey,
               orderedGuideKeys: subsectionKeys,
             ).map(
@@ -156,7 +183,12 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
       for (final group in groups) {
         final title = _guideCardTitle(group.card);
         if (title.isEmpty) continue;
-        final items = _guideCardItems(group.card);
+        final key = _guideOverrideKey(
+          topSection: topSection,
+          guideKey: group.guideKey,
+          cardTitle: title,
+        );
+        final items = _guideItemsForKey(key, _guideCardItems(group.card));
         entries.add((
           title: title,
           location: locationLabel,
@@ -280,6 +312,10 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
 
   String _toDayTitle(String value) =>
       '${value[0].toUpperCase()}${value.substring(1)}';
+
+  String _stripRedundantGuideBullet(String value) {
+    return value.replaceFirst(RegExp(r'^\s*[-•]\s+'), '').trim();
+  }
 
   Widget _buildReadableLines(List<String> lines) {
     // Convert plain text lines into a readable hierarchy so the source JSON can
@@ -407,7 +443,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      item,
+                      _stripRedundantGuideBullet(item),
                       style: const TextStyle(
                         color: Color(0xFF244668),
                         fontSize: 16,

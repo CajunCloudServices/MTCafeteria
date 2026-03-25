@@ -105,11 +105,35 @@ class _SupervisorDailyShiftReportFormState
         .toList();
   }
 
+  Future<bool> _confirmUndoSubmission() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Undo Submission?'),
+        content: const Text(
+          'This will change the daily shift report back to a draft.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Undo Submission'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final visibleFields = visibleLineShiftReportFields(
       isPilotProfile: _runtimeConfig.isPilotProfile,
     );
+    final isSubmitted = widget.currentReport?.isSubmitted ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,91 +331,131 @@ class _SupervisorDailyShiftReportFormState
           });
         })(),
         const SizedBox(height: 6),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _reportSaving
-                    ? null
-                    : () async {
+        if (isSubmitted)
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: _reportSaving
+                  ? null
+                  : () async {
+                      final confirmed = await _confirmUndoSubmission();
+                      if (!confirmed || !mounted) return;
+                      setState(() {
+                        _reportSaving = true;
+                        _reportError = null;
+                        _reportFeedback = null;
+                      });
+                      try {
+                        await widget.onSave(widget.meal, _reportValues);
+                        if (!mounted) return;
                         setState(() {
-                          _reportSaving = true;
-                          _reportError = null;
-                          _reportFeedback = null;
+                          _reportFeedback =
+                              'Submission undone. Report is back in draft.';
                         });
-                        try {
-                          await widget.onSave(widget.meal, _reportValues);
-                          if (!mounted) return;
+                      } catch (_) {
+                        if (!mounted) return;
+                        setState(() {
+                          _reportError =
+                              'Could not undo submission. Try again.';
+                        });
+                      } finally {
+                        if (mounted) {
                           setState(() {
-                            _reportFeedback = 'Draft saved.';
+                            _reportSaving = false;
                           });
-                        } catch (_) {
-                          if (!mounted) return;
-                          setState(() {
-                            _reportError = 'Could not save draft. Try again.';
-                          });
-                        } finally {
-                          if (mounted) {
-                            setState(() {
-                              _reportSaving = false;
-                            });
-                          }
                         }
-                      },
-                child: Text(_reportSaving ? 'Saving...' : 'Save Draft'),
-              ),
+                      }
+                    },
+              child: Text(_reportSaving ? 'Undoing...' : 'Undo Submission'),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: FilledButton(
-                onPressed: _reportSubmitting
-                    ? null
-                    : () async {
-                        final missing = _missingRequiredFields();
-                        if (missing.isNotEmpty) {
+          )
+        else
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _reportSaving
+                      ? null
+                      : () async {
                           setState(() {
-                            _reportError =
-                                'Complete required fields: ${missing.join(', ')}';
+                            _reportSaving = true;
+                            _reportError = null;
                             _reportFeedback = null;
                           });
-                          return;
-                        }
-
-                        setState(() {
-                          _reportSubmitting = true;
-                          _reportError = null;
-                          _reportFeedback = null;
-                        });
-                        try {
-                          await widget.onSubmit(widget.meal, _reportValues);
-                          if (!mounted) return;
-                          setState(() {
-                            _reportFeedback = 'Report submitted to leadership.';
-                          });
-                        } catch (error) {
-                          final message = error.toString().replaceFirst(
-                            'Exception: ',
-                            '',
-                          );
-                          if (!mounted) return;
-                          setState(() {
-                            _reportError = message.isEmpty
-                                ? 'Report submit failed. Verify required fields and try again.'
-                                : message;
-                          });
-                        } finally {
-                          if (mounted) {
+                          try {
+                            await widget.onSave(widget.meal, _reportValues);
+                            if (!mounted) return;
                             setState(() {
-                              _reportSubmitting = false;
+                              _reportFeedback = 'Draft saved.';
                             });
+                          } catch (_) {
+                            if (!mounted) return;
+                            setState(() {
+                              _reportError = 'Could not save draft. Try again.';
+                            });
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _reportSaving = false;
+                              });
+                            }
                           }
-                        }
-                      },
-                child: Text(_reportSubmitting ? 'Submitting...' : 'Submit'),
+                        },
+                  child: Text(_reportSaving ? 'Saving...' : 'Save Draft'),
+                ),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton(
+                  onPressed: _reportSubmitting
+                      ? null
+                      : () async {
+                          final missing = _missingRequiredFields();
+                          if (missing.isNotEmpty) {
+                            setState(() {
+                              _reportError =
+                                  'Complete required fields: ${missing.join(', ')}';
+                              _reportFeedback = null;
+                            });
+                            return;
+                          }
+
+                          setState(() {
+                            _reportSubmitting = true;
+                            _reportError = null;
+                            _reportFeedback = null;
+                          });
+                          try {
+                            await widget.onSubmit(widget.meal, _reportValues);
+                            if (!mounted) return;
+                            setState(() {
+                              _reportFeedback =
+                                  'Report submitted to leadership.';
+                            });
+                          } catch (error) {
+                            final message = error.toString().replaceFirst(
+                              'Exception: ',
+                              '',
+                            );
+                            if (!mounted) return;
+                            setState(() {
+                              _reportError = message.isEmpty
+                                  ? 'Report submit failed. Verify required fields and try again.'
+                                  : message;
+                            });
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _reportSubmitting = false;
+                              });
+                            }
+                          }
+                        },
+                  child: Text(_reportSubmitting ? 'Submitting...' : 'Submit'),
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }

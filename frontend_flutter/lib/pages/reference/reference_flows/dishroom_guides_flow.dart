@@ -17,6 +17,7 @@ extension _DishroomGuidesFlow on _ReferenceSheetsViewState {
       entries:
           _nestedGuideEntries(
                 data,
+                topSection: 'Dishroom',
                 sectionKey: 'dishroom_guides',
                 orderedGuideKeys: const [
                   'operations',

@@ -318,14 +318,32 @@ class _SupervisorSectionState extends State<_SupervisorSection> {
         .toList();
     final completedJobs = supervisorBoard.jobs.where(_isJobComplete).toList();
     final allSecondariesChecked = mealScopedSecondaries.every((s) => s.checked);
+    final completedSecondariesCount = mealScopedSecondaries
+        .where((s) => s.checked)
+        .length;
     final supervisorChecklistDone = supervisorEndShiftCheckoffItems.every(
       (item) => _supervisorEndShiftChecks[item] ?? false,
     );
+    final completedSupervisorChecklistCount = supervisorEndShiftCheckoffItems
+        .where((item) => _supervisorEndShiftChecks[item] ?? false)
+        .length;
     final report = widget.currentLineShiftReport;
     final reportSubmitted =
         report != null &&
         report.isSubmitted &&
         report.mealType == supervisorBoard.selectedMeal;
+    final totalProgressUnits =
+        supervisorBoard.jobs.length +
+        mealScopedSecondaries.length +
+        1 +
+        supervisorEndShiftCheckoffItems.length +
+        1;
+    final completedProgressUnits =
+        completedJobs.length +
+        completedSecondariesCount +
+        (widget.deepCleanChecked ? 1 : 0) +
+        completedSupervisorChecklistCount +
+        (reportSubmitted ? 1 : 0);
 
     final canMarkShiftFinished = _canMarkShiftFinished(
       hasPendingJobs: pendingJobs.isNotEmpty,
@@ -354,6 +372,8 @@ class _SupervisorSectionState extends State<_SupervisorSection> {
       allSecondariesChecked: allSecondariesChecked,
       supervisorChecklistDone: supervisorChecklistDone,
       reportSubmitted: reportSubmitted,
+      totalProgressUnits: totalProgressUnits,
+      completedProgressUnits: completedProgressUnits,
     );
   }
 }

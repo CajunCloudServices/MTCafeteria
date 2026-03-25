@@ -1,7 +1,7 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _LineSecondaryReferenceFlow on _ReferenceSheetsViewState {
-  Widget _buildLineSecondaryFlow(Map<String, dynamic> data) {
+  List<String> _currentLineSecondaryItems(Map<String, dynamic> data) {
     final general =
         data['general_reference'] as Map<String, dynamic>? ?? const {};
     final sec =
@@ -34,7 +34,7 @@ extension _LineSecondaryReferenceFlow on _ReferenceSheetsViewState {
             .map((e) => e.toString())
             .toList();
 
-    final selectedLines = switch (_lineSecondaryGroup) {
+    return switch (_lineSecondaryGroup) {
       'While Doors Open' => whileOpen,
       'After Doors Close' => afterClose,
       'Shift-Specific' => mealSpecific,
@@ -42,6 +42,21 @@ extension _LineSecondaryReferenceFlow on _ReferenceSheetsViewState {
       'Lead Trainer Checkoff' => trainer,
       _ => const <String>[],
     };
+  }
+
+  Widget _buildLineSecondaryFlow(Map<String, dynamic> data) {
+    final selectedLines = _currentLineSecondaryItems(data);
+    final overrideKey = _guideOverrideKey(
+      topSection: 'Line',
+      guideKey: 'line_secondary',
+      cardTitle: [_lineSecondaryMeal, _lineSecondaryGroup].join('_'),
+    );
+    final effectiveLines = _guideItemsForKey(
+      overrideKey,
+      selectedLines.isEmpty
+          ? const ['No items listed for this selection.']
+          : selectedLines,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,9 +138,7 @@ extension _LineSecondaryReferenceFlow on _ReferenceSheetsViewState {
           const SizedBox(height: 10),
           _buildReferenceTaskCard(
             title: _lineSecondaryGroup,
-            items: selectedLines.isEmpty
-                ? const ['No items listed for this selection.']
-                : selectedLines,
+            items: effectiveLines,
             icon: _lineSecondaryGroup.contains('Checkoff')
                 ? Icons.fact_check_outlined
                 : Icons.checklist_rtl_outlined,

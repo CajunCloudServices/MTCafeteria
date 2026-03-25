@@ -131,26 +131,6 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
                 color: Color(0xFF264D76),
               ),
             ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEAF4FF),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: const Color(0xFF1F5E9C).withValues(alpha: 0.35),
-                ),
-              ),
-              child: const Text(
-                'Shift complete. Submit your report and confirm handoff.',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF113A67),
-                  height: 1.35,
-                ),
-              ),
-            ),
             const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
@@ -178,6 +158,8 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     required bool allSecondariesChecked,
     required bool supervisorChecklistDone,
     required bool reportSubmitted,
+    required int totalProgressUnits,
+    required int completedProgressUnits,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -213,13 +195,10 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
         ),
         if (_mealLoaded && widget.selectedJobId == null) ...[
           const SizedBox(height: 12),
-          _buildMarkShiftFinishedButton(
-            context: context,
+          _buildSupervisorCompletionProgress(
             canMarkShiftFinished: canMarkShiftFinished,
-            pendingJobs: pendingJobs,
-            allSecondariesChecked: allSecondariesChecked,
-            supervisorChecklistDone: supervisorChecklistDone,
-            reportSubmitted: reportSubmitted,
+            totalProgressUnits: totalProgressUnits,
+            completedProgressUnits: completedProgressUnits,
           ),
           if (_shiftFinished) ...[
             const SizedBox(height: 10),
@@ -767,36 +746,102 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     );
   }
 
-  Widget _buildMarkShiftFinishedButton({
-    required BuildContext context,
-    required bool canMarkShiftFinished,
-    required List<SupervisorJobItem> pendingJobs,
-    required bool allSecondariesChecked,
-    required bool supervisorChecklistDone,
-    required bool reportSubmitted,
-  }) {
+  Widget _buildMarkShiftFinishedButton({required bool canMarkShiftFinished}) {
     return SizedBox(
       width: double.infinity,
       child: FilledButton(
-        onPressed: () async {
-          if (canMarkShiftFinished) {
-            if (!mounted) return;
-            _updateSupervisorState(() {
-              _shiftFinished = true;
-            });
-            return;
-          }
-
-          _showShiftFinishRequirements(
-            context: context,
-            pendingJobNames: pendingJobs.map((job) => job.jobName).toList(),
-            allSecondariesChecked: allSecondariesChecked,
-            deepCleanChecked: widget.deepCleanChecked,
-            supervisorChecklistDone: supervisorChecklistDone,
-            reportSubmitted: reportSubmitted,
-          );
-        },
+        onPressed: canMarkShiftFinished
+            ? () async {
+                if (!mounted) return;
+                _updateSupervisorState(() {
+                  _shiftFinished = true;
+                });
+              }
+            : null,
         child: const Text('Mark Shift Finished'),
+      ),
+    );
+  }
+
+  Widget _buildSupervisorCompletionProgress({
+    required bool canMarkShiftFinished,
+    required int totalProgressUnits,
+    required int completedProgressUnits,
+  }) {
+    final safeTotal = totalProgressUnits <= 0 ? 1 : totalProgressUnits;
+    final clampedCompleted = completedProgressUnits.clamp(0, safeTotal);
+    final progress = clampedCompleted / safeTotal;
+    final percent = (progress * 100).round();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FBFF),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFB6C9E4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Shift Progress',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF123A65),
+                    fontSize: 17,
+                  ),
+                ),
+              ),
+              Text(
+                '$percent%',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF123A65),
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 12,
+              backgroundColor: const Color(0xFFD9E6F3),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF1A4E8A),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$clampedCompleted of $safeTotal items complete',
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF4E6786),
+            ),
+          ),
+          if (canMarkShiftFinished) ...[
+            const SizedBox(height: 12),
+            _buildMarkShiftFinishedButton(
+              canMarkShiftFinished: canMarkShiftFinished,
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Complete everything above to finish the shift.',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF264D76),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -42,7 +42,7 @@ extension _MainShell on _MtcCafeteriaAppState {
     if (_selectedIndex == 0) {
       return LandingPage(
         items: _state.landingItems,
-        canManage: user!.canManageLanding,
+        canManage: user!.canManageLanding && _adminModeEnabled,
         isPilotProfile: _runtimeConfig.isPilotProfile,
         onCreate: (payload) => _state.createLandingItem(payload),
         onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
@@ -73,7 +73,7 @@ extension _MainShell on _MtcCafeteriaAppState {
 
     return LandingPage(
       items: _state.landingItems,
-      canManage: user!.canManageLanding,
+      canManage: user!.canManageLanding && _adminModeEnabled,
       isPilotProfile: _runtimeConfig.isPilotProfile,
       onCreate: (payload) => _state.createLandingItem(payload),
       onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
@@ -130,9 +130,17 @@ extension _MainShell on _MtcCafeteriaAppState {
         },
         onOpenTrainings: () {
           if (!canViewTrainings) return;
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute<void>(builder: (_) => TrainingDetailPage()));
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => TrainingDetailPage(
+                isPilotProfile: _runtimeConfig.isPilotProfile,
+                navIndex: _runtimeConfig.isPilotProfile && _selectedIndex > 1
+                    ? 0
+                    : _selectedIndex,
+                onSelectNav: _handleBottomNavTap,
+              ),
+            ),
+          );
         },
         onOpenPoints: () {
           if (!canAssignPoints) return;
@@ -158,18 +166,20 @@ extension _MainShell on _MtcCafeteriaAppState {
     }
 
     if (effectiveDashboardView == _DashboardView.reference) {
-      return const ReferenceSheetsView();
+      return ReferenceSheetsView(adminModeEnabled: _adminModeEnabled);
     }
     if (effectiveDashboardView == _DashboardView.findItem) {
-      return const ReferenceSheetsView(
+      return ReferenceSheetsView(
         initialSection: 'Find an Item',
         lockSection: true,
+        adminModeEnabled: _adminModeEnabled,
       );
     }
     if (effectiveDashboardView == _DashboardView.diningMap) {
-      return const ReferenceSheetsView(
+      return ReferenceSheetsView(
         initialSection: 'Dining Map',
         lockSection: true,
+        adminModeEnabled: _adminModeEnabled,
       );
     }
     if (effectiveDashboardView == _DashboardView.dailyShiftReports) {
@@ -204,7 +214,12 @@ extension _MainShell on _MtcCafeteriaAppState {
         availableModes: availableModes,
         selectedMode: _dashboardMode,
         onModeChanged: (mode) => _updateUi(() => _dashboardMode = mode),
-        onContinue: () {
+        onContinue: () async {
+          if (_modeRequiresAdmin(_dashboardTrack, _dashboardMode) &&
+              !_adminModeEnabled) {
+            await _enableAdminMode(context);
+            if (!_adminModeEnabled) return;
+          }
           _updateUi(() {
             _dashboardRoleConfirmed = true;
           });
@@ -336,60 +351,12 @@ extension _MainShell on _MtcCafeteriaAppState {
   Widget? _buildBottomNav(bool isLoggedIn) {
     if (!isLoggedIn) return null;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8FBFF),
-        border: Border(top: BorderSide(color: Color(0xFFD1DFEE))),
-      ),
-      child: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.only(bottom: 2),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _runtimeConfig.isPilotProfile && _selectedIndex > 1
-              ? 0
-              : _selectedIndex,
-          onTap: _handleBottomNavTap,
-          iconSize: 24,
-          selectedFontSize: 14,
-          unselectedFontSize: 14,
-          backgroundColor: const Color(0xFFF8FBFF),
-          selectedItemColor: const Color(0xFF1A4E8A),
-          unselectedItemColor: const Color(0xFF5A7090),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-          items: _runtimeConfig.isPilotProfile
-              ? const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.dashboard_outlined),
-                    activeIcon: Icon(Icons.dashboard),
-                    label: 'Dashboard',
-                  ),
-                ]
-              : const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.dashboard_outlined),
-                    activeIcon: Icon(Icons.dashboard),
-                    label: 'Dashboard',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outline),
-                    activeIcon: Icon(Icons.person),
-                    label: 'Profile',
-                  ),
-                ],
-        ),
-      ),
+    return AppBottomNav(
+      currentIndex: _runtimeConfig.isPilotProfile && _selectedIndex > 1
+          ? 0
+          : _selectedIndex,
+      isPilotProfile: _runtimeConfig.isPilotProfile,
+      onTap: _handleBottomNavTap,
     );
   }
 }
