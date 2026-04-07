@@ -1,0 +1,12 @@
+.git
+.github
+.env
+.env.*
+artifacts
+Reference-Sheets
+frontend_flutter
+scripts
+tools
+*.md
+*.csv
+docker-compose.yml.bak_*
