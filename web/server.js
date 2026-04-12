@@ -17,7 +17,7 @@ function hasFlutterBuild() {
 
 function sendBuildMissing(res) {
   res.status(503).type('text/plain').send(
-    'Flutter web build not deployed. Copy a release build into public/flutter-web before starting the web service.'
+    'Flutter web build missing from the image. Rebuild and redeploy the web service.'
   );
 }
 
@@ -26,7 +26,7 @@ app.get('/health', (req, res) => {
     res.status(503).json({
       status: 'degraded',
       message:
-        'Flutter web build not deployed. Expected files under public/flutter-web.',
+        'Flutter web build missing from the image. Expected files under public/flutter-web.',
     });
     return;
   }

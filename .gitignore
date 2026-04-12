@@ -16,8 +16,6 @@ frontend_flutter/build/
 frontend_flutter/.metadata
 frontend_flutter/pubspec.lock
 frontend_flutter/MTCDocuments/
-public/flutter-web/*
-!public/flutter-web/.gitkeep
 
 # IDE
 .vscode/
