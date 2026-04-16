@@ -6,23 +6,38 @@ extension AppStateAuth on AppState {
       return;
     }
 
-    // Pilot mode should enter directly with supervisor-level permissions
-    // so shift workers can scan and use without a login prompt.
-    if (_runtimeConfig.isPilotProfile) {
-      _didAttemptBootstrapLogin = true;
-      await login(
-        _runtimeConfig.pilotAutoLoginEmail,
-        _runtimeConfig.pilotAutoLoginPassword,
-      );
-      return;
-    }
+    _didAttemptBootstrapLogin = true;
+    isLoading = true;
+    error = null;
+    _stateChanged();
 
-    if (isDevBypassEnabled) {
-      _didAttemptBootstrapLogin = true;
-      await login(
-        _runtimeConfig.devBypassEmail,
-        _runtimeConfig.devBypassPassword,
+    try {
+      // The deployed app now runs as a shared operational session. Boot the
+      // same supervisor-capable session immediately instead of showing a
+      // visible credential form with prefilled local passwords.
+      _token = '';
+      user = const UserSession(
+        id: 0,
+        email: 'shared-session@mtc.local',
+        role: 'Supervisor',
+        points: 0,
       );
+
+      await Future.wait([
+        refreshLandingItems(),
+        if (_features.trainingsEnabled) refreshTrainingsIfAllowed(),
+        refreshTaskBoard(),
+        if (canAccessTrainerBoard) refreshTrainerBoard(),
+        if (canAccessSupervisorBoard) refreshSupervisorBoard(),
+        if (_features.pointsEnabled) refreshPointCenter(),
+        if (_features.dailyShiftReportsEnabled && canViewDailyShiftReports)
+          refreshDailyShiftReports(),
+      ]);
+    } catch (e) {
+      error = e.toString();
+    } finally {
+      isLoading = false;
+      _stateChanged();
     }
   }
 
