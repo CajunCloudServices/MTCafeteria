@@ -2,6 +2,10 @@ const env = require('../config/env');
 const { pool } = require('../db/pool');
 const mockData = require('../db/mockData');
 
+function defaultLandingItems() {
+  return dedupeAnnouncements(mockData.announcements.map(normalizeAnnouncement));
+}
+
 function normalizeAnnouncement(row) {
   return {
     id: row.id,
@@ -41,12 +45,17 @@ function dedupeAnnouncements(items) {
 
 async function listLandingItems() {
   if (env.useMockData) {
-    return dedupeAnnouncements(mockData.announcements.map(normalizeAnnouncement));
+    return defaultLandingItems();
   }
 
   const { rows } = await pool.query(
     `SELECT id, type, title, content, start_date, end_date, created_by FROM announcements ORDER BY start_date DESC, id DESC;`
   );
+  if (rows.length === 0) {
+    // Production deploys should keep the baseline landing cards visible even
+    // if the announcements table has not been reseeded yet.
+    return defaultLandingItems();
+  }
   return dedupeAnnouncements(rows.map(normalizeAnnouncement));
 }
 
