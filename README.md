@@ -1,54 +1,65 @@
-# MTC Cafeteria Prototype (Flutter Web + PERN)
+# MTC Cafeteria Pilot
 
-Lightweight prototype focused on organization and clarity for cafeteria workers.
+Pilot-only cafeteria operations app for Flutter web + Node/Express + PostgreSQL.
+
+## What this repo is
+
+This project is a shared operational app for MTC cafeteria workers and managers.
+It is intentionally simple:
+
+- no user login screen
+- no employee account creation
+- no profile system
+- pilot-only launch path
+- admin-only edits are gated inside the app by a password prompt
+
+The app is focused on the pilot surfaces that workers actually use:
+
+- Home / announcements
+- Dashboard / shift workflows
+- Guides / Find an Item / Dining Map / Recipes
+- 2-minute Trainings
+- admin editing for text-heavy content
 
 ## Stack
-- Frontend: Flutter (web)
-- Backend: Node.js + Express + PostgreSQL
-- Auth: Basic email/password with JWT
-- Data mode: Postgres-first (`USE_MOCK_DATA=false` in production)
+
+- Frontend: Flutter web
+- Backend: Node.js + Express
+- Database: PostgreSQL
+- Admin model: in-app password gate for edit actions only
 
 ## Project Structure
-- `frontend_flutter/` Flutter web app (role-based dashboards + landing page)
-- `backend/` Express API + PostgreSQL access layer
+
+- `frontend_flutter/` Flutter web app and all guide/training UI
+- `backend/` Express API and PostgreSQL access layer
 - `backend/sql/schema.sql` database schema
 - `backend/sql/seed.sql` starter data
+- `tools/` maintenance scripts and export helpers
+- `artifacts/` OCR/transcription and audit outputs
 
-## Roles
-- Employee
-- Lead Trainer
-- Supervisor
-- Student Manager
+## Content Sources
 
-## Training Sources
-- Active detailed 2-minute training viewer: local manual corpus in `frontend_flutter/lib/pages/training/training_text_data.dart`
-- OCR workflow artifacts: `artifacts/mtcdocuments_vision_output.json` and `artifacts/mtcdocuments_vision_trainings_cleaned.json`
-- Legacy backend training feed: `GET /api/trainings` for older prototype dashboard/panel flows
-- Architecture note: `TRAINING_ARCHITECTURE.md`
+The app uses two kinds of content:
 
-## Core API (Prototype)
-- `POST /api/auth/login`
-- `GET /api/content/landing-items`
-- `POST /api/content/landing-items` (Student Manager, Supervisor)
-- `PUT /api/content/landing-items/:id` (Student Manager, Supervisor)
-- `DELETE /api/content/landing-items/:id` (Student Manager, Supervisor)
-- `GET /api/trainings` (Lead Trainer, Supervisor, Student Manager)
-- `GET /api/task-board`
-- `POST /api/task-board/tasks/:taskId/completion`
-- `GET /api/supervisor-board`
-- `POST /api/supervisor-board/jobs/:jobId/check`
-- `GET /api/supervisor-board/jobs/:jobId/tasks`
-- `POST /api/supervisor-board/jobs/:jobId/tasks/:taskId/check`
-- `POST /api/supervisor-board/reset`
-- `GET /api/trainer-board`
-- `POST /api/trainer-board/trainees/:traineeUserId/tasks/:taskId/completion`
-- `GET /api/daily-shift-reports/current?meal=Breakfast|Lunch|Dinner`
-- `PUT /api/daily-shift-reports/current`
-- `POST /api/daily-shift-reports/current/submit`
-- `GET /api/daily-shift-reports`
+- bundled reference and training text in the Flutter app
+- shared backend-backed overrides for admin edits
 
-## Local Run
+That means most of the text-heavy surfaces can be updated without rebuilding the entire app, while the 2-minute trainings remain static app content.
+
+## Core API Areas
+
+The backend serves these main domains:
+
+- announcements and other shared content
+- task board and supervisor board data
+- training feeds for legacy compatibility
+
+The pilot does not use a public login endpoint or user account flow.
+
+## Local Development
+
 ### 1) Backend
+
 ```bash
 cd backend
 cp .env.example .env
@@ -57,200 +68,163 @@ PORT=3201 npm run dev
 ```
 
 Notes:
-- In local development, you can use mock mode by setting `USE_MOCK_DATA=true` in `backend/.env`.
-- For Postgres mode, set `USE_MOCK_DATA=false`, create DB, then run schema + seed SQL.
+
+- `USE_MOCK_DATA=true` gives you in-memory placeholder data for quick local testing.
+- `USE_MOCK_DATA=false` uses PostgreSQL with the same API surface.
+- For local browser testing, make sure `CORS_ORIGINS` includes the frontend origin.
 
 ### 2) Flutter Web
+
 ```bash
 cd frontend_flutter
 flutter pub get
-flutter run -d chrome
-```
-
-Runtime config (single source):
-```bash
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3201
 ```
 
-Build profiles:
-- `full` (default): all features
-- `pilot`: tested/core features only (advanced modules hidden)
+For a stable Playwright/browser automation session, use a fixed web port:
 
-Pilot launch:
 ```bash
-flutter run -d chrome \
-  --dart-define=API_BASE_URL=http://localhost:3201 \
-  --dart-define=APP_PROFILE=pilot
+flutter run -d chrome --web-port 3006 --dart-define=API_BASE_URL=http://localhost:3201
 ```
 
-Full launch:
-```bash
-flutter run -d chrome \
-  --dart-define=API_BASE_URL=http://localhost:3201 \
-  --dart-define=APP_PROFILE=full
-```
+## Admin Editing Model
 
-Optional feature overrides (for either profile):
-```bash
---dart-define=FEATURE_MANAGER_PORTAL=on|off|auto
---dart-define=FEATURE_POINTS=on|off|auto
---dart-define=FEATURE_DAILY_SHIFT_REPORTS=on|off|auto
---dart-define=FEATURE_TRAININGS=on|off|auto
---dart-define=FEATURE_REFERENCES=on|off|auto
-```
+Admin edits are intentionally simple and in-app:
 
-Development bypass (debug-only, visible DEV BYPASS badge):
-```bash
-flutter run -d chrome \
-  --dart-define=API_BASE_URL=http://localhost:3201 \
-  --dart-define=DEV_BYPASS_AUTH=true \
-  --dart-define=APP_MODE=dev
-```
+- announcements can be added from the Home page
+- guides and reference text can be edited from the dashboard editor
+- inventory and task-note text can be edited through the shared content editor
 
-## Test Accounts (Mock/Seed)
-- `employee@mtc.local` / `password123`
-- `trainer@mtc.local` / `password123`
-- `supervisor@mtc.local` / `password123`
-- `manager@mtc.local` / `password123`
+There is no separate user login system for the pilot. The only interactive gate is the in-app admin password prompt used for edit actions, and the backend enforces that same password on content write routes.
 
 ## Scope Guardrails
-- No audit logs
-- Placeholder scheduling/job/task catalog content only
 
-## TODO Hooks
-- Add stronger validation and error-handling UX
-- Expand shift/job/task authoring interfaces
+- no user account management
+- no login page
+- no profile page
+- no plugin system
+- no arbitrary file upload flow
+- no script execution features
+- no background agents inside the app
 
 ## Production Deploy
-This repo now matches the standard 3-service server pattern:
-- `web`: Node static host for `public/flutter-web`, SPA fallback, and reverse proxy for `/api` and `/socket.io`
-- `api`: Express backend on container port `4000`
-- `postgres`: `postgres:15-alpine` with healthcheck
 
-Flutter build artifacts are deployed into:
-- `public/flutter-web`
+The deployment model is a small 3-service stack:
 
-### Default host ports
-- `WEB_HOST_PORT=3017`
-- `API_HOST_PORT=4013`
-- `DB_HOST_PORT=5436`
+- `web`: static Flutter web host and reverse proxy
+- `api`: Express backend
+- `postgres`: PostgreSQL database
 
 Container ports stay fixed at:
+
 - `web`: `3000`
 - `api`: `4000`
 - `postgres`: `5432`
 
+Default host ports in this repo’s current deploy setup:
+
+- `WEB_HOST_PORT=3017`
+- `API_HOST_PORT=4013`
+- `DB_HOST_PORT=5436`
+
+### Coolify deploy model
+
+Coolify should build from committed files on `main`.
+The deployed web image serves the tracked Flutter bundle in `public/flutter-web`.
+That means Flutter source changes under `frontend_flutter/` are not deployable by themselves.
+You must regenerate and commit `public/flutter-web` before pushing to `main`.
+
 ### Health checks
+
 - web: `http://localhost:${WEB_HOST_PORT}/health`
 - api through web proxy: `http://localhost:${WEB_HOST_PORT}/api/health`
 - api direct: `http://localhost:${API_HOST_PORT}/health`
 
-### Preflight
-Before first deploy, make sure the host ports are actually free:
+### First-time setup
 
 ```bash
-ss -ltn | grep -E ':(3017|4013|5436)\b' || true
-docker ps --format 'table {{.Names}}\t{{.Ports}}'
-```
-
-### First-time server setup
-```bash
-cd /home/lajicpajam/projects/websites/MTCafeteria
+cd /path/to/MTCafeteria
 cp .env.example .env
-chmod +x deploy_flutter_web.sh scripts/server_pull_and_deploy.sh scripts/server_redeploy_web.sh
+npm install
+npm run git-hooks:setup
 ```
 
-Then set real values in `.env`:
+Set the real values in `.env`:
+
 - `APP_BASE_URL`
 - `CORS_ORIGINS`
-- `JWT_SECRET`
 - `POSTGRES_PASSWORD`
 - `DATABASE_URL`
 
-### Deploy steps
-1. Build Flutter web locally:
+### Frontend deploy workflow
+
+1. Make your Flutter changes under `frontend_flutter/`.
+
+2. Rebuild and sync the tracked web bundle:
 
 ```bash
-cd frontend_flutter
-flutter pub get
-flutter build web --release --dart-define=API_BASE_URL=
+npm run flutter:web:sync
 ```
 
-2. Copy the Flutter build into the repo checkout on the server:
+3. Commit both the source change and the regenerated bundle:
 
 ```bash
-cd /home/lajicpajam/projects/websites/MTCafeteria
-./deploy_flutter_web.sh /absolute/path/to/flutter/build/web
+git add frontend_flutter public/flutter-web
+git commit -m "Update Flutter frontend"
 ```
 
-3. Pull latest code and rebuild the stack:
+4. Push to `main`:
 
 ```bash
-cd /home/lajicpajam/projects/websites/MTCafeteria
-./scripts/server_pull_and_deploy.sh
+git push origin main
 ```
 
-4. Verify deploy health:
+5. Coolify auto-deploys the updated tracked bundle from `main`.
+
+The local `pre-push` hook blocks pushes that include `frontend_flutter/` changes without matching committed changes under `public/flutter-web/`.
+
+### Backend or stack deploy checks
+
+After Coolify deploys, verify health as needed:
 
 ```bash
 npm run health:deploy
 ```
 
-### Web-only redeploy
-If only the Flutter build changed and the backend did not:
+### Low-level bundle sync helper
+
+If you already built Flutter web manually, you can still sync that output with:
 
 ```bash
-cd /home/lajicpajam/projects/websites/MTCafeteria
-./deploy_flutter_web.sh /absolute/path/to/flutter/build/web
-./scripts/server_redeploy_web.sh
+./deploy_flutter_web.sh /absolute/path/to/frontend_flutter/build/web
 ```
 
 ### Cloudflare Tunnel target
-Point the tunnel for this app to:
+
+Point the tunnel for this app at:
 
 ```text
 http://localhost:${WEB_HOST_PORT}
 ```
 
-## Playwright Automation
-Use a dedicated fixed-port profile so Playwright targets a stable URL.
+## Playwright / Browser Automation
 
-1) Start backend on a fixed port (example: 3201)
+Use a fixed web port when you want a repeatable browser target.
+
+Example:
+
 ```bash
 cd backend
 PORT=3201 npm run dev
-```
 
-2) Start Flutter test mode
-```bash
 cd frontend_flutter
-flutter run -d chrome --web-port 51336 \
-  --dart-define=API_BASE_URL=http://localhost:3201 \
-  --dart-define=DEV_BYPASS_AUTH=true \
-  --dart-define=APP_MODE=dev
+flutter run -d chrome --web-port 3006 --dart-define=API_BASE_URL=http://localhost:3201
 ```
 
-## Canonical Local Launch Matrix
-Backend:
-```bash
-cd backend
-PORT=3201 npm run dev
-```
+## Daily Shift Report Payload
 
-Flutter web:
-```bash
-cd frontend_flutter
-flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3201
-```
+The line supervisor daily shift report expects these fields to be filled when submitted:
 
-iOS simulator:
-```bash
-cd frontend_flutter
-flutter run -d ios --dart-define=API_BASE_URL=http://localhost:3201
-```
-
-## Daily Shift Report Payload (Line Supervisor)
-Submit endpoint requires these keys to be non-empty:
 - `count`
 - `late`
 - `sick`
@@ -272,43 +246,6 @@ Submit endpoint requires these keys to be non-empty:
 - `summaries`
 
 If incomplete, submit returns `400` with:
+
 - `message: "Daily shift report is incomplete."`
 - `missingFields: string[]`
-
-3) Run automation scripts
-```bash
-npm run live:login:manager:html
-npm run live:capture:dashboard
-npm run live:screenshot -- http://localhost:51336
-```
-
-You can also pass action files directly:
-```bash
-node tools/live-site.js actions http://localhost:51336 @tools/live-actions/login-manager-html.json
-```
-
-## MobAI Audit Harness (Web-First)
-Use MobAI to run repeatable UI audits with structured artifacts.
-
-1) Ensure MobAI bridge is active on your simulator/device and app is open.
-
-2) Initialize a timestamped audit run:
-```bash
-cd /Users/lajicpajam/projects/MTCafeteria
-npm run mobai:audit:init
-```
-
-Desktop profile:
-```bash
-npm run mobai:audit:init:desktop
-```
-
-Artifacts are written to:
-- `artifacts/mobai/<timestamp>/screenshots`
-- `artifacts/mobai/<timestamp>/flow-notes.md`
-- `artifacts/mobai/<timestamp>/issues.json`
-- `artifacts/mobai/<timestamp>/before-after`
-
-Path matrix and issue taxonomy are defined in:
-- `tools/mobai/path-matrix.json`
-- `tools/mobai/issues.schema.json`
