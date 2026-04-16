@@ -41,6 +41,29 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    (async function bootstrapMtcDining() {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(
+            registrations.map((registration) => registration.unregister())
+          );
+        } catch (_) {}
+      }
+
+      if ('caches' in window) {
+        try {
+          const cacheKeys = await caches.keys();
+          await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+        } catch (_) {}
+      }
+
+      const script = document.createElement('script');
+      script.src = 'flutter_bootstrap.js';
+      script.async = true;
+      document.body.appendChild(script);
+    })();
+  </script>
 </body>
 </html>

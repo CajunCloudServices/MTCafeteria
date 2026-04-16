@@ -19,7 +19,7 @@ fi
 
 build_args=("$@")
 if [ "${#build_args[@]}" -eq 0 ]; then
-  build_args=(--release)
+  build_args=(--release --pwa-strategy=none)
 fi
 
 echo "Running Flutter dependency sync..."

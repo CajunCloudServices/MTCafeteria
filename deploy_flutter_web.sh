@@ -18,7 +18,6 @@ required_files=(
   "index.html"
   "main.dart.js"
   "flutter_bootstrap.js"
-  "flutter_service_worker.js"
 )
 
 validate_flutter_build_dir() {
