@@ -222,9 +222,7 @@ class _LandingEditorDialogState extends State<_LandingEditorDialog> {
           DateTime.now().toIso8601String().split('T').first,
     );
     _endDateController = TextEditingController(
-      text:
-          widget.existing?.endDate ??
-          DateTime.now().toIso8601String().split('T').first,
+      text: widget.existing?.endDate ?? '',
     );
   }
 
