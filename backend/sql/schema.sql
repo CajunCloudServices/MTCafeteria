@@ -55,13 +55,15 @@ CREATE TABLE IF NOT EXISTS shifts (
   id SERIAL PRIMARY KEY,
   shift_type VARCHAR(80) NOT NULL,
   meal_type VARCHAR(40),
-  name VARCHAR(200) NOT NULL
+  name VARCHAR(200) NOT NULL,
+  CONSTRAINT shifts_shift_type_meal_type_key UNIQUE (shift_type, meal_type)
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
   id SERIAL PRIMARY KEY,
   shift_id INT NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
-  name VARCHAR(200) NOT NULL
+  name VARCHAR(200) NOT NULL,
+  CONSTRAINT jobs_shift_id_name_key UNIQUE (shift_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS tasks (

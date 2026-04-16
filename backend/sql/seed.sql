@@ -79,11 +79,90 @@ VALUES
   ('Safety Refresh', 'Review food-contact surface sanitation guidelines.', CURRENT_DATE + INTERVAL '1 day')
 ON CONFLICT DO NOTHING;
 
+-- Self-heal duplicate shift/job rows that earlier seed runs could create
+-- because (shift_type, meal_type) and (shift_id, name) were not unique yet.
+-- Without this, re-running seed.sql (or reapplying it against an already
+-- populated database) piled on additional "Breakfast Line Shift" rows and,
+-- in turn, additional per-shift "Beverages"/"Sack Cashier"/etc. jobs. We
+-- collapse duplicates by keeping the oldest id in each group, rehoming any
+-- jobs/tasks attached to the loser rows, then enforce uniqueness so
+-- subsequent re-runs stay idempotent via ON CONFLICT targets below.
+
+UPDATE jobs j
+SET shift_id = canonical.keep_id
+FROM (
+  SELECT
+    id,
+    MIN(id) OVER (PARTITION BY shift_type, meal_type) AS keep_id
+  FROM shifts
+) canonical
+WHERE j.shift_id = canonical.id
+  AND j.shift_id <> canonical.keep_id;
+
+DELETE FROM shifts
+WHERE id IN (
+  SELECT id FROM (
+    SELECT
+      id,
+      ROW_NUMBER() OVER (
+        PARTITION BY shift_type, meal_type
+        ORDER BY id
+      ) AS rn
+    FROM shifts
+  ) ranked
+  WHERE rn > 1
+);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'shifts_shift_type_meal_type_key'
+  ) THEN
+    ALTER TABLE shifts
+      ADD CONSTRAINT shifts_shift_type_meal_type_key UNIQUE (shift_type, meal_type);
+  END IF;
+END $$;
+
+UPDATE tasks t
+SET job_id = canonical.keep_id
+FROM (
+  SELECT
+    id,
+    MIN(id) OVER (PARTITION BY shift_id, name) AS keep_id
+  FROM jobs
+) canonical
+WHERE t.job_id = canonical.id
+  AND t.job_id <> canonical.keep_id;
+
+DELETE FROM jobs
+WHERE id IN (
+  SELECT id FROM (
+    SELECT
+      id,
+      ROW_NUMBER() OVER (
+        PARTITION BY shift_id, name
+        ORDER BY id
+      ) AS rn
+    FROM jobs
+  ) ranked
+  WHERE rn > 1
+);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'jobs_shift_id_name_key'
+  ) THEN
+    ALTER TABLE jobs
+      ADD CONSTRAINT jobs_shift_id_name_key UNIQUE (shift_id, name);
+  END IF;
+END $$;
+
 INSERT INTO shifts (shift_type, meal_type, name) VALUES
   ('Line Shift', 'Breakfast', 'Breakfast Line Shift'),
   ('Line Shift', 'Lunch', 'Lunch Line Shift'),
   ('Line Shift', 'Dinner', 'Dinner Line Shift')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (shift_type, meal_type) DO NOTHING;
 
 -- Replace legacy unsplit shared jobs with split variants.
 DELETE FROM jobs
@@ -151,9 +230,7 @@ INSERT INTO jobs (shift_id, name)
 SELECT s.id, mj.job_name
 FROM meal_jobs mj
 JOIN shifts s ON s.meal_type = mj.meal_type
-WHERE NOT EXISTS (
-  SELECT 1 FROM jobs j WHERE j.shift_id = s.id AND j.name = mj.job_name
-);
+ON CONFLICT (shift_id, name) DO NOTHING;
 
 -- Keep line task definitions aligned with the latest reference sheets.
 DELETE FROM task_progress
