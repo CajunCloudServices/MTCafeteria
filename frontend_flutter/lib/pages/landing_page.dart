@@ -340,7 +340,7 @@ class _HeaderPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Announcements',
+                  'Reminders',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
@@ -374,7 +374,7 @@ class _HeaderPanel extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Announcements',
+                        'Reminders',
                         style: TextStyle(
                           fontSize: 34,
                           fontWeight: FontWeight.w800,
