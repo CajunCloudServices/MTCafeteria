@@ -22,6 +22,9 @@ extension AppStateAuth on AppState {
         role: 'Supervisor',
         points: 0,
       );
+      // Notify immediately so UI can switch off the boot/login screen and
+      // render the authenticated shell while background data loads below.
+      _stateChanged();
 
       await Future.wait([
         refreshLandingItems(),

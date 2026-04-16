@@ -95,7 +95,12 @@ Admin edits are intentionally simple and in-app:
 - guides and reference text can be edited from the dashboard editor
 - inventory and task-note text can be edited through the shared content editor
 
-There is no separate user login system for the pilot. The only interactive gate is the in-app admin password prompt used for edit actions, and the backend enforces that same password on content write routes.
+There is no separate user login system for the pilot. The only interactive
+gate is the in-app admin password prompt used for edit actions. On the backend
+the same write routes are additionally role-gated (only callers in the
+`Student Manager` role are allowed to mutate landing items). Network access to
+the deployed API is restricted by the surrounding infrastructure (Coolify,
+tunnel, firewall).
 
 ## Scope Guardrails
 
@@ -223,7 +228,7 @@ flutter run -d chrome --web-port 3006 --dart-define=API_BASE_URL=http://localhos
 
 ## Daily Shift Report Payload
 
-The line supervisor daily shift report expects these fields to be filled when submitted:
+The full daily shift report expects these fields on submit:
 
 - `count`
 - `late`
@@ -243,6 +248,19 @@ The line supervisor daily shift report expects these fields to be filled when su
 - `generalComments`
 - `trainings`
 - `serviceMissionariesPresentForShift`
+- `summaries`
+
+Pilot submissions (`appProfile: "pilot"`) only require a slimmed subset that
+matches the cards actually shown in the pilot UI:
+
+- `count`
+- `deepClean`
+- `entreeItemOutage`
+- `productOutage`
+- `productSurplus`
+- `lockersChecked`
+- `maintenanceConcerns`
+- `generalComments`
 - `summaries`
 
 If incomplete, submit returns `400` with:

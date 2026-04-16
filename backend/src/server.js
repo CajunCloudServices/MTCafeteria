@@ -15,6 +15,15 @@ const dailyShiftReportRoutes = require('./routes/dailyShiftReportRoutes');
 
 const app = express();
 
+class CorsOriginError extends Error {
+  constructor(origin) {
+    super(`CORS origin not allowed: ${origin}`);
+    this.name = 'CorsOriginError';
+    this.statusCode = 403;
+    this.expose = true;
+  }
+}
+
 function resolveConfiguredBackendPort() {
   const candidates = [
     path.resolve(process.cwd(), '.env'),
@@ -31,7 +40,7 @@ function resolveConfiguredBackendPort() {
         return value;
       }
     } catch (_) {
-      // Ignore parse errors for optional env files.
+      // Optional env files are allowed to fail silently.
     }
   }
   return null;
@@ -44,27 +53,22 @@ app.use(
         callback(null, true);
         return;
       }
-      callback(new Error('CORS origin not allowed.'));
+      callback(new CorsOriginError(origin));
     },
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
-app.get('/health', (req, res) => {
-  res.json({
+function healthResponse() {
+  return {
     status: 'ok',
     mode: env.useMockData ? 'mock' : 'postgres',
     environment: env.nodeEnv,
-  });
-});
+  };
+}
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    mode: env.useMockData ? 'mock' : 'postgres',
-    environment: env.nodeEnv,
-  });
-});
+app.get('/health', (_req, res) => res.json(healthResponse()));
+app.get('/api/health', (_req, res) => res.json(healthResponse()));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/content', contentRoutes);
@@ -74,18 +78,33 @@ app.use('/api', taskBoardRoutes);
 app.use('/api', pointsRoutes);
 app.use('/api', dailyShiftReportRoutes);
 
-app.use((error, req, res, next) => {
-  // TODO: Replace with structured logger when observability is added.
-  console.error(error);
-  res.status(500).json({ message: 'Internal server error.' });
+app.use((_req, res) => {
+  res.status(404).json({ message: 'Not found.' });
 });
 
-app.listen(env.port, () => {
-  const configuredBackendPort = resolveConfiguredBackendPort();
-  if (configuredBackendPort != null && configuredBackendPort !== env.port) {
-    console.warn(
-      `[WARN] Backend PORT (${env.port}) differs from BACKEND_PORT (${configuredBackendPort}) in env files.`
-    );
+// eslint-disable-next-line no-unused-vars
+app.use((error, req, res, _next) => {
+  if (error instanceof CorsOriginError) {
+    res.status(error.statusCode).json({ message: error.message });
+    return;
   }
-  console.log(`MTC Cafeteria backend running on http://localhost:${env.port}`);
+  // TODO: Replace with structured logger when observability is added.
+  console.error(error);
+  const status = Number.isInteger(error?.statusCode) ? error.statusCode : 500;
+  const message = error?.expose && error?.message ? error.message : 'Internal server error.';
+  res.status(status).json({ message });
 });
+
+if (require.main === module) {
+  app.listen(env.port, () => {
+    const configuredBackendPort = resolveConfiguredBackendPort();
+    if (configuredBackendPort != null && configuredBackendPort !== env.port) {
+      console.warn(
+        `[WARN] Backend PORT (${env.port}) differs from BACKEND_PORT (${configuredBackendPort}) in env files.`
+      );
+    }
+    console.log(`MTC Cafeteria backend running on http://localhost:${env.port}`);
+  });
+}
+
+module.exports = app;

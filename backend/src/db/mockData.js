@@ -57,9 +57,21 @@ const announcements = [
   },
 ];
 
+// Keep in sync with backend/sql/seed.sql so mock and postgres return the same
+// training titles/content to clients.
 const trainings = [
-  { id: 1, title: 'Service Tone', content: 'Greet guests promptly and keep lines moving.', assignedDate: today },
-  { id: 2, title: 'Sanitation Focus', content: 'Wipe shared surfaces every 20 minutes.', assignedDate: tomorrow },
+  {
+    id: 1,
+    title: 'Service Tone',
+    content: 'Greet guests and keep communication warm and clear.',
+    assignedDate: today,
+  },
+  {
+    id: 2,
+    title: 'Safety Refresh',
+    content: 'Review food-contact surface sanitation guidelines.',
+    assignedDate: tomorrow,
+  },
 ];
 
 const meals = ['Breakfast', 'Lunch', 'Dinner'];

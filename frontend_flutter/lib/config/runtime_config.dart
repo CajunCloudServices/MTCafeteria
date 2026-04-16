@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Central runtime configuration for web, local development, and pilot mode.
 ///
 /// Everything here is resolved from `--dart-define` values so the same build
@@ -7,13 +5,8 @@ import 'package:flutter/foundation.dart';
 class AppRuntimeConfig {
   const AppRuntimeConfig({
     required this.apiBaseUrl,
-    required this.devBypassAuth,
     required this.appMode,
     required this.appProfile,
-    required this.devBypassEmail,
-    required this.devBypassPassword,
-    required this.pilotAutoLoginEmail,
-    required this.pilotAutoLoginPassword,
     required this.featureManagerPortal,
     required this.featurePoints,
     required this.featureDailyShiftReports,
@@ -22,13 +15,8 @@ class AppRuntimeConfig {
   });
 
   final String apiBaseUrl;
-  final bool devBypassAuth;
   final String appMode;
   final String appProfile;
-  final String devBypassEmail;
-  final String devBypassPassword;
-  final String pilotAutoLoginEmail;
-  final String pilotAutoLoginPassword;
   final String featureManagerPortal;
   final String featurePoints;
   final String featureDailyShiftReports;
@@ -37,25 +25,8 @@ class AppRuntimeConfig {
 
   static const AppRuntimeConfig fromEnvironment = AppRuntimeConfig(
     apiBaseUrl: String.fromEnvironment('API_BASE_URL', defaultValue: ''),
-    devBypassAuth: bool.fromEnvironment('DEV_BYPASS_AUTH', defaultValue: false),
     appMode: String.fromEnvironment('APP_MODE', defaultValue: 'dev'),
     appProfile: String.fromEnvironment('APP_PROFILE', defaultValue: 'full'),
-    devBypassEmail: String.fromEnvironment(
-      'DEV_BYPASS_EMAIL',
-      defaultValue: 'manager@mtc.local',
-    ),
-    devBypassPassword: String.fromEnvironment(
-      'DEV_BYPASS_PASSWORD',
-      defaultValue: 'password123',
-    ),
-    pilotAutoLoginEmail: String.fromEnvironment(
-      'PILOT_AUTO_LOGIN_EMAIL',
-      defaultValue: 'supervisor@mtc.local',
-    ),
-    pilotAutoLoginPassword: String.fromEnvironment(
-      'PILOT_AUTO_LOGIN_PASSWORD',
-      defaultValue: 'password123',
-    ),
     featureManagerPortal: String.fromEnvironment(
       'FEATURE_MANAGER_PORTAL',
       defaultValue: 'auto',
@@ -77,14 +48,6 @@ class AppRuntimeConfig {
       defaultValue: 'auto',
     ),
   );
-
-  /// Dev bypass is intentionally disabled in release builds even if the flag is
-  /// present, so a production deployment cannot silently skip auth.
-  bool get devBypassEnabled {
-    if (kReleaseMode) return false;
-    if (!devBypassAuth) return false;
-    return appMode.toLowerCase() != 'prod';
-  }
 
   bool get isPilotProfile => appProfile.trim().toLowerCase() == 'pilot';
 

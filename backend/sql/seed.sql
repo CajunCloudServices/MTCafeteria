@@ -1,23 +1,6 @@
-
-ALTER TABLE point_assignments
-  ADD COLUMN IF NOT EXISTS requires_manager_approval BOOLEAN NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS manager_approved_by_user_id INT REFERENCES users(id),
-  ADD COLUMN IF NOT EXISTS manager_approved_at TIMESTAMP,
-  ADD COLUMN IF NOT EXISTS assignment_description TEXT NOT NULL DEFAULT '';
-
-CREATE TABLE IF NOT EXISTS daily_shift_reports (
-  id SERIAL PRIMARY KEY,
-  report_date DATE NOT NULL,
-  meal_type VARCHAR(40) NOT NULL CHECK (meal_type IN ('Breakfast', 'Lunch', 'Dinner')),
-  track VARCHAR(40) NOT NULL DEFAULT 'Line',
-  status VARCHAR(20) NOT NULL DEFAULT 'Draft' CHECK (status IN ('Draft', 'Submitted')),
-  submitted_by_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  submitted_at TIMESTAMP,
-  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  UNIQUE (report_date, meal_type, track, submitted_by_user_id)
-);
+-- seed.sql assumes schema.sql has already been applied. It only inserts and
+-- backfills data; DDL lives exclusively in schema.sql so the two files cannot
+-- drift.
 
 INSERT INTO roles (name) VALUES
   ('Employee'),

@@ -11,23 +11,20 @@ Purpose:
 
 ## 1) Repo + Path Guardrails (Do This First)
 
-Work only in:
-
-`/Users/lajicpajam/Development/Apps/MTC Cafeteria`
-
-This project has had path confusion before with similarly named folders.
+Work only in the checked-out root of this repository. This project has had path
+confusion before with similarly named folders on contributor machines, so
+confirm you are in the correct working tree before making edits.
 
 Before making edits, run:
 
 ```bash
 pwd
+git rev-parse --show-toplevel
 ```
 
-Expected output:
-
-`/Users/lajicpajam/Development/Apps/MTC Cafeteria`
-
-If not, stop and `cd` to the correct path.
+The two values should match and point at the repository root (the directory
+that contains `backend/`, `frontend_flutter/`, and this file). If they do not,
+stop and `cd` to the correct path.
 
 ---
 
@@ -183,11 +180,9 @@ A training is done only if all pass:
 
 ## 8) Validation Commands
 
-From repo root:
+From the repository root:
 
 ```bash
-cd "/Users/lajicpajam/Development/Apps/MTC Cafeteria"
-
 # Confirm training case mappings in app source
 rg -n "case '.*\\.JPG'" frontend_flutter/lib/pages/training/training_text_data.dart
 

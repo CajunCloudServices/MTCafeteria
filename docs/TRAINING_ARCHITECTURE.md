@@ -21,7 +21,7 @@ Notes:
 - The app reads the Dart corpus directly at runtime.
 - The OCR JSON files are workflow/reference artifacts, not runtime inputs.
 - Manual transcription standards are documented in:
-  `/Users/lajicpajam/Development/Apps/MTC Cafeteria/TRAININGS_TRANSCRIPTION_HANDOFF.md`
+  `TRAININGS_TRANSCRIPTION_HANDOFF.md` (repo root).
 
 ## Legacy API Training Feed
 
