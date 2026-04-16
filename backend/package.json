@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "lint": "node --check src/server.js",
+    "reseed": "node scripts/reseed.js",
     "test": "node --test"
   },
   "dependencies": {
