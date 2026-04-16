@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/link.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/landing_item.dart';
@@ -118,18 +119,28 @@ class LandingPage extends StatelessWidget {
                     );
                   }
 
-                  return _AnnouncementCard(
-                    item: const LandingItem(
-                      id: -1,
-                      type: 'Announcement',
-                      title: 'Pilot Feedback',
-                      content: 'Tell us how the app worked on your shift.',
-                      startDate: '',
-                      endDate: '',
+                  return Link(
+                    uri: Uri.parse(_pilotFeedbackUrl),
+                    target: LinkTarget.blank,
+                    builder: (context, followLink) => _AnnouncementCard(
+                      item: const LandingItem(
+                        id: -1,
+                        type: 'Announcement',
+                        title: 'Pilot Feedback',
+                        content: 'Tell us how the app worked on your shift.',
+                        startDate: '',
+                        endDate: '',
+                      ),
+                      isMobile: isMobile,
+                      canManage: false,
+                      onOpen: () {
+                        if (followLink != null) {
+                          followLink();
+                          return;
+                        }
+                        _openPilotFeedbackForm(context);
+                      },
                     ),
-                    isMobile: isMobile,
-                    canManage: false,
-                    onOpen: () => _openPilotFeedbackForm(context),
                   );
                 },
               ),
