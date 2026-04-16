@@ -53,7 +53,7 @@ async function request(port, method, path, body, extraHeaders = {}) {
             parsed = raw;
           }
         }
-        resolve({ status: res.statusCode, body: parsed });
+        resolve({ status: res.statusCode, body: parsed, headers: res.headers });
       });
     });
     req.on('error', reject);
@@ -128,6 +128,13 @@ test('task-admin: password gate + CRUD over jobs and tasks', async (t) => {
   await t.test('lists board with shifts, jobs, and phases', async () => {
     const res = await request(port, 'GET', '/api/task-admin/board', null, pwHeaders);
     assert.equal(res.status, 200);
+    assert.equal(
+      res.headers['cache-control'],
+      'no-store, no-cache, must-revalidate, proxy-revalidate'
+    );
+    assert.equal(res.headers.pragma, 'no-cache');
+    assert.equal(res.headers.expires, '0');
+    assert.equal(res.headers['surrogate-control'], 'no-store');
     assert.ok(Array.isArray(res.body.shifts));
     assert.ok(res.body.shifts.length >= 3);
     assert.ok(Array.isArray(res.body.jobs));

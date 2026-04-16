@@ -15,6 +15,10 @@ function handleError(res, error) {
 async function getBoard(_req, res, next) {
   try {
     const board = await service.listBoard();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
     res.json(board);
   } catch (error) {
     next(error);

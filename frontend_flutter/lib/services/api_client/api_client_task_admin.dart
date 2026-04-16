@@ -4,14 +4,21 @@ extension ApiClientTaskAdmin on ApiClient {
   Map<String, String> _taskAdminHeaders(String password, {bool json = false}) {
     return {
       'X-Task-Editor-Password': password,
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
       if (json) 'Content-Type': 'application/json',
     };
   }
 
   Future<AdminTaskBoard> getTaskAdminBoard(String password) async {
+    final uri = Uri.parse(
+      '$_baseUrl/api/task-admin/board',
+    ).replace(queryParameters: {
+      '_': DateTime.now().millisecondsSinceEpoch.toString(),
+    });
     final response = await _send(
       () => http.get(
-        Uri.parse('$_baseUrl/api/task-admin/board'),
+        uri,
         headers: _taskAdminHeaders(password),
       ),
       'Failed to load job/task board',
