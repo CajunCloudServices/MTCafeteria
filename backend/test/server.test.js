@@ -23,7 +23,7 @@ function startServer() {
   });
 }
 
-async function request(port, method, path, body) {
+async function request(port, method, path, body, extraHeaders = {}) {
   const data = body ? JSON.stringify(body) : null;
   const options = {
     hostname: '127.0.0.1',
@@ -35,6 +35,7 @@ async function request(port, method, path, body) {
       ...(data
         ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
         : {}),
+      ...extraHeaders,
     },
   };
 
@@ -102,5 +103,85 @@ test('smoke: mock mode surfaces expected endpoints', async (t) => {
     const res = await request(port, 'GET', '/api/unknown');
     assert.equal(res.status, 404);
     assert.equal(res.body.message, 'Not found.');
+  });
+});
+
+test('task-admin: password gate + CRUD over jobs and tasks', async (t) => {
+  const { server, port } = await startServer();
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+
+  const pwHeaders = { 'X-Task-Editor-Password': 'yoboss' };
+
+  await t.test('requires password header', async () => {
+    const res = await request(port, 'GET', '/api/task-admin/board');
+    assert.equal(res.status, 401);
+    assert.match(res.body.message, /password required/i);
+  });
+
+  await t.test('rejects wrong password', async () => {
+    const res = await request(port, 'GET', '/api/task-admin/board', null, {
+      'X-Task-Editor-Password': 'wrong',
+    });
+    assert.equal(res.status, 403);
+  });
+
+  await t.test('lists board with shifts, jobs, and phases', async () => {
+    const res = await request(port, 'GET', '/api/task-admin/board', null, pwHeaders);
+    assert.equal(res.status, 200);
+    assert.ok(Array.isArray(res.body.shifts));
+    assert.ok(res.body.shifts.length >= 3);
+    assert.ok(Array.isArray(res.body.jobs));
+    assert.ok(res.body.jobs.length > 0);
+    assert.deepEqual(res.body.phases, ['Setup', 'During Shift', 'Cleanup']);
+    const firstJob = res.body.jobs[0];
+    for (const phase of ['Setup', 'During Shift', 'Cleanup']) {
+      assert.ok(Array.isArray(firstJob.tasks[phase]));
+    }
+  });
+
+  await t.test('creates, updates, and deletes a job + its tasks', async () => {
+    const shiftsRes = await request(port, 'GET', '/api/task-admin/board', null, pwHeaders);
+    const shiftId = shiftsRes.body.shifts[0].id;
+
+    const create = await request(port, 'POST', '/api/task-admin/jobs',
+      { name: 'Smoke Test Station', shiftId }, pwHeaders);
+    assert.equal(create.status, 201);
+    assert.equal(create.body.name, 'Smoke Test Station');
+    const jobId = create.body.id;
+
+    const rename = await request(port, 'PATCH', `/api/task-admin/jobs/${jobId}`,
+      { name: 'Smoke Test Station Renamed' }, pwHeaders);
+    assert.equal(rename.status, 200);
+    assert.equal(rename.body.name, 'Smoke Test Station Renamed');
+
+    const addTask = await request(port, 'POST', `/api/task-admin/jobs/${jobId}/tasks`,
+      { description: 'Check the smoke detector', phase: 'Setup' }, pwHeaders);
+    assert.equal(addTask.status, 201);
+    assert.equal(addTask.body.phase, 'Setup');
+    assert.equal(addTask.body.description, 'Check the smoke detector');
+    const taskId = addTask.body.id;
+
+    const editTask = await request(port, 'PATCH', `/api/task-admin/tasks/${taskId}`,
+      { description: 'Confirm smoke detector is clear', phase: 'Cleanup' }, pwHeaders);
+    assert.equal(editTask.status, 200);
+    assert.equal(editTask.body.description, 'Confirm smoke detector is clear');
+    assert.equal(editTask.body.phase, 'Cleanup');
+
+    const deleteTask = await request(port, 'DELETE', `/api/task-admin/tasks/${taskId}`, null, pwHeaders);
+    assert.equal(deleteTask.status, 204);
+
+    const deleteJob = await request(port, 'DELETE', `/api/task-admin/jobs/${jobId}`, null, pwHeaders);
+    assert.equal(deleteJob.status, 204);
+  });
+
+  await t.test('rejects invalid input with 400', async () => {
+    const res = await request(port, 'POST', '/api/task-admin/jobs', { name: '', shiftId: 0 }, pwHeaders);
+    assert.equal(res.status, 400);
+  });
+
+  await t.test('returns 404 for missing job', async () => {
+    const res = await request(port, 'PATCH', '/api/task-admin/jobs/999999',
+      { name: 'Nope' }, pwHeaders);
+    assert.equal(res.status, 404);
   });
 });

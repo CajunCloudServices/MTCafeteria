@@ -10,6 +10,7 @@ const contentRoutes = require('./routes/contentRoutes');
 const trainingRoutes = require('./routes/trainingRoutes');
 const shiftRoutes = require('./routes/shiftRoutes');
 const taskBoardRoutes = require('./routes/taskBoardRoutes');
+const taskAdminRoutes = require('./routes/taskAdminRoutes');
 const pointsRoutes = require('./routes/pointsRoutes');
 const dailyShiftReportRoutes = require('./routes/dailyShiftReportRoutes');
 
@@ -75,6 +76,7 @@ app.use('/api/content', contentRoutes);
 app.use('/api', trainingRoutes);
 app.use('/api', shiftRoutes);
 app.use('/api', taskBoardRoutes);
+app.use('/api', taskAdminRoutes);
 app.use('/api', pointsRoutes);
 app.use('/api', dailyShiftReportRoutes);
 

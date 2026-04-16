@@ -14,6 +14,7 @@ class DashboardHubCard extends StatelessWidget {
     required this.canViewTrainings,
     required this.canAssignPoints,
     required this.canViewDailyShiftReports,
+    required this.canOpenTaskEditor,
     required this.onOpenWorkflow,
     required this.onOpenFindItem,
     required this.onOpenDiningMap,
@@ -22,6 +23,7 @@ class DashboardHubCard extends StatelessWidget {
     required this.onOpenPoints,
     required this.onOpenReference,
     required this.onOpenDailyShiftReports,
+    required this.onOpenTaskEditor,
   });
 
   final bool canOpenReference;
@@ -31,6 +33,7 @@ class DashboardHubCard extends StatelessWidget {
   final bool canViewTrainings;
   final bool canAssignPoints;
   final bool canViewDailyShiftReports;
+  final bool canOpenTaskEditor;
   final VoidCallback onOpenWorkflow;
   final VoidCallback onOpenFindItem;
   final VoidCallback onOpenDiningMap;
@@ -39,6 +42,7 @@ class DashboardHubCard extends StatelessWidget {
   final VoidCallback onOpenPoints;
   final VoidCallback onOpenReference;
   final VoidCallback onOpenDailyShiftReports;
+  final VoidCallback onOpenTaskEditor;
 
   @override
   Widget build(BuildContext context) {
@@ -181,6 +185,21 @@ class DashboardHubCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: const Text('Open Student Manager Portal'),
+                    ),
+                  ),
+                ],
+                if (canOpenTaskEditor) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('hub-open-task-editor'),
+                      onPressed: onOpenTaskEditor,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      icon: const Icon(Icons.edit_note, size: 20),
+                      label: const Text('Edit Jobs & Tasks'),
                     ),
                   ),
                 ],

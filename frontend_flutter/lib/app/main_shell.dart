@@ -104,6 +104,7 @@ extension _MainShell on _MtcCafeteriaAppState {
         canViewTrainings: canViewTrainings,
         canAssignPoints: canAssignPoints,
         canViewDailyShiftReports: canViewDailyShiftReports,
+        canOpenTaskEditor: true,
         onOpenWorkflow: () {
           _updateUi(() {
             _dashboardView = _DashboardView.workflow;
@@ -162,6 +163,7 @@ extension _MainShell on _MtcCafeteriaAppState {
           });
           _state.refreshDailyShiftReports();
         },
+        onOpenTaskEditor: () => _openTaskEditor(context),
       );
     }
 

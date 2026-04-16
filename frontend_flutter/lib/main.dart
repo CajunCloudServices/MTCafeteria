@@ -5,6 +5,7 @@ import 'pages/login_page.dart';
 import 'pages/pilot_access_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/reference_sheets_view.dart';
+import 'pages/task_editor_page.dart';
 import 'pages/training_detail_page.dart';
 import 'config/app_features.dart';
 import 'config/runtime_config.dart';
@@ -17,6 +18,7 @@ import 'widgets/admin_password_dialog.dart';
 import 'widgets/daily_shift_reports_view.dart';
 import 'widgets/dashboard_hub_card.dart';
 import 'widgets/shift_selection_cards.dart';
+import 'widgets/task_editor_password_dialog.dart';
 
 part 'app/main_shell.dart';
 
@@ -66,6 +68,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   int _dashboardBackSignal = 0;
   _DashboardView _dashboardView = _DashboardView.hub;
   bool _adminModeEnabled = false;
+  String? _taskEditorPassword;
 
   static final DateTime _mealRotationAnchor = DateTime(2026, 3, 16);
   static const List<String> _mealWeekOrder = [
@@ -375,6 +378,28 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     _updateUi(() {
       _adminModeEnabled = true;
     });
+  }
+
+  /// Opens the task/job editor, prompting for the yoboss password if the user
+  /// has not already unlocked it earlier in this session.
+  Future<void> _openTaskEditor(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    String? password = _taskEditorPassword;
+    if (password == null) {
+      final entered = await promptForTaskEditorPassword(context);
+      if (entered == null || entered.isEmpty || !mounted) return;
+      password = entered;
+      _updateUi(() {
+        _taskEditorPassword = entered;
+      });
+    }
+    if (!mounted) return;
+    final unlockedPassword = password;
+    await navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => TaskEditorPage(password: unlockedPassword),
+      ),
+    );
   }
 
   @override
