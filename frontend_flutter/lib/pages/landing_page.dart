@@ -68,7 +68,10 @@ class LandingPage extends StatelessWidget {
   final Future<void> Function(int id) onDelete;
 
   Future<void> _openPilotFeedbackForm(BuildContext context) async {
-    final opened = await launchUrl(Uri.parse(_pilotFeedbackUrl));
+    final opened = await launchUrl(
+      Uri.parse(_pilotFeedbackUrl),
+      webOnlyWindowName: '_blank',
+    );
     if (opened || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Could not open the feedback form.')),
