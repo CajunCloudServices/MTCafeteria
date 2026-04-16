@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   id SERIAL PRIMARY KEY,
   job_id INT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
   phase VARCHAR(40) NOT NULL CHECK (phase IN ('Setup', 'During Shift', 'Cleanup')),
-  description TEXT NOT NULL
+  description TEXT NOT NULL,
+  CONSTRAINT tasks_job_phase_description_key UNIQUE (job_id, phase, description)
 );
 
 CREATE TABLE IF NOT EXISTS task_progress (

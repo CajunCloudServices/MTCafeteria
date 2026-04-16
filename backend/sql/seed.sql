@@ -158,6 +158,66 @@ BEGIN
   END IF;
 END $$;
 
+-- Same self-heal for tasks. When earlier seed runs multiplied shifts/jobs,
+-- each duplicate job brought its own full copy of every task, so after we
+-- rehomed tasks onto the canonical job they stacked up as duplicates.
+-- Rehome any task_progress / supervisor_task_checks references to the
+-- canonical (lowest-id) task for each (job_id, phase, description) group,
+-- then drop the extras and enforce uniqueness.
+WITH canonical AS (
+  SELECT id, MIN(id) OVER (PARTITION BY job_id, phase, description) AS keep_id
+  FROM tasks
+)
+UPDATE task_progress tp
+SET task_id = c.keep_id
+FROM canonical c
+WHERE tp.task_id = c.id
+  AND tp.task_id <> c.keep_id
+  AND NOT EXISTS (
+    SELECT 1 FROM task_progress tp2
+    WHERE tp2.user_id = tp.user_id AND tp2.task_id = c.keep_id
+  );
+
+WITH canonical AS (
+  SELECT id, MIN(id) OVER (PARTITION BY job_id, phase, description) AS keep_id
+  FROM tasks
+)
+UPDATE supervisor_task_checks stc
+SET task_id = c.keep_id
+FROM canonical c
+WHERE stc.task_id = c.id
+  AND stc.task_id <> c.keep_id
+  AND NOT EXISTS (
+    SELECT 1 FROM supervisor_task_checks stc2
+    WHERE stc2.meal_type = stc.meal_type
+      AND stc2.job_id = stc.job_id
+      AND stc2.task_id = c.keep_id
+  );
+
+DELETE FROM tasks
+WHERE id IN (
+  SELECT id FROM (
+    SELECT
+      id,
+      ROW_NUMBER() OVER (
+        PARTITION BY job_id, phase, description
+        ORDER BY id
+      ) AS rn
+    FROM tasks
+  ) ranked
+  WHERE rn > 1
+);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'tasks_job_phase_description_key'
+  ) THEN
+    ALTER TABLE tasks
+      ADD CONSTRAINT tasks_job_phase_description_key UNIQUE (job_id, phase, description);
+  END IF;
+END $$;
+
 INSERT INTO shifts (shift_type, meal_type, name) VALUES
   ('Line Shift', 'Breakfast', 'Breakfast Line Shift'),
   ('Line Shift', 'Lunch', 'Lunch Line Shift'),
@@ -572,20 +632,13 @@ SELECT j.id, ms.phase, ms.description
 FROM meal_specific_task_defs ms
 JOIN shifts s ON s.meal_type = ms.meal_type
 JOIN jobs j ON j.shift_id = s.id AND j.name = ms.job_name
-WHERE NOT EXISTS (
-  SELECT 1 FROM tasks t
-  WHERE t.job_id = j.id AND t.phase = ms.phase AND t.description = ms.description
-)
 UNION ALL
 SELECT j.id, gd.phase, gd.description
 FROM generic_task_defs gd
 JOIN meal_jobs mj ON mj.job_name = gd.job_name
 JOIN shifts s ON s.meal_type = mj.meal_type
 JOIN jobs j ON j.shift_id = s.id AND j.name = gd.job_name
-WHERE NOT EXISTS (
-  SELECT 1 FROM tasks t
-  WHERE t.job_id = j.id AND t.phase = gd.phase AND t.description = gd.description
-);
+ON CONFLICT (job_id, phase, description) DO NOTHING;
 
 INSERT INTO task_progress (user_id, task_id, completed, supervisor_checked)
 VALUES
