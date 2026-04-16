@@ -12,9 +12,15 @@ const { Roles } = require('../config/roles');
 // user id (for example, the `manager@mtc.local` user created by seed.sql) so
 // operations that insert rows with `submitted_by_user_id`/`created_by` do not
 // violate FK constraints. Mock mode ignores the id.
-const parsedSharedUserId = Number.parseInt(process.env.SHARED_SESSION_USER_ID || '', 10);
+const parsedSharedUserId = Number.parseInt(
+  process.env.SHARED_SESSION_USER_ID || '',
+  10
+);
 const sharedSessionUser = Object.freeze({
-  sub: Number.isFinite(parsedSharedUserId) ? parsedSharedUserId : null,
+  // Seed data uses `manager@mtc.local` as users.id = 4, so defaulting to 4
+  // keeps shared-session writes valid in Postgres unless an explicit override
+  // is configured.
+  sub: Number.isFinite(parsedSharedUserId) ? parsedSharedUserId : 4,
   email: process.env.SHARED_SESSION_EMAIL || 'shared-session@mtc.local',
   role: process.env.SHARED_SESSION_ROLE || Roles.STUDENT_MANAGER,
 });

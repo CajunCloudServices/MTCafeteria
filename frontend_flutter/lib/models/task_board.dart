@@ -55,6 +55,16 @@ class TaskChecklistItem {
   final bool requiresCheckoff;
   final bool completed;
 
+  TaskChecklistItem copyWith({bool? completed}) {
+    return TaskChecklistItem(
+      taskId: taskId,
+      phase: phase,
+      description: description,
+      requiresCheckoff: requiresCheckoff,
+      completed: completed ?? this.completed,
+    );
+  }
+
   factory TaskChecklistItem.fromJson(Map<String, dynamic> json) {
     return TaskChecklistItem(
       taskId: json['taskId'] as int,
@@ -81,6 +91,22 @@ class TaskBoard {
   final List<JobOption> jobs;
   final int selectedJobId;
   final List<TaskChecklistItem> tasks;
+
+  TaskBoard copyWith({
+    List<String>? meals,
+    String? selectedMeal,
+    List<JobOption>? jobs,
+    int? selectedJobId,
+    List<TaskChecklistItem>? tasks,
+  }) {
+    return TaskBoard(
+      meals: meals ?? this.meals,
+      selectedMeal: selectedMeal ?? this.selectedMeal,
+      jobs: jobs ?? this.jobs,
+      selectedJobId: selectedJobId ?? this.selectedJobId,
+      tasks: tasks ?? this.tasks,
+    );
+  }
 
   factory TaskBoard.fromJson(Map<String, dynamic> json) {
     final rawJobs = (json['jobs'] as List<dynamic>)

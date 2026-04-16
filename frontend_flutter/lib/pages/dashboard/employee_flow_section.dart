@@ -32,6 +32,7 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
 
   int _step = 0;
   String? _selectedMeal;
+  Map<int, bool> _taskCompletionOverrides = const {};
   int _lastResetSignal = 0;
   int _lastBackSignal = 0;
 
@@ -70,6 +71,22 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
         defer(widget.onBackAtRoot);
       }
     }
+
+    final board = widget.taskBoard;
+    if (board == null || _taskCompletionOverrides.isEmpty) return;
+
+    final nextOverrides = Map<int, bool>.from(_taskCompletionOverrides);
+    nextOverrides.removeWhere((taskId, completed) {
+      for (final task in board.tasks) {
+        if (task.taskId == taskId) {
+          return task.completed == completed;
+        }
+      }
+      return true;
+    });
+    if (nextOverrides.length != _taskCompletionOverrides.length) {
+      _taskCompletionOverrides = nextOverrides;
+    }
   }
 
   int? _selectedJobId;
@@ -79,6 +96,58 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
     final checkoffTasks = tasks.where((t) => t.requiresCheckoff).toList();
     if (checkoffTasks.isEmpty) return true;
     return checkoffTasks.every((t) => t.completed);
+  }
+
+  List<TaskChecklistItem> _applyTaskOverrides(List<TaskChecklistItem> tasks) {
+    if (_taskCompletionOverrides.isEmpty) return tasks;
+    return tasks
+        .map(
+          (task) => _taskCompletionOverrides.containsKey(task.taskId)
+              ? task.copyWith(completed: _taskCompletionOverrides[task.taskId])
+              : task,
+        )
+        .toList();
+  }
+
+  Future<void> _handleTaskToggle(int taskId, bool completed) async {
+    final previousOverride = _taskCompletionOverrides[taskId];
+    final board = widget.taskBoard;
+    bool? previousCompleted;
+    if (board != null) {
+      for (final task in board.tasks) {
+        if (task.taskId == taskId) {
+          previousCompleted = task.completed;
+          break;
+        }
+      }
+    }
+
+    setState(() {
+      _taskCompletionOverrides = {
+        ..._taskCompletionOverrides,
+        taskId: completed,
+      };
+    });
+
+    try {
+      await widget.onTaskToggle(taskId, completed);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        final nextOverrides = Map<int, bool>.from(_taskCompletionOverrides);
+        if (previousOverride != null) {
+          nextOverrides[taskId] = previousOverride;
+        } else if (previousCompleted != null) {
+          nextOverrides.remove(taskId);
+        }
+        _taskCompletionOverrides = nextOverrides;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not update task. Please try again.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -111,15 +180,15 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
     final showCondimentsRotation = selectedJobName == 'Condiments Prep';
     final showAnyInlineReferenceButton = selectedJobName != null;
 
-    final setupTasks = taskBoard.tasks
+    final setupTasks = _applyTaskOverrides(taskBoard.tasks
         .where((t) => t.phase == 'Setup')
-        .toList();
-    final duringTasks = taskBoard.tasks
+        .toList());
+    final duringTasks = _applyTaskOverrides(taskBoard.tasks
         .where((t) => t.phase == 'During Shift')
-        .toList();
-    final cleanupTasks = taskBoard.tasks
+        .toList());
+    final cleanupTasks = _applyTaskOverrides(taskBoard.tasks
         .where((t) => t.phase == 'Cleanup')
-        .toList();
+        .toList());
 
     final setupComplete = _allCheckoffComplete(setupTasks);
     final cleanupComplete = _allCheckoffComplete(cleanupTasks);
@@ -327,7 +396,7 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                     _PhaseChecklist(
                       phase: 'Setup (Before Doors Open)',
                       tasks: setupTasks,
-                      onTaskToggle: widget.onTaskToggle,
+                      onTaskToggle: _handleTaskToggle,
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
@@ -384,7 +453,7 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                     _PhaseChecklist(
                       phase: 'During Shift (Doors Open)',
                       tasks: duringTasks,
-                      onTaskToggle: widget.onTaskToggle,
+                      onTaskToggle: _handleTaskToggle,
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
@@ -440,7 +509,7 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                     _PhaseChecklist(
                       phase: 'Cleanup (After Doors Close)',
                       tasks: cleanupTasks,
-                      onTaskToggle: widget.onTaskToggle,
+                      onTaskToggle: _handleTaskToggle,
                     ),
                     const SizedBox(height: 16),
                     SizedBox(

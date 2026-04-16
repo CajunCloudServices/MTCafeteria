@@ -192,3 +192,49 @@ test('task-admin: password gate + CRUD over jobs and tasks', async (t) => {
     assert.equal(res.status, 404);
   });
 });
+
+test('task-board: employee checklist toggles and returns updated completion', async (t) => {
+  const { server, port } = await startServer();
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+
+  await t.test('marks a setup task complete and persists it in the next board fetch', async () => {
+    const breakfastBoard = await request(port, 'GET', '/api/task-board?meal=Breakfast');
+    assert.equal(breakfastBoard.status, 200);
+    const beveragesJob = breakfastBoard.body.jobs.find((job) => job.name === 'Beverages');
+    assert.ok(beveragesJob, 'Expected breakfast Beverages job to exist');
+
+    const boardBefore = await request(
+      port,
+      'GET',
+      `/api/task-board?meal=Breakfast&jobId=${beveragesJob.id}`
+    );
+    assert.equal(boardBefore.status, 200);
+
+    const targetTask = boardBefore.body.tasks.find(
+      (task) => task.phase === 'Setup' && task.description === 'Turn on beverage machines'
+    );
+    assert.ok(targetTask, 'Expected breakfast beverages setup task to exist');
+    assert.equal(targetTask.completed, false);
+
+    const toggle = await request(
+      port,
+      'POST',
+      `/api/task-board/tasks/${targetTask.taskId}/completion`,
+      { completed: true }
+    );
+    assert.equal(toggle.status, 204);
+
+    const boardAfter = await request(
+      port,
+      'GET',
+      `/api/task-board?meal=Breakfast&jobId=${beveragesJob.id}`
+    );
+    assert.equal(boardAfter.status, 200);
+
+    const updatedTask = boardAfter.body.tasks.find(
+      (task) => task.taskId === targetTask.taskId
+    );
+    assert.ok(updatedTask);
+    assert.equal(updatedTask.completed, true);
+  });
+});
