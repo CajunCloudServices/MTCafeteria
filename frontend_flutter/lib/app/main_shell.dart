@@ -17,13 +17,6 @@ extension _MainShell on _MtcCafeteriaAppState {
     required List<String> availableModes,
   }) {
     if (!isLoggedIn) {
-      if (_runtimeConfig.isPilotProfile) {
-        return PilotAccessPage(
-          isLoading: _state.isLoading,
-          error: _state.error,
-          onRetry: () => _state.initialize(),
-        );
-      }
       return LoginPage(
         isLoading: _state.isLoading,
         error: _state.error,
@@ -43,7 +36,6 @@ extension _MainShell on _MtcCafeteriaAppState {
       return LandingPage(
         items: _state.landingItems,
         canManage: user!.canManageLanding && _adminModeEnabled,
-        isPilotProfile: _runtimeConfig.isPilotProfile,
         onCreate: (payload) => _state.createLandingItem(payload),
         onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
         onDelete: (id) => _state.deleteLandingItem(id),
@@ -67,14 +59,13 @@ extension _MainShell on _MtcCafeteriaAppState {
       );
     }
 
-    if (!_runtimeConfig.isPilotProfile && _selectedIndex == 2) {
+    if (_selectedIndex == 2) {
       return ProfilePage(user: user!);
     }
 
     return LandingPage(
       items: _state.landingItems,
       canManage: user!.canManageLanding && _adminModeEnabled,
-      isPilotProfile: _runtimeConfig.isPilotProfile,
       onCreate: (payload) => _state.createLandingItem(payload),
       onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
       onDelete: (id) => _state.deleteLandingItem(id),
@@ -134,10 +125,7 @@ extension _MainShell on _MtcCafeteriaAppState {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (_) => TrainingDetailPage(
-                isPilotProfile: _runtimeConfig.isPilotProfile,
-                navIndex: _runtimeConfig.isPilotProfile && _selectedIndex > 1
-                    ? 0
-                    : _selectedIndex,
+                navIndex: _selectedIndex,
                 onSelectNav: _handleBottomNavTap,
               ),
             ),
@@ -354,10 +342,7 @@ extension _MainShell on _MtcCafeteriaAppState {
     if (!isLoggedIn) return null;
 
     return AppBottomNav(
-      currentIndex: _runtimeConfig.isPilotProfile && _selectedIndex > 1
-          ? 0
-          : _selectedIndex,
-      isPilotProfile: _runtimeConfig.isPilotProfile,
+      currentIndex: _selectedIndex,
       onTap: _handleBottomNavTap,
     );
   }

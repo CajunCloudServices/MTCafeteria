@@ -40,14 +40,12 @@ extension _ReferenceExtractors on _ReferenceSheetsViewState {
       ..._extractSecondaryAndCheckoff(data),
       '',
       ..._extractCardsAsLines(_lineMiscCards(data)),
-      if (!_runtimeConfig.isPilotProfile) ...[
-        '',
-        ..._extractFoodPrep(data),
-        '',
-        ..._extractMealTimes(data),
-        '',
-        ..._extractSafety(data),
-      ],
+      '',
+      ..._extractFoodPrep(data),
+      '',
+      ..._extractMealTimes(data),
+      '',
+      ..._extractSafety(data),
     ];
   }
 

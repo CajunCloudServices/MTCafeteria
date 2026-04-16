@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/landing_item.dart';
 import '../theme/app_ui_tokens.dart';
 
-const String _pilotFeedbackUrl =
+const String _feedbackFormUrl =
     'https://docs.google.com/forms/d/e/1FAIpQLSdpUPvjK-C2K9TbxKC0-L57WfJe2OFBVqHQpXwuFklC8DNI_Q/viewform?usp=header';
 
 Color _landingTypeColor(String type) {
@@ -55,7 +55,6 @@ class LandingPage extends StatelessWidget {
     super.key,
     required this.items,
     required this.canManage,
-    required this.isPilotProfile,
     required this.onCreate,
     required this.onUpdate,
     required this.onDelete,
@@ -63,14 +62,13 @@ class LandingPage extends StatelessWidget {
 
   final List<LandingItem> items;
   final bool canManage;
-  final bool isPilotProfile;
   final Future<void> Function(Map<String, dynamic>) onCreate;
   final Future<void> Function(int id, Map<String, dynamic>) onUpdate;
   final Future<void> Function(int id) onDelete;
 
-  Future<void> _openPilotFeedbackForm(BuildContext context) async {
+  Future<void> _openFeedbackForm(BuildContext context) async {
     final opened = await launchUrl(
-      Uri.parse(_pilotFeedbackUrl),
+      Uri.parse(_feedbackFormUrl),
       webOnlyWindowName: '_blank',
     );
     if (opened || !context.mounted) return;
@@ -120,14 +118,14 @@ class LandingPage extends StatelessWidget {
                   }
 
                   return Link(
-                    uri: Uri.parse(_pilotFeedbackUrl),
+                    uri: Uri.parse(_feedbackFormUrl),
                     target: LinkTarget.blank,
                     builder: (context, followLink) => _AnnouncementCard(
                       item: const LandingItem(
                         id: -1,
                         type: 'Announcement',
-                        title: 'Pilot Feedback',
-                        content: 'Tell us how the app worked on your shift.',
+                        title: 'App Feedback',
+                        content: 'Tell us how the app is working on your shift.',
                         startDate: '',
                         endDate: '',
                       ),
@@ -138,7 +136,7 @@ class LandingPage extends StatelessWidget {
                           followLink();
                           return;
                         }
-                        _openPilotFeedbackForm(context);
+                        _openFeedbackForm(context);
                       },
                     ),
                   );

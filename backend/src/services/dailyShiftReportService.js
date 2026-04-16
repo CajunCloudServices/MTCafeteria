@@ -28,19 +28,6 @@ const REQUIRED_FIELDS = [
   'summaries',
 ];
 
-const PILOT_EXCLUDED_REQUIRED_FIELDS = new Set([
-  'late',
-  'sick',
-  'noShows',
-  'seniorCashier',
-  'juniorCashier',
-  'specialtyMealsAttendantAndPlateCount',
-  'oneOnOne',
-  'shiftShoutout',
-  'trainings',
-  'serviceMissionariesPresentForShift',
-]);
-
 function normalizeMeal(mealInput) {
   return MEALS.includes(mealInput) ? mealInput : 'Breakfast';
 }
@@ -87,22 +74,9 @@ function assertLeadershipRole(role) {
   }
 }
 
-function isPilotProfile(appProfile) {
-  return String(appProfile || '').trim().toLowerCase() === 'pilot';
-}
-
-function requiredFieldsForProfile(appProfile) {
-  if (!isPilotProfile(appProfile)) {
-    return REQUIRED_FIELDS;
-  }
-  return REQUIRED_FIELDS.filter(
-    (key) => !PILOT_EXCLUDED_REQUIRED_FIELDS.has(key)
-  );
-}
-
-function assertPayloadComplete(payload, { appProfile } = {}) {
+function assertPayloadComplete(payload) {
   const normalized = normalizePayload(payload);
-  const missing = requiredFieldsForProfile(appProfile).filter(
+  const missing = REQUIRED_FIELDS.filter(
     (key) => normalized[key].length === 0
   );
   if (missing.length > 0) {
@@ -287,10 +261,9 @@ async function submitLineShiftReport({
   requesterRole,
   meal,
   payload,
-  appProfile,
 }) {
   assertSupervisorRole(requesterRole);
-  assertPayloadComplete(payload, { appProfile });
+  assertPayloadComplete(payload);
 
   const selectedMeal = normalizeMeal(meal);
   const reportDate = todayDateString();

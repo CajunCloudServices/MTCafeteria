@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_ui_tokens.dart';
 
-/// Standard email/password login used outside pilot mode.
+/// Standard email/password login used when the shared session is disabled.
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,

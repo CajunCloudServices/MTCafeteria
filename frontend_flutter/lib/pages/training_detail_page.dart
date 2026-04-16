@@ -13,12 +13,10 @@ import '../widgets/shift_selection_cards.dart';
 class TrainingDetailPage extends StatefulWidget {
   const TrainingDetailPage({
     super.key,
-    required this.isPilotProfile,
     required this.navIndex,
     required this.onSelectNav,
   });
 
-  final bool isPilotProfile;
   final int navIndex;
   final ValueChanged<int> onSelectNav;
 
@@ -222,7 +220,6 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
         ),
         bottomNavigationBar: AppBottomNav(
           currentIndex: widget.navIndex,
-          isPilotProfile: widget.isPilotProfile,
           onTap: _handleBottomNavSelection,
         ),
       );
@@ -321,7 +318,6 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
         ),
         bottomNavigationBar: AppBottomNav(
           currentIndex: widget.navIndex,
-          isPilotProfile: widget.isPilotProfile,
           onTap: _handleBottomNavSelection,
         ),
         body: DecoratedBox(

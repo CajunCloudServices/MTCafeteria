@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/landing_page.dart';
 import 'pages/login_page.dart';
-import 'pages/pilot_access_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/reference_sheets_view.dart';
 import 'pages/task_editor_page.dart';
@@ -120,24 +119,10 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   ];
 
   List<String> _availableTracksForRole(String role) {
-    // Pilot mode intentionally exposes only the tracks being tested.
-    if (_runtimeConfig.isPilotProfile) {
-      return const ['Line', 'Kitchen Jobs'];
-    }
     return _defaultShiftTracks;
   }
 
   List<String> _lineModesForRole(String role) {
-    if (_runtimeConfig.isPilotProfile) {
-      switch (role) {
-        case 'Supervisor':
-        case 'Student Manager':
-          return const ['Supervisor', 'Lead Trainer', 'Employee'];
-        default:
-          return const ['Employee'];
-      }
-    }
-
     switch (role) {
       case 'Lead Trainer':
         return const ['Lead Trainer', 'Employee'];
@@ -245,21 +230,18 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
 
   void _handleBottomNavTap(int index) {
     final role = _state.user?.role;
-    final effectiveIndex = _runtimeConfig.isPilotProfile && index > 1
-        ? 1
-        : index;
     if (role == null) {
-      setState(() => _selectedIndex = effectiveIndex);
+      setState(() => _selectedIndex = index);
       return;
     }
 
     setState(() {
-      if (effectiveIndex == 1) {
+      if (index == 1) {
         _selectedIndex = 1;
         _returnToDashboardHubAndReset(role);
         return;
       }
-      _selectedIndex = effectiveIndex;
+      _selectedIndex = index;
     });
   }
 
@@ -281,12 +263,6 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   }
 
   Future<void> _confirmAndLogout(BuildContext context) async {
-    if (_runtimeConfig.isPilotProfile) {
-      // Pilot mode intentionally behaves like a kiosk flow with no explicit
-      // logout affordance.
-      return;
-    }
-
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -750,12 +726,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                             Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => TrainingDetailPage(
-                                  isPilotProfile: _runtimeConfig.isPilotProfile,
-                                  navIndex:
-                                      _runtimeConfig.isPilotProfile &&
-                                          _selectedIndex > 1
-                                      ? 0
-                                      : _selectedIndex,
+                                  navIndex: _selectedIndex,
                                   onSelectNav: _handleBottomNavTap,
                                 ),
                               ),
@@ -764,7 +735,6 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           }
 
                           if (value == 'logout') {
-                            if (_runtimeConfig.isPilotProfile) return;
                             _confirmAndLogout(context);
                           }
                         },
@@ -875,18 +845,17 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                                 ],
                               ),
                             ),
-                          if (!_runtimeConfig.isPilotProfile)
-                            const PopupMenuItem<String>(
-                              key: ValueKey('menu-logout'),
-                              value: 'logout',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.logout, size: 18),
-                                  SizedBox(width: 10),
-                                  Text('Logout'),
-                                ],
-                              ),
+                          const PopupMenuItem<String>(
+                            key: ValueKey('menu-logout'),
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, size: 18),
+                                SizedBox(width: 10),
+                                Text('Logout'),
+                              ],
                             ),
+                          ),
                         ],
                       ),
                   ],

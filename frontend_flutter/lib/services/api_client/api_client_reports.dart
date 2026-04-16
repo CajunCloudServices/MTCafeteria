@@ -64,7 +64,6 @@ extension ApiClientReports on ApiClient {
     String token, {
     required String meal,
     required Map<String, String> payload,
-    required bool isPilotProfile,
   }) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/api/daily-shift-reports/current/submit'),
@@ -72,7 +71,6 @@ extension ApiClientReports on ApiClient {
       body: jsonEncode({
         'meal': meal,
         'payload': payload,
-        'appProfile': isPilotProfile ? 'pilot' : 'full',
       }),
     );
 

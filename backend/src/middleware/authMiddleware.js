@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const { Roles } = require('../config/roles');
 
-// The pilot runs as a shared operational session instead of a per-user login.
+// The app runs as a shared operational session instead of a per-user login.
 // This object is attached to every request unless a caller supplies a valid
 // JWT (supervisor / manager tools may still issue and present tokens). The
 // role defaults to Student Manager so admin-only landing mutations succeed
@@ -40,7 +40,7 @@ function requireAuth(req, _res, next) {
       };
       return next();
     } catch (_error) {
-      // Fall through to shared session. The pilot never hard-fails on auth so
+      // Fall through to shared session. The app never hard-fails on auth so
       // an expired/bad token never locks the shared app out of content reads.
     }
   }

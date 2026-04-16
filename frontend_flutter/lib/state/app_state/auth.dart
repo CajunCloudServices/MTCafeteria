@@ -12,9 +12,8 @@ extension AppStateAuth on AppState {
     _stateChanged();
 
     try {
-      // The deployed app now runs as a shared operational session. Boot the
-      // same supervisor-capable session immediately instead of showing a
-      // visible credential form with prefilled local passwords.
+      // The app runs as a shared operational session, so boot directly into a
+      // supervisor-capable user instead of showing a credential form.
       _token = '';
       user = const UserSession(
         id: 0,
@@ -53,9 +52,8 @@ extension AppStateAuth on AppState {
       final result = await _apiClient.login(email: email, password: password);
       _token = result.token;
       user = result.user;
-      // Refresh only the feature areas that are actually enabled for the
-      // current runtime profile so pilot builds do not depend on hidden
-      // modules.
+      // Refresh only the feature areas that are actually enabled so the app
+      // does not depend on any module that has been toggled off at build time.
       await Future.wait([
         refreshLandingItems(),
         if (_features.trainingsEnabled) refreshTrainingsIfAllowed(),

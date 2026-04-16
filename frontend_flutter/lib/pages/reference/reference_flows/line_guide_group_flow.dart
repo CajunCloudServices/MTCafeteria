@@ -9,9 +9,9 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
       'Deep Cleaning Assignments',
       'Secondary + Checkoff',
       'Misc',
-      if (!_runtimeConfig.isPilotProfile) 'Fruit Prep (Grapes/Kiwi)',
-      if (!_runtimeConfig.isPilotProfile) 'Meal Door Times',
-      if (!_runtimeConfig.isPilotProfile) 'Food Safety',
+      'Fruit Prep (Grapes/Kiwi)',
+      'Meal Door Times',
+      'Food Safety',
     ];
   }
 

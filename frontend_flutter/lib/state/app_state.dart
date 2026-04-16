@@ -26,8 +26,7 @@ part 'app_state/reports.dart';
 /// the same role/feature rules apply consistently across pages.
 class AppState extends ChangeNotifier {
   AppState({ApiClient? apiClient, AppRuntimeConfig? runtimeConfig})
-    : _runtimeConfig = runtimeConfig ?? AppRuntimeConfig.fromEnvironment,
-      _features = AppFeatures.fromRuntimeConfig(
+    : _features = AppFeatures.fromRuntimeConfig(
         runtimeConfig ?? AppRuntimeConfig.fromEnvironment,
       ),
       _apiClient =
@@ -182,7 +181,6 @@ class AppState extends ChangeNotifier {
     ),
   ];
 
-  final AppRuntimeConfig _runtimeConfig;
   final AppFeatures _features;
   final ApiClient _apiClient;
 

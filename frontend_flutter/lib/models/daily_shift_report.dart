@@ -14,7 +14,6 @@ class DailyShiftReportField {
     this.maxLines = 2,
     this.inputType = DailyShiftReportInputType.text,
     this.readOnly = false,
-    this.pilotVisible = true,
   });
 
   final String key;
@@ -24,7 +23,6 @@ class DailyShiftReportField {
   final int maxLines;
   final DailyShiftReportInputType inputType;
   final bool readOnly;
-  final bool pilotVisible;
 }
 
 /// Canonical field list for the regular line shift report.
@@ -84,21 +82,18 @@ const List<DailyShiftReportField> lineShiftReportFields = [
     label: 'Late',
     section: 'Attendance',
     inputType: DailyShiftReportInputType.number,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'sick',
     label: 'Sick',
     section: 'Attendance',
     inputType: DailyShiftReportInputType.number,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'noShows',
     label: 'No Shows',
     section: 'Attendance',
     inputType: DailyShiftReportInputType.number,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'deepClean',
@@ -110,14 +105,12 @@ const List<DailyShiftReportField> lineShiftReportFields = [
     label: 'Senior Cashier',
     section: 'Shift Coverage',
     inputType: DailyShiftReportInputType.name,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'juniorCashier',
     label: 'Junior Cashier',
     section: 'Shift Coverage',
     inputType: DailyShiftReportInputType.name,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'sackCashier',
@@ -125,14 +118,12 @@ const List<DailyShiftReportField> lineShiftReportFields = [
     section: 'Shift Coverage',
     required: false,
     inputType: DailyShiftReportInputType.name,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'specialtyMealsAttendantAndPlateCount',
     label: 'Specialty Meals Attendant and Plate Count',
     section: 'Shift Coverage',
     maxLines: 3,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'dinnerChoicesAlohaPerson',
@@ -141,21 +132,18 @@ const List<DailyShiftReportField> lineShiftReportFields = [
     required: false,
     maxLines: 3,
     inputType: DailyShiftReportInputType.name,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'oneOnOne',
     label: '1 on 1',
     section: 'Coaching and Notes',
     maxLines: 3,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'shiftShoutout',
     label: 'Shift Shoutout',
     section: 'Coaching and Notes',
     maxLines: 3,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'entreeItemOutage',
@@ -198,14 +186,12 @@ const List<DailyShiftReportField> lineShiftReportFields = [
     label: 'Trainings',
     section: 'Coaching and Notes',
     maxLines: 3,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'serviceMissionariesPresentForShift',
     label: 'Service Missionaries Present For Shift',
     section: 'Shift Coverage',
     maxLines: 3,
-    pilotVisible: false,
   ),
   DailyShiftReportField(
     key: 'summaries',
@@ -221,21 +207,6 @@ const List<DailyShiftReportField> lineShiftReportFields = [
 /// omits empty values.
 Map<String, String> emptyLineShiftReportPayload() {
   return {for (final field in lineShiftReportFields) field.key: ''};
-}
-
-/// Returns the subset of daily shift report fields appropriate for the current
-/// profile.
-List<DailyShiftReportField> visibleLineShiftReportFields({
-  required bool isPilotProfile,
-}) {
-  if (!isPilotProfile) return lineShiftReportFields;
-  return lineShiftReportFields.where((field) {
-    if (!field.pilotVisible) return false;
-    // Pilot mode excludes attendance-related and training-related inputs.
-    if (field.section == 'Attendance') return false;
-    if (field.key == 'trainings') return false;
-    return true;
-  }).toList();
 }
 
 /// Client-side representation of a saved or submitted line shift report.

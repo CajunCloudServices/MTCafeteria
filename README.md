@@ -1,6 +1,6 @@
-# MTC Cafeteria Pilot
+# MTC Cafeteria
 
-Pilot-only cafeteria operations app for Flutter web + Node/Express + PostgreSQL.
+Cafeteria operations app for Flutter web + Node/Express + PostgreSQL.
 
 ## What this repo is
 
@@ -10,10 +10,9 @@ It is intentionally simple:
 - no user login screen
 - no employee account creation
 - no profile system
-- pilot-only launch path
 - admin-only edits are gated inside the app by a password prompt
 
-The app is focused on the pilot surfaces that workers actually use:
+The app is focused on the operational surfaces that workers actually use:
 
 - Home / announcements
 - Dashboard / shift workflows
@@ -54,7 +53,7 @@ The backend serves these main domains:
 - task board and supervisor board data
 - training feeds for legacy compatibility
 
-The pilot does not use a public login endpoint or user account flow.
+The app does not use a public login endpoint or user account flow.
 
 ## Local Development
 
@@ -95,9 +94,9 @@ Admin edits are intentionally simple and in-app:
 - guides and reference text can be edited from the dashboard editor
 - inventory and task-note text can be edited through the shared content editor
 
-There is no separate user login system for the pilot. The only interactive
-gate is the in-app admin password prompt used for edit actions. On the backend
-the same write routes are additionally role-gated (only callers in the
+There is no separate user login system. The only interactive gate is the
+in-app admin password prompt used for edit actions. On the backend the same
+write routes are additionally role-gated (only callers in the
 `Student Manager` role are allowed to mutate landing items). Network access to
 the deployed API is restricted by the surrounding infrastructure (Coolify,
 tunnel, firewall).
@@ -228,7 +227,7 @@ flutter run -d chrome --web-port 3006 --dart-define=API_BASE_URL=http://localhos
 
 ## Daily Shift Report Payload
 
-The full daily shift report expects these fields on submit:
+The daily shift report expects these fields on submit:
 
 - `count`
 - `late`
@@ -248,19 +247,6 @@ The full daily shift report expects these fields on submit:
 - `generalComments`
 - `trainings`
 - `serviceMissionariesPresentForShift`
-- `summaries`
-
-Pilot submissions (`appProfile: "pilot"`) only require a slimmed subset that
-matches the cards actually shown in the pilot UI:
-
-- `count`
-- `deepClean`
-- `entreeItemOutage`
-- `productOutage`
-- `productSurplus`
-- `lockersChecked`
-- `maintenanceConcerns`
-- `generalComments`
 - `summaries`
 
 If incomplete, submit returns `400` with:

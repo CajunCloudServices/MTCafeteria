@@ -1,4 +1,4 @@
-/// Central runtime configuration for web, local development, and pilot mode.
+/// Central runtime configuration for web and local development.
 ///
 /// Everything here is resolved from `--dart-define` values so the same build
 /// can be deployed with different behavior without editing source code.
@@ -6,7 +6,6 @@ class AppRuntimeConfig {
   const AppRuntimeConfig({
     required this.apiBaseUrl,
     required this.appMode,
-    required this.appProfile,
     required this.featureManagerPortal,
     required this.featurePoints,
     required this.featureDailyShiftReports,
@@ -16,7 +15,6 @@ class AppRuntimeConfig {
 
   final String apiBaseUrl;
   final String appMode;
-  final String appProfile;
   final String featureManagerPortal;
   final String featurePoints;
   final String featureDailyShiftReports;
@@ -26,7 +24,6 @@ class AppRuntimeConfig {
   static const AppRuntimeConfig fromEnvironment = AppRuntimeConfig(
     apiBaseUrl: String.fromEnvironment('API_BASE_URL', defaultValue: ''),
     appMode: String.fromEnvironment('APP_MODE', defaultValue: 'dev'),
-    appProfile: String.fromEnvironment('APP_PROFILE', defaultValue: 'full'),
     featureManagerPortal: String.fromEnvironment(
       'FEATURE_MANAGER_PORTAL',
       defaultValue: 'auto',
@@ -48,8 +45,6 @@ class AppRuntimeConfig {
       defaultValue: 'auto',
     ),
   );
-
-  bool get isPilotProfile => appProfile.trim().toLowerCase() == 'pilot';
 
   /// Chooses a backend base URL that works across local web, deployed web, and
   /// file-based launch paths used by some simulator/browser setups.

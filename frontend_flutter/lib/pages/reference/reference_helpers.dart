@@ -238,14 +238,12 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
       title: 'Misc',
       items: _extractCardsAsLines(_lineMiscCards(data)),
     );
-    if (!_runtimeConfig.isPilotProfile) {
-      addLineSection(
-        title: 'Fruit Prep (Grapes/Kiwi)',
-        items: _extractFoodPrep(data),
-      );
-      addLineSection(title: 'Meal Door Times', items: _extractMealTimes(data));
-      addLineSection(title: 'Food Safety', items: _extractSafety(data));
-    }
+    addLineSection(
+      title: 'Fruit Prep (Grapes/Kiwi)',
+      items: _extractFoodPrep(data),
+    );
+    addLineSection(title: 'Meal Door Times', items: _extractMealTimes(data));
+    addLineSection(title: 'Food Safety', items: _extractSafety(data));
 
     addCardSection(
       topSection: 'Dishroom',

@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/line_deep_clean_assignments.dart';
-import '../config/runtime_config.dart';
 import '../theme/app_ui_tokens.dart';
 
 part 'reference/reference_catalog.dart';
@@ -49,7 +48,6 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   static const String _customLockerItemsKey = 'custom_locker_items_v1';
   static const String _deletedLockerItemsKey = 'deleted_locker_items_v1';
   static const String _guideOverridesKey = 'guide_overrides_v1';
-  final AppRuntimeConfig _runtimeConfig = AppRuntimeConfig.fromEnvironment;
   late final Future<Map<String, dynamic>> _referenceFuture;
   final TransformationController _mapTransformationController =
       TransformationController();
@@ -335,8 +333,8 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   }
 
   Future<Map<String, dynamic>> _loadReferenceData() async {
-    // Reference content is bundled as an asset so pilot mode can operate
-    // without additional backend dependencies.
+    // Reference content is bundled as an asset so the app can render guide
+    // pages without additional backend dependencies.
     final raw = await rootBundle.loadString(
       'assets/reference/cafeteria_reference_data.json',
     );

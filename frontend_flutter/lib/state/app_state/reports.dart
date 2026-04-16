@@ -6,14 +6,6 @@ extension AppStateReports on AppState {
     final selectedMeal = meal ?? supervisorBoard?.selectedMeal ?? 'Breakfast';
     currentLineShiftReportError = null;
 
-    if (_runtimeConfig.isPilotProfile) {
-      // Pilot should always start from a blank report instead of hydrating any
-      // prior draft/submission tied to the shared pilot account.
-      currentLineShiftReport = null;
-      _stateChanged();
-      return;
-    }
-
     try {
       currentLineShiftReport = await _apiClient.getCurrentDailyShiftReport(
         _token!,
@@ -50,7 +42,6 @@ extension AppStateReports on AppState {
       _token!,
       meal: meal,
       payload: payload,
-      isPilotProfile: _runtimeConfig.isPilotProfile,
     );
     currentLineShiftReportError = null;
     _stateChanged();
