@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 import '../models/chatbot.dart';
 
@@ -224,7 +225,13 @@ class _GlobalChatWidgetState extends State<GlobalChatWidget> {
                             : const Color(0xFFF6F8FB),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Text(message.text),
+                      child: isUser
+                          ? Text(message.text)
+                          : MarkdownBody(
+                              data: message.text,
+                              shrinkWrap: true,
+                              styleSheet: MarkdownStyleSheet.fromTheme(theme),
+                            ),
                     ),
                   );
                 },
