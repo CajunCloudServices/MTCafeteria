@@ -153,7 +153,7 @@ void main() {
         onTaskToggle: (taskId, completed) => completer.future,
       );
 
-      expect(find.text('Step 3 of 5'), findsOneWidget);
+      expect(find.text('Setup (Before Doors Open)'), findsOneWidget);
       expect(
         tester
             .widget<FilledButton>(find.widgetWithText(FilledButton, 'Next'))
