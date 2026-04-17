@@ -1,10 +1,6 @@
 part of '../dashboard_page.dart';
 
-enum _StudentManagerPortalPane {
-  announcements,
-  points,
-  reports,
-}
+enum _StudentManagerPortalPane { announcements, points, reports }
 
 class _StudentManagerPortalSection extends StatefulWidget {
   const _StudentManagerPortalSection({
@@ -57,7 +53,8 @@ class _StudentManagerPortalSection extends StatefulWidget {
   final Future<void> Function() onRefreshPointCenter;
   final Future<void> Function() onRefreshDailyShiftReports;
   final Future<void> Function(Map<String, dynamic>) onCreateAnnouncement;
-  final Future<void> Function(int id, Map<String, dynamic>) onUpdateAnnouncement;
+  final Future<void> Function(int id, Map<String, dynamic>)
+  onUpdateAnnouncement;
   final Future<void> Function(int id) onDeleteAnnouncement;
   final Future<void> Function() onOpenTaskEditor;
 
@@ -70,6 +67,27 @@ class _StudentManagerPortalSectionState
     extends State<_StudentManagerPortalSection> {
   _StudentManagerPortalPane _selectedPane =
       _StudentManagerPortalPane.announcements;
+
+  String _paneLabel(_StudentManagerPortalPane pane) {
+    switch (pane) {
+      case _StudentManagerPortalPane.announcements:
+        return 'Edit Announcements';
+      case _StudentManagerPortalPane.points:
+        return 'Assign Points';
+      case _StudentManagerPortalPane.reports:
+        return 'Daily Shift Reports';
+    }
+  }
+
+  Future<void> _selectPane(_StudentManagerPortalPane pane) async {
+    if (pane == _StudentManagerPortalPane.reports) {
+      await widget.onRefreshDailyShiftReports();
+      if (!mounted) return;
+    }
+    setState(() {
+      _selectedPane = pane;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,48 +109,26 @@ class _StudentManagerPortalSectionState
                   'Manager-only tools for announcements, point assignments, daily shift reports, and task administration.',
                 ),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _PortalButton(
-                      label: 'Edit Announcements',
-                      selected:
-                          _selectedPane == _StudentManagerPortalPane.announcements,
-                      onPressed: () {
-                        setState(() {
-                          _selectedPane =
-                              _StudentManagerPortalPane.announcements;
-                        });
-                      },
-                    ),
-                    _PortalButton(
-                      label: 'Assign Points',
-                      selected: _selectedPane == _StudentManagerPortalPane.points,
-                      onPressed: () {
-                        setState(() {
-                          _selectedPane = _StudentManagerPortalPane.points;
-                        });
-                      },
-                    ),
-                    _PortalButton(
-                      label: 'Daily Shift Reports',
-                      selected:
-                          _selectedPane == _StudentManagerPortalPane.reports,
-                      onPressed: () async {
-                        await widget.onRefreshDailyShiftReports();
-                        if (!mounted) return;
-                        setState(() {
-                          _selectedPane = _StudentManagerPortalPane.reports;
-                        });
-                      },
-                    ),
-                    _PortalButton(
-                      label: 'Edit Jobs & Tasks',
-                      selected: false,
-                      onPressed: widget.onOpenTaskEditor,
-                    ),
-                  ],
+                DropdownButtonFormField<_StudentManagerPortalPane>(
+                  initialValue: _selectedPane,
+                  decoration: const InputDecoration(labelText: 'Manager tool'),
+                  items: _StudentManagerPortalPane.values
+                      .map(
+                        (pane) => DropdownMenuItem<_StudentManagerPortalPane>(
+                          value: pane,
+                          child: Text(_paneLabel(pane)),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (pane) {
+                    if (pane == null) return;
+                    _selectPane(pane);
+                  },
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: widget.onOpenTaskEditor,
+                  child: const Text('Edit Jobs & Tasks'),
                 ),
               ],
             ),
@@ -176,33 +172,6 @@ class _StudentManagerPortalSectionState
             onRefresh: widget.onRefreshDailyShiftReports,
           ),
       ],
-    );
-  }
-}
-
-class _PortalButton extends StatelessWidget {
-  const _PortalButton({
-    required this.label,
-    required this.selected,
-    required this.onPressed,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        backgroundColor: selected ? const Color(0xFFE6F0FC) : Colors.white,
-        side: BorderSide(
-          color: selected ? const Color(0xFF7FA8D6) : const Color(0xFFC1D4EA),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      child: Text(label),
     );
   }
 }
