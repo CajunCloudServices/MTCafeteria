@@ -20,7 +20,7 @@ void main() {
   );
 
   test(
-    'shared session boots as supervisor and manager unlock swaps report auth',
+    'shared session boots as employee and manager unlock swaps report auth',
     () async {
       final reportAuthHeaders = <String?>[];
 
@@ -28,20 +28,37 @@ void main() {
         if (request.url.path == '/api/auth/login' && request.method == 'POST') {
           final body = jsonDecode(request.body) as Map<String, dynamic>;
           final email = body['email'] as String;
-          final isManager = email == 'manager@mtc.local';
-          return http.Response(
-            jsonEncode({
-              'token': isManager ? 'manager-token' : 'supervisor-token',
-              'user': {
-                'id': isManager ? 4 : 3,
-                'email': email,
-                'role': isManager ? 'Student Manager' : 'Supervisor',
-                'points': isManager ? 6 : 9,
-              },
-            }),
-            200,
-            headers: {'content-type': 'application/json'},
-          );
+          if (email == 'manager@mtc.local') {
+            return http.Response(
+              jsonEncode({
+                'token': 'manager-token',
+                'user': {
+                  'id': 4,
+                  'email': email,
+                  'role': 'Student Manager',
+                  'points': 6,
+                },
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (email == 'employee3@mtc.local') {
+            return http.Response(
+              jsonEncode({
+                'token': 'employee-shared-token',
+                'user': {
+                  'id': 6,
+                  'email': email,
+                  'role': 'Employee',
+                  'points': 5,
+                },
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response('Unknown user', 404);
         }
 
         if (request.url.path == '/api/content/landing-items') {
@@ -134,9 +151,10 @@ void main() {
 
       await state.initialize();
 
-      expect(state.user?.role, 'Supervisor');
-      expect(state.authToken, 'supervisor-token');
-      expect(reportAuthHeaders.last, 'Bearer supervisor-token');
+      expect(state.user?.role, 'Employee');
+      expect(state.user?.points, 5);
+      expect(state.authToken, 'employee-shared-token');
+      expect(reportAuthHeaders, isEmpty);
 
       await state.enterStudentManagerMode();
 
@@ -146,9 +164,10 @@ void main() {
 
       await state.restoreSharedSession();
 
-      expect(state.user?.role, 'Supervisor');
-      expect(state.authToken, 'supervisor-token');
-      expect(reportAuthHeaders.last, 'Bearer supervisor-token');
+      expect(state.user?.role, 'Employee');
+      expect(state.user?.points, 5);
+      expect(state.authToken, 'employee-shared-token');
+      expect(reportAuthHeaders.last, 'Bearer manager-token');
     },
   );
 
@@ -159,20 +178,37 @@ void main() {
       if (request.url.path == '/api/auth/login' && request.method == 'POST') {
         final body = jsonDecode(request.body) as Map<String, dynamic>;
         final email = body['email'] as String;
-        final isManager = email == 'manager@mtc.local';
-        return http.Response(
-          jsonEncode({
-            'token': isManager ? 'manager-token' : 'supervisor-token',
-            'user': {
-              'id': isManager ? 4 : 3,
-              'email': email,
-              'role': isManager ? 'Student Manager' : 'Supervisor',
-              'points': isManager ? 6 : 9,
-            },
-          }),
-          200,
-          headers: {'content-type': 'application/json'},
-        );
+        if (email == 'manager@mtc.local') {
+          return http.Response(
+            jsonEncode({
+              'token': 'manager-token',
+              'user': {
+                'id': 4,
+                'email': email,
+                'role': 'Student Manager',
+                'points': 6,
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (email == 'employee3@mtc.local') {
+          return http.Response(
+            jsonEncode({
+              'token': 'employee-shared-token',
+              'user': {
+                'id': 6,
+                'email': email,
+                'role': 'Employee',
+                'points': 5,
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('Unknown user', 404);
       }
 
       if (request.url.path == '/api/content/landing-items') {
@@ -249,8 +285,8 @@ void main() {
     );
 
     await state.initialize();
-    expect(state.user?.role, 'Supervisor');
-    expect(state.authToken, 'supervisor-token');
+    expect(state.user?.role, 'Employee');
+    expect(state.authToken, 'employee-shared-token');
 
     await state.enterStudentManagerMode();
     expect(state.user?.role, 'Student Manager');
