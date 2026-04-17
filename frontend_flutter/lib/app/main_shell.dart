@@ -198,8 +198,14 @@ extension _MainShell on _MtcCafeteriaAppState {
           _updateUi(() {
             _dashboardRoleConfirmed = true;
           });
-          if (_dashboardTrack == 'Line' && _dashboardMode == 'Supervisor') {
-            _state.refreshSupervisorBoard();
+          if (_dashboardTrack == 'Line') {
+            if (_dashboardMode == 'Supervisor') {
+              _state.refreshSupervisorBoard();
+            } else if (_dashboardMode == 'Lead Trainer') {
+              _state.refreshTrainerBoard();
+            } else if (_dashboardMode == 'Employee') {
+              _state.refreshTaskBoard();
+            }
           }
         },
       );
