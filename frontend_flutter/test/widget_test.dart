@@ -73,36 +73,36 @@ void main() {
             supervisorSecondaries: const [],
             supervisorDeepCleanChecked: false,
             currentLineShiftReport: null,
-            onSelectMeal: (_) async {},
-            onSelectJob: (_) async {},
+            onSelectMeal: (meal) async {},
+            onSelectJob: (jobId) async {},
             onTaskToggle: onTaskToggle,
-            onResetEmployeeFlow: (_, __) async {},
-            onSelectTrainerMeal: (_) async {},
+            onResetEmployeeFlow: (meal, jobId) async {},
+            onSelectTrainerMeal: (meal) async {},
             trainerTraineeCount: 1,
             trainerSelectedTraineeSlot: 0,
             trainerTraineeJobBySlot: const {0: null},
             trainerSlotTasks: const {},
-            onSetTrainerTraineeCount: (_) {},
-            onSetTrainerTraineeJob: (_, __) async {},
-            onSelectTrainerTraineeSlot: (_) {},
-            onTrainerSlotTaskToggle: (_, __, ___) async {},
+            onSetTrainerTraineeCount: (count) {},
+            onSetTrainerTraineeJob: (slot, jobId) async {},
+            onSelectTrainerTraineeSlot: (slot) {},
+            onTrainerSlotTaskToggle: (slot, taskId, completed) async {},
             onResetLeadTrainerFlow: () {},
-            onSelectTrainerJobs: (_) async {},
-            onTrainerTaskToggle: (_, __, ___) async {},
-            onSelectSupervisorMeal: (_) async {},
-            onSupervisorOpenJob: (_) async {},
+            onSelectTrainerJobs: (jobIds) async {},
+            onTrainerTaskToggle: (traineeUserId, taskId, completed) async {},
+            onSelectSupervisorMeal: (meal) async {},
+            onSupervisorOpenJob: (jobId) async {},
             onSupervisorCloseJob: () {},
-            onSupervisorTaskToggle: (_, __) async {},
-            onSupervisorBulkTaskToggle: (_, __) async {},
-            onSupervisorPanelModeChanged: (_) {},
-            onSupervisorSecondaryToggle: (_, __) {},
-            onSupervisorDeepCleanToggle: (_) {},
+            onSupervisorTaskToggle: (taskId, completed) async {},
+            onSupervisorBulkTaskToggle: (jobId, completed) async {},
+            onSupervisorPanelModeChanged: (mode) {},
+            onSupervisorSecondaryToggle: (name, checked) {},
+            onSupervisorDeepCleanToggle: (checked) {},
             onSupervisorResetSecondaries: () {},
             onResetSupervisorChecks: () async {},
             onReloadSupervisorBoard: () async {},
-            onLoadCurrentLineShiftReport: (_) async {},
-            onSaveCurrentLineShiftReport: (_, __) async {},
-            onSubmitCurrentLineShiftReport: (_, __) async {},
+            onLoadCurrentLineShiftReport: (meal) async {},
+            onSaveCurrentLineShiftReport: (meal, report) async {},
+            onSubmitCurrentLineShiftReport: (meal, report) async {},
             pendingAssignments: const [],
             pointSentAssignments: const [],
             pointApprovalAssignments: const [],
@@ -111,15 +111,16 @@ void main() {
             pointSentError: null,
             pointAssignableUsersError: null,
             pointApprovalQueueError: null,
-            onAcceptPointAssignment: (_, __) async {},
-            onAssignPoints: ({
-              required assignedToUserId,
-              required pointsDelta,
-              required assignmentDate,
-              required reason,
-              required assignmentDescription,
-            }) async {},
-            onApprovePointAssignment: (_) async {},
+            onAcceptPointAssignment: (assignmentId, accepted) async {},
+            onAssignPoints:
+                ({
+                  required assignedToUserId,
+                  required pointsDelta,
+                  required assignmentDate,
+                  required reason,
+                  required assignmentDescription,
+                }) async {},
+            onApprovePointAssignment: (assignmentId) async {},
             onRefreshPointCenter: () async {},
           ),
         ),
@@ -133,61 +134,80 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('employee setup tasks check off immediately while async save runs', (
-    tester,
-  ) async {
-    final completer = Completer<void>();
-    await pumpEmployeeDashboard(
-      tester,
-      onTaskToggle: (_, __) => completer.future,
-    );
+  testWidgets(
+    'employee setup tasks check off immediately while async save runs',
+    (tester) async {
+      final completer = Completer<void>();
+      await pumpEmployeeDashboard(
+        tester,
+        onTaskToggle: (taskId, completed) => completer.future,
+      );
 
-    expect(find.text('Step 3 of 5'), findsOneWidget);
-    expect(
-      tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Next')).onPressed,
-      isNull,
-    );
+      expect(find.text('Step 3 of 5'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Next'))
+            .onPressed,
+        isNull,
+      );
 
-    await tester.tap(
-      find.widgetWithText(CheckboxListTile, 'Ensure all beverages are stocked'),
-    );
-    await tester.pump();
-    await tester.tap(
-      find.widgetWithText(CheckboxListTile, 'Turn on beverage machines'),
-    );
-    await tester.pump();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'Check bib room'));
-    await tester.pump();
+      await tester.tap(
+        find.widgetWithText(
+          CheckboxListTile,
+          'Ensure all beverages are stocked',
+        ),
+      );
+      await tester.pump();
+      await tester.tap(
+        find.widgetWithText(CheckboxListTile, 'Turn on beverage machines'),
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Check bib room'));
+      await tester.pump();
 
-    final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
-    expect(checkboxes, hasLength(3));
-    expect(checkboxes.every((checkbox) => checkbox.value ?? false), isTrue);
-    expect(
-      tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Next')).onPressed,
-      isNotNull,
-    );
+      final checkboxes = tester
+          .widgetList<Checkbox>(find.byType(Checkbox))
+          .toList();
+      expect(checkboxes, hasLength(3));
+      expect(checkboxes.every((checkbox) => checkbox.value ?? false), isTrue);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Next'))
+            .onPressed,
+        isNotNull,
+      );
 
-    completer.complete();
-  });
+      completer.complete();
+    },
+  );
 
-  testWidgets('employee setup task rolls back and shows an error when save fails', (
-    tester,
-  ) async {
-    await pumpEmployeeDashboard(
-      tester,
-      onTaskToggle: (_, __) async {
-        throw Exception('network failed');
-      },
-    );
+  testWidgets(
+    'employee setup task rolls back and shows an error when save fails',
+    (tester) async {
+      await pumpEmployeeDashboard(
+        tester,
+        onTaskToggle: (taskId, completed) async {
+          throw Exception('network failed');
+        },
+      );
 
-    await tester.tap(
-      find.widgetWithText(CheckboxListTile, 'Ensure all beverages are stocked'),
-    );
-    await tester.pump();
-    await tester.pump();
+      await tester.tap(
+        find.widgetWithText(
+          CheckboxListTile,
+          'Ensure all beverages are stocked',
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
 
-    final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
-    expect(checkboxes.first.value, isFalse);
-    expect(find.text('Could not update task. Please try again.'), findsOneWidget);
-  });
+      final checkboxes = tester
+          .widgetList<Checkbox>(find.byType(Checkbox))
+          .toList();
+      expect(checkboxes.first.value, isFalse);
+      expect(
+        find.text('Could not update task. Please try again.'),
+        findsOneWidget,
+      );
+    },
+  );
 }

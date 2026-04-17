@@ -31,7 +31,7 @@ The app is focused on the operational surfaces that workers actually use:
 
 - `frontend_flutter/` Flutter web app and all guide/training UI
 - `backend/` Express API and PostgreSQL access layer
-- `backend/sql/schema.sql` database schema
+- `backend/sql/migrations/` versioned database schema migrations
 - `backend/sql/seed.sql` starter data
 - `tools/` maintenance scripts and export helpers
 - `artifacts/` OCR/transcription and audit outputs
@@ -98,8 +98,8 @@ There is no separate user login system. The only interactive gate is the
 in-app admin password prompt used for edit actions. On the backend the same
 write routes are additionally role-gated (only callers in the
 `Student Manager` role are allowed to mutate landing items). Network access to
-the deployed API is restricted by the surrounding infrastructure (Coolify,
-tunnel, firewall).
+the deployed API should be restricted by the surrounding infrastructure and not
+by public exposure of the API container itself.
 
 ## Scope Guardrails
 
@@ -125,22 +125,31 @@ Container ports stay fixed at:
 - `api`: `4000`
 - `postgres`: `5432`
 
-Default host ports in this repo’s current deploy setup:
+Default host ports in this repo's current deploy setup:
 
 - `WEB_HOST_PORT=3017`
 - `API_HOST_PORT=4013`
 - `DB_HOST_PORT=5436`
 
-### Coolify deploy model
+By default, only `web` is intended for public exposure.
+`api` and `postgres` stay bound to localhost on the host machine unless you
+change the compose file deliberately.
 
-Coolify should build from committed files on `main`.
-The deployed web image serves the tracked Flutter bundle in `public/flutter-web`.
-That means Flutter source changes under `frontend_flutter/` are not deployable by themselves.
-You must regenerate and commit `public/flutter-web` before pushing to `main`.
+### Repo-owned deploy model
+
+Deploys are defined in-repo now:
+
+- CI validates backend tests, web host tests, Flutter analyze/test, Flutter production build, and Docker image builds.
+- The deploy workflow runs the checked-in `scripts/deploy_production.sh`.
+- That script rebuilds the Flutter production bundle from `frontend_flutter/`, syncs it into `public/flutter-web`, rebuilds the Docker services, and runs post-deploy health checks.
+
+`public/flutter-web` is a generated deployment artifact used by the Docker/web host flow.
+Do not hand-edit it. Frontend source changes no longer require a matching committed bundle update.
 
 ### Health checks
 
-- web: `http://localhost:${WEB_HOST_PORT}/health`
+- web liveness: `http://localhost:${WEB_HOST_PORT}/health`
+- web readiness: `http://localhost:${WEB_HOST_PORT}/readyz`
 - api through web proxy: `http://localhost:${WEB_HOST_PORT}/api/health`
 - api direct: `http://localhost:${API_HOST_PORT}/health`
 
@@ -157,39 +166,42 @@ Set the real values in `.env`:
 
 - `APP_BASE_URL`
 - `CORS_ORIGINS`
+- `JWT_SECRET`
 - `POSTGRES_PASSWORD`
 - `DATABASE_URL`
+- `TASK_EDITOR_PASSWORD`
+
+Database schema changes now flow through `backend/sql/migrations/`.
+The backend container runs `npm run migrate` before startup, and local reseeding
+still uses `npm --prefix backend run reseed` for explicit dev/bootstrap data.
 
 ### Frontend deploy workflow
 
 1. Make your Flutter changes under `frontend_flutter/`.
 
-2. Rebuild and sync the tracked web bundle:
+2. Validate locally as needed:
 
 ```bash
-npm run flutter:web:sync
+cd frontend_flutter
+flutter analyze
+flutter test
 ```
 
-3. Commit both the source change and the regenerated bundle:
+3. Push your source changes:
 
 ```bash
-git add frontend_flutter public/flutter-web
+git add frontend_flutter
 git commit -m "Update Flutter frontend"
+git push origin your-branch
 ```
 
-4. Push to `main`:
+4. CI rebuilds the production bundle from source and validates the Docker/web artifact.
 
-```bash
-git push origin main
-```
-
-5. Coolify auto-deploys the updated tracked bundle from `main`.
-
-The local `pre-push` hook blocks pushes that include `frontend_flutter/` changes without matching committed changes under `public/flutter-web/`.
+5. When changes land on `main`, the deploy workflow rebuilds the bundle again on the production runner before bringing the stack up.
 
 ### Backend or stack deploy checks
 
-After Coolify deploys, verify health as needed:
+After deploy completes, verify health as needed:
 
 ```bash
 npm run health:deploy
@@ -197,7 +209,7 @@ npm run health:deploy
 
 ### Low-level bundle sync helper
 
-If you already built Flutter web manually, you can still sync that output with:
+If you already built Flutter web manually and want to smoke the Docker/web host locally, you can still sync that output with:
 
 ```bash
 ./deploy_flutter_web.sh /absolute/path/to/frontend_flutter/build/web

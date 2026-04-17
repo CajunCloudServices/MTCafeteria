@@ -10,9 +10,22 @@ services:
       PORT: 3000
       API_UPSTREAM_URL: http://api:4000
       APP_BASE_URL: ${APP_BASE_URL:-}
+      READINESS_TIMEOUT_MS: ${WEB_READINESS_TIMEOUT_MS:-5000}
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/readyz').then((res)=>{if(!res.ok)process.exit(1);}).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     ports:
       - "${WEB_HOST_PORT:-3017}:3000"
 
@@ -26,15 +39,29 @@ services:
       NODE_ENV: production
       PORT: 4000
       USE_MOCK_DATA: ${USE_MOCK_DATA:-false}
-      JWT_SECRET: ${JWT_SECRET:-replace-with-strong-secret}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/mtc_cafeteria}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       APP_BASE_URL: ${APP_BASE_URL:-}
+      TASK_EDITOR_PASSWORD: ${TASK_EDITOR_PASSWORD:?TASK_EDITOR_PASSWORD is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/health').then((res)=>{if(!res.ok)process.exit(1);}).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     ports:
-      - "${API_HOST_PORT:-4013}:4000"
+      - "127.0.0.1:${API_HOST_PORT:-4013}:4000"
 
   postgres:
     image: postgres:15-alpine
@@ -42,12 +69,10 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-mtc_cafeteria}
     volumes:
       - mtc_postgres_data:/var/lib/postgresql/data
-      - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/10-schema.sql:ro
-      - ./backend/sql/seed.sql:/docker-entrypoint-initdb.d/20-seed.sql:ro
     healthcheck:
       test:
         [
@@ -59,7 +84,7 @@ services:
       retries: 5
       start_period: 10s
     ports:
-      - "${DB_HOST_PORT:-5436}:5432"
+      - "127.0.0.1:${DB_HOST_PORT:-5436}:5432"
 
 volumes:
   mtc_postgres_data:

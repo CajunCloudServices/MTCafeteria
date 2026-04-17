@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const env = require('./config/env');
+const asyncHandler = require('./middleware/asyncHandler');
+const { checkDatabaseHealth } = require('./db/pool');
 
 const authRoutes = require('./routes/authRoutes');
 const contentRoutes = require('./routes/contentRoutes');
@@ -60,16 +62,38 @@ app.use(
 );
 app.use(express.json({ limit: '1mb' }));
 
-function healthResponse() {
+async function healthResponse() {
+  const database = await checkDatabaseHealth();
   return {
-    status: 'ok',
+    status: database.ok ? 'ok' : 'degraded',
     mode: env.useMockData ? 'mock' : 'postgres',
     environment: env.nodeEnv,
+    dependencies: {
+      database: {
+        status: database.ok ? 'ok' : 'unavailable',
+        type: database.type,
+        ...(database.message ? { message: database.message } : {}),
+      },
+    },
   };
 }
 
-app.get('/health', (_req, res) => res.json(healthResponse()));
-app.get('/api/health', (_req, res) => res.json(healthResponse()));
+async function sendReadiness(res) {
+  const payload = await healthResponse();
+  res.status(payload.status === 'ok' ? 200 : 503).json(payload);
+}
+
+app.get('/livez', (_req, res) => {
+  res.json({
+    status: 'ok',
+    mode: env.useMockData ? 'mock' : 'postgres',
+    environment: env.nodeEnv,
+  });
+});
+app.get('/readyz', asyncHandler(async (_req, res) => sendReadiness(res)));
+app.get('/health', asyncHandler(async (_req, res) => sendReadiness(res)));
+app.get('/api/health', asyncHandler(async (_req, res) => sendReadiness(res)));
+app.get('/api/readyz', asyncHandler(async (_req, res) => sendReadiness(res)));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/content', contentRoutes);

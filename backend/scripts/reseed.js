@@ -12,16 +12,29 @@ if (!databaseUrl) {
 }
 
 const sqlDir = path.resolve(__dirname, '..', 'sql');
-const schemaSql = fs.readFileSync(path.join(sqlDir, 'schema.sql'), 'utf8');
 const seedSql = fs.readFileSync(path.join(sqlDir, 'seed.sql'), 'utf8');
+const migrationsDir = path.join(sqlDir, 'migrations');
+
+function getMigrationFiles() {
+  if (!fs.existsSync(migrationsDir)) {
+    return [];
+  }
+
+  return fs.readdirSync(migrationsDir)
+    .filter((fileName) => fileName.endsWith('.sql'))
+    .sort();
+}
 
 async function main() {
   const client = new Client({ connectionString: databaseUrl });
   await client.connect();
 
   try {
-    console.log('Applying schema.sql...');
-    await client.query(schemaSql);
+    for (const fileName of getMigrationFiles()) {
+      console.log(`Applying ${fileName}...`);
+      const sql = fs.readFileSync(path.join(migrationsDir, fileName), 'utf8');
+      await client.query(sql);
+    }
 
     console.log('Applying seed.sql...');
     await client.query(seedSql);

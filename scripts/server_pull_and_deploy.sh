@@ -11,4 +11,4 @@ fi
 
 git fetch origin
 git pull --ff-only origin main
-docker compose --env-file .env up -d --build --remove-orphans
+bash "$ROOT_DIR/scripts/deploy_production.sh"

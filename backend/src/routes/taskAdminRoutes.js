@@ -2,6 +2,7 @@ const express = require('express');
 const controller = require('../controllers/taskAdminController');
 const { requireAuth } = require('../middleware/authMiddleware');
 const { requireTaskEditorPassword } = require('../middleware/taskEditorAuth');
+const { asyncHandler } = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
@@ -13,14 +14,14 @@ const router = express.Router();
 // (e.g. the global /api 404 handler).
 router.use('/task-admin', requireAuth, requireTaskEditorPassword);
 
-router.get('/task-admin/board', controller.getBoard);
+router.get('/task-admin/board', asyncHandler(controller.getBoard));
 
-router.post('/task-admin/jobs', controller.createJob);
-router.patch('/task-admin/jobs/:jobId', controller.updateJob);
-router.delete('/task-admin/jobs/:jobId', controller.deleteJob);
+router.post('/task-admin/jobs', asyncHandler(controller.createJob));
+router.patch('/task-admin/jobs/:jobId', asyncHandler(controller.updateJob));
+router.delete('/task-admin/jobs/:jobId', asyncHandler(controller.deleteJob));
 
-router.post('/task-admin/jobs/:jobId/tasks', controller.createTask);
-router.patch('/task-admin/tasks/:taskId', controller.updateTask);
-router.delete('/task-admin/tasks/:taskId', controller.deleteTask);
+router.post('/task-admin/jobs/:jobId/tasks', asyncHandler(controller.createTask));
+router.patch('/task-admin/tasks/:taskId', asyncHandler(controller.updateTask));
+router.delete('/task-admin/tasks/:taskId', asyncHandler(controller.deleteTask));
 
 module.exports = router;

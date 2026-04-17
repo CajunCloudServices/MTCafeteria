@@ -30,15 +30,12 @@ done
 
 if [ "$frontend_changed" -eq 1 ] && [ "$bundle_changed" -eq 0 ]; then
   cat >&2 <<'EOF'
-Push blocked: this push includes changes under frontend_flutter/ but no committed updates under public/flutter-web/.
+Notice: this push includes frontend_flutter/ changes without committed updates under public/flutter-web/.
 
-Before pushing, regenerate and commit the tracked Flutter web bundle:
+That is allowed now. Production rebuilds the Flutter bundle during CI/deploy, so the tracked copy under public/flutter-web is no longer the deployment source of truth.
+
+If you want a local Docker/web smoke test before pushing, regenerate the bundle locally with:
 
   npm run flutter:web:sync
-  git add frontend_flutter public/flutter-web
-  git commit
-
-Coolify deploys the committed files from main, so public/flutter-web must be refreshed whenever frontend_flutter changes.
 EOF
-  exit 1
 fi

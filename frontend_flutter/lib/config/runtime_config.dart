@@ -2,6 +2,11 @@
 ///
 /// Everything here is resolved from `--dart-define` values so the same build
 /// can be deployed with different behavior without editing source code.
+///
+/// Production is expected to serve the Flutter app from the web host root and
+/// proxy API traffic at the same origin under `/api`. When no explicit
+/// `API_BASE_URL` is provided, the app therefore targets the current
+/// `browserUri.origin`.
 class AppRuntimeConfig {
   const AppRuntimeConfig({
     required this.apiBaseUrl,
@@ -49,7 +54,10 @@ class AppRuntimeConfig {
   /// Chooses a backend base URL that works across local web, deployed web, and
   /// file-based launch paths used by some simulator/browser setups.
   String resolveApiBaseUrl(Uri browserUri) {
-    if (apiBaseUrl.isNotEmpty) return apiBaseUrl;
+    final configuredBaseUrl = _normalizeBaseUrl(apiBaseUrl);
+    if (configuredBaseUrl.isNotEmpty) {
+      return configuredBaseUrl;
+    }
 
     final scheme = browserUri.scheme.toLowerCase();
     final isHttpScheme = scheme == 'http' || scheme == 'https';
@@ -57,16 +65,28 @@ class AppRuntimeConfig {
     // iOS (and some desktop launch paths) can run from file:// URIs.
     // Uri.origin is invalid for non-http(s) schemes, so short-circuit first.
     if (!isHttpScheme) {
-      return 'http://localhost:3201';
+      return _localhostApiBaseUrl;
     }
 
     final isLocalHost =
         browserUri.host == 'localhost' || browserUri.host == '127.0.0.1';
 
     if (isLocalHost) {
-      return 'http://localhost:3201';
+      return _localhostApiBaseUrl;
     }
 
-    return browserUri.origin;
+    return _normalizeBaseUrl(browserUri.origin);
+  }
+
+  static const String _localhostApiBaseUrl = 'http://localhost:3201';
+
+  static String _normalizeBaseUrl(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return '';
+    }
+    return trimmed.endsWith('/')
+        ? trimmed.substring(0, trimmed.length - 1)
+        : trimmed;
   }
 }

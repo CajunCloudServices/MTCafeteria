@@ -14,4 +14,4 @@ ENV PORT=4000
 
 EXPOSE 4000
 
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npm run migrate && npm start"]

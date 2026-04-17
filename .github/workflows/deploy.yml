@@ -11,10 +11,96 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            web/package-lock.json
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+
+      - name: Install web dependencies
+        run: npm ci --prefix web
+
+      - name: Run backend tests
+        run: npm --prefix backend test
+
+      - name: Run web host tests
+        run: npm --prefix web test
+
+      - name: Run Flutter analyze
+        working-directory: frontend_flutter
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        working-directory: frontend_flutter
+        run: flutter test
+
+      - name: Build Flutter production bundle
+        run: bash ./scripts/build_and_sync_flutter_web.sh --release --pwa-strategy=none
+
+      - name: Verify Docker image builds
+        run: docker compose build web api
+
   deploy:
+    needs: validate
     runs-on:
       - self-hosted
       - cajuncloud-prod
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            web/package-lock.json
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+
+      - name: Install web dependencies
+        run: npm ci --prefix web
+
+      - name: Run backend tests
+        run: npm --prefix backend test
+
+      - name: Run web host tests
+        run: npm --prefix web test
+
+      - name: Run Flutter analyze
+        working-directory: frontend_flutter
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        working-directory: frontend_flutter
+        run: flutter test
+
       - name: Deploy on production runner
-        run: /home/lajicpajam/bin/mtcafeteria-deploy.sh
+        run: bash ./scripts/deploy_production.sh

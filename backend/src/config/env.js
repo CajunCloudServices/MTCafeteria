@@ -9,15 +9,98 @@ const useMockData = useMockDataInput == null
   ? !isProduction
   : String(useMockDataInput).toLowerCase() === 'true';
 
+const BLOCKED_SECRET_VALUES = new Set([
+  '',
+  'dev-secret',
+  'replace-with-strong-secret',
+  'replace-with-strong-db-password',
+  'replace-me',
+  'changeme',
+  'postgres',
+  'yoboss',
+]);
+
+const BLOCKED_DATABASE_URLS = new Set([
+  '',
+  'postgresql://postgres:postgres@postgres:5432/mtc_cafeteria',
+  'postgres://postgres:postgres@postgres:5432/mtc_cafeteria',
+]);
+
+function isPlaceholderSecret(value) {
+  const normalized = String(value || '').trim();
+  return (
+    BLOCKED_SECRET_VALUES.has(normalized)
+    || normalized.toLowerCase().includes('replace-with-')
+    || normalized.toLowerCase().includes('replace-me')
+  );
+}
+
+function isPlaceholderDatabaseUrl(value) {
+  const normalized = String(value || '').trim();
+  return (
+    BLOCKED_DATABASE_URLS.has(normalized)
+    || normalized.toLowerCase().includes('replace-with-')
+    || normalized.toLowerCase().includes('replace-me')
+  );
+}
+
+function assertConfigured(name, value, validator, requirementMessage, placeholderMessage) {
+  if (!value) {
+    throw new Error(requirementMessage);
+  }
+  if (validator(value)) {
+    throw new Error(placeholderMessage);
+  }
+}
+
 const jwtSecret = process.env.JWT_SECRET || '';
 if (!useMockData && !jwtSecret) {
   throw new Error('JWT_SECRET is required when USE_MOCK_DATA=false.');
 }
-if (isProduction && jwtSecret === 'dev-secret') {
-  throw new Error('JWT_SECRET cannot be "dev-secret" in production.');
+if (isProduction) {
+  assertConfigured(
+    'JWT_SECRET',
+    jwtSecret,
+    isPlaceholderSecret,
+    'JWT_SECRET is required in production.',
+    'JWT_SECRET must not use a placeholder or default value in production.'
+  );
 }
-if (!useMockData && !process.env.DATABASE_URL) {
+
+const databaseUrl = process.env.DATABASE_URL || '';
+if (!useMockData && !databaseUrl) {
   throw new Error('DATABASE_URL is required when USE_MOCK_DATA=false.');
+}
+if (isProduction && !useMockData) {
+  assertConfigured(
+    'DATABASE_URL',
+    databaseUrl,
+    isPlaceholderDatabaseUrl,
+    'DATABASE_URL is required in production when USE_MOCK_DATA=false.',
+    'DATABASE_URL must not use a placeholder or default value in production.'
+  );
+}
+
+const postgresPassword = process.env.POSTGRES_PASSWORD || '';
+if (isProduction && postgresPassword) {
+  assertConfigured(
+    'POSTGRES_PASSWORD',
+    postgresPassword,
+    isPlaceholderSecret,
+    'POSTGRES_PASSWORD is required in production when provided to the API.',
+    'POSTGRES_PASSWORD must not use a placeholder or default value in production.'
+  );
+}
+
+const taskEditorPassword = process.env.TASK_EDITOR_PASSWORD || '';
+if (isProduction) {
+  assertConfigured(
+    'TASK_EDITOR_PASSWORD',
+    taskEditorPassword,
+    isPlaceholderSecret,
+    'TASK_EDITOR_PASSWORD is required in production.',
+    'TASK_EDITOR_PASSWORD must not use a placeholder or default value in production.'
+  );
 }
 
 const corsOrigins = (process.env.CORS_ORIGINS || '')
@@ -32,7 +115,7 @@ const env = {
   nodeEnv,
   isProduction,
   port: Number(process.env.PORT || 3201),
-  databaseUrl: process.env.DATABASE_URL || '',
+  databaseUrl,
   jwtSecret: jwtSecret || 'dev-secret',
   useMockData,
   corsOrigins,

@@ -1,0 +1,88 @@
+name: Validate MTCafeteria
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            web/package-lock.json
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+
+      - name: Install web dependencies
+        run: npm ci --prefix web
+
+      - name: Run backend tests
+        run: npm --prefix backend test
+
+      - name: Run web host tests
+        run: npm --prefix web test
+
+      - name: Run Flutter analyze
+        working-directory: frontend_flutter
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        working-directory: frontend_flutter
+        run: flutter test
+
+      - name: Build Flutter production bundle
+        run: bash ./scripts/build_and_sync_flutter_web.sh --release --pwa-strategy=none
+
+      - name: Build the stack
+        run: docker compose build web api
+
+      - name: Write CI environment file
+        run: |
+          cat <<'EOF' > .env.ci
+          WEB_HOST_PORT=3017
+          API_HOST_PORT=4013
+          DB_HOST_PORT=5436
+          APP_BASE_URL=http://127.0.0.1:3017
+          CORS_ORIGINS=http://127.0.0.1:3017
+          USE_MOCK_DATA=false
+          JWT_SECRET=ci-test-secret
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=ci-db-secret
+          POSTGRES_DB=mtc_cafeteria
+          DATABASE_URL=postgresql://postgres:ci-db-secret@postgres:5432/mtc_cafeteria
+          TASK_EDITOR_PASSWORD=ci-task-editor-password
+          EOF
+
+      - name: Start stack
+        run: docker compose --env-file .env.ci up -d --build --remove-orphans
+
+      - name: Run smoke health checks
+        env:
+          ENV_FILE: .env.ci
+        run: node ./scripts/post_deploy_healthcheck.mjs
+
+      - name: Smoke the root page through the web host
+        run: |
+          node -e "fetch('http://127.0.0.1:3017/').then(async (res) => { if (!res.ok) throw new Error('root page returned ' + res.status); const body = await res.text(); if (!body.includes('<!DOCTYPE html') && !body.includes('<!doctype html')) throw new Error('root page missing html shell'); }).catch((error) => { console.error(error.message); process.exit(1); })"
+
+      - name: Shut down stack
+        if: always()
+        run: docker compose --env-file .env.ci down -v

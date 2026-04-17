@@ -7,8 +7,8 @@ This project is currently organized as a 3-service Docker stack:
 
 - `web`
   - Node-based static host and reverse proxy
-  - Serves the Flutter web build from `public/flutter-web`
-  - Exposes `/health`
+  - Serves the generated Flutter web build from `public/flutter-web`
+  - Exposes `/health` for liveness and `/readyz` for dependency-aware readiness
   - Proxies `/api` and `/socket.io` to the backend
   - Container port: `3000`
 - `api`

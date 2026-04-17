@@ -1,11 +1,9 @@
-const DEFAULT_PASSWORD = 'yoboss';
-
 function getConfiguredPassword() {
   const value = process.env.TASK_EDITOR_PASSWORD;
   if (typeof value === 'string' && value.length > 0) {
     return value;
   }
-  return DEFAULT_PASSWORD;
+  return '';
 }
 
 function extractProvidedPassword(req) {
@@ -21,12 +19,18 @@ function extractProvidedPassword(req) {
 }
 
 function requireTaskEditorPassword(req, res, next) {
+  const configuredPassword = getConfiguredPassword();
+  if (!configuredPassword) {
+    res.status(503).json({ message: 'Task editor password is not configured.' });
+    return;
+  }
+
   const provided = extractProvidedPassword(req);
   if (!provided) {
     res.status(401).json({ message: 'Task editor password required.' });
     return;
   }
-  if (provided !== getConfiguredPassword()) {
+  if (provided !== configuredPassword) {
     res.status(403).json({ message: 'Incorrect task editor password.' });
     return;
   }

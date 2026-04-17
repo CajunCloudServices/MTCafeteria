@@ -2,29 +2,6 @@ const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const { Roles } = require('../config/roles');
 
-// The app runs as a shared operational session instead of a per-user login.
-// This object is attached to every request unless a caller supplies a valid
-// JWT (supervisor / manager tools may still issue and present tokens). The
-// role defaults to Student Manager so admin-only landing mutations succeed
-// while still reflecting supervisor-equivalent capability for everything else.
-//
-// For Postgres deployments, set `SHARED_SESSION_USER_ID` to a real seeded
-// user id (for example, the `manager@mtc.local` user created by seed.sql) so
-// operations that insert rows with `submitted_by_user_id`/`created_by` do not
-// violate FK constraints. Mock mode ignores the id.
-const parsedSharedUserId = Number.parseInt(
-  process.env.SHARED_SESSION_USER_ID || '',
-  10
-);
-const sharedSessionUser = Object.freeze({
-  // Seed data uses `manager@mtc.local` as users.id = 4, so defaulting to 4
-  // keeps shared-session writes valid in Postgres unless an explicit override
-  // is configured.
-  sub: Number.isFinite(parsedSharedUserId) ? parsedSharedUserId : 4,
-  email: process.env.SHARED_SESSION_EMAIL || 'shared-session@mtc.local',
-  role: process.env.SHARED_SESSION_ROLE || Roles.STUDENT_MANAGER,
-});
-
 function extractBearerToken(req) {
   const header = req.headers?.authorization;
   if (typeof header !== 'string') return null;
@@ -34,29 +11,51 @@ function extractBearerToken(req) {
   return token.length > 0 ? token : null;
 }
 
-function requireAuth(req, _res, next) {
+function setAuthenticatedUser(req, decoded) {
+  req.user = {
+    sub: decoded.sub ?? null,
+    email: decoded.email ?? null,
+    role: decoded.role ?? Roles.EMPLOYEE,
+  };
+}
+
+function attachUserIfPresent(req, _res, next) {
   const token = extractBearerToken(req);
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, env.jwtSecret);
-      req.user = {
-        sub: decoded.sub ?? null,
-        email: decoded.email ?? null,
-        role: decoded.role ?? Roles.EMPLOYEE,
-      };
-      return next();
-    } catch (_error) {
-      // Fall through to shared session. The app never hard-fails on auth so
-      // an expired/bad token never locks the shared app out of content reads.
-    }
+  if (!token) {
+    req.user = null;
+    return next();
   }
-  req.user = { ...sharedSessionUser };
+
+  try {
+    const decoded = jwt.verify(token, env.jwtSecret);
+    setAuthenticatedUser(req, decoded);
+  } catch (_error) {
+    req.user = null;
+  }
   return next();
+}
+
+function requireAuth(req, res, next) {
+  const token = extractBearerToken(req);
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, env.jwtSecret);
+    setAuthenticatedUser(req, decoded);
+    return next();
+  } catch (_error) {
+    return res.status(401).json({ message: 'Invalid or expired token.' });
+  }
 }
 
 function requireRole(allowedRoles) {
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required.' });
+    }
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied for this role.' });
     }
     return next();
@@ -64,6 +63,8 @@ function requireRole(allowedRoles) {
 }
 
 module.exports = {
+  attachUserIfPresent,
+  extractBearerToken,
   requireAuth,
   requireRole,
 };

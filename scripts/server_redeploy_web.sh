@@ -9,4 +9,5 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+bash "$ROOT_DIR/scripts/build_and_sync_flutter_web.sh" --release --pwa-strategy=none
 docker compose --env-file .env up -d --build web

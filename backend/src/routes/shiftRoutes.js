@@ -1,6 +1,7 @@
 const express = require('express');
 const shiftController = require('../controllers/shiftController');
 const { requireAuth } = require('../middleware/authMiddleware');
+const { asyncHandler } = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
@@ -8,6 +9,6 @@ const router = express.Router();
 // grouped by phase (Setup / During Shift / Cleanup). The Flutter client does
 // not consume this today; it is kept to support future admin tooling and to
 // make the shift/job/task seed schema inspectable.
-router.get('/shifts', requireAuth, shiftController.listShifts);
+router.get('/shifts', requireAuth, asyncHandler(shiftController.listShifts));
 
 module.exports = router;
