@@ -412,7 +412,8 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
             : _modesForSelection(user.role, _dashboardTrack);
 
         final canOpenManagerPortal =
-            _features.managerPortalEnabled && (user?.canManageLanding ?? false);
+            _features.managerPortalEnabled &&
+            ((user?.canManageLanding ?? false) || _adminModeEnabled);
         final canViewTrainings =
             _features.trainingsEnabled && (user?.canViewTrainings ?? false);
         final canAssignPoints =
