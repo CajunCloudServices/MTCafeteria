@@ -149,19 +149,19 @@ class DashboardHubCard extends StatelessWidget {
                       child: const Text('Student Manager Portal'),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      key: const ValueKey('hub-open-app-feedback'),
-                      onPressed: onOpenAppFeedback,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text('App Feedback'),
-                    ),
-                  ),
                 ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    key: const ValueKey('hub-open-app-feedback'),
+                    onPressed: onOpenAppFeedback,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('App Feedback'),
+                  ),
+                ),
               ],
             ),
           ),
