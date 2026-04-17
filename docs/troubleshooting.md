@@ -30,9 +30,9 @@ Manager mode/session changes can succeed for auth but still fail overall if a do
 
 ### 3) Deployment artifact mismatch
 
-This repo deploys the **built Flutter web artifact** from `public/flutter-web`, not raw Dart source.
+Docker-based deploys build the Flutter web bundle **inside the `web` image** from `frontend_flutter/` (see `web/Dockerfile`). If production still serves an old UI, the running container was likely built from an old image tag or a host that skips `docker compose build`.
 
-A source-only fix in `frontend_flutter/lib/...` does **not** reach production until the Flutter web bundle is rebuilt and synced into `public/flutter-web`.
+If you run the Node web server **without** Docker, it reads `public/flutter-web` from disk — then you must run `npm run flutter:web:sync` after Dart changes.
 
 ## Quick Diagnostic Checklist
 
@@ -65,11 +65,10 @@ If tags do not match intended commit, recreate/redeploy services.
 If a fix is already in source but not effective live, do all steps below:
 
 1. Ensure fix is committed and pushed to `main`.
-2. Build + sync Flutter web artifact:
-   - `npm run flutter:web:sync -- --release --pwa-strategy=none`
-4. Sync updated repo content to live app directory in Coolify app source.
-5. Rebuild/recreate live `web` and `api` services.
-6. Re-check:
+2. Rebuild the `web` service image so the Dockerfile runs a fresh Flutter web build (or for non-Docker hosts, run `npm run flutter:web:sync -- --release --pwa-strategy=none`).
+3. Sync updated repo content to live app directory in Coolify app source.
+4. Rebuild/recreate live `web` and `api` services.
+5. Re-check:
    - public bundle content (`main.dart.js`)
    - API role endpoints
    - UI flow behavior in browser
@@ -87,8 +86,7 @@ Workflow sections should never dead-end silently:
 Before declaring a production fix complete:
 
 1. Verify source fix is committed.
-2. Verify Flutter bundle rebuilt and synced.
-   - pre-push now blocks frontend-only pushes without `public/flutter-web` updates.
+2. Verify the deployed `web` image was rebuilt (Flutter compiles in Docker).
 3. Verify live container image tags correspond to fix commit.
 4. Verify API endpoints with auth token.
 5. Verify UI flow manually in browser after hard refresh.

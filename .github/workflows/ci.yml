@@ -48,9 +48,6 @@ jobs:
         working-directory: frontend_flutter
         run: flutter test
 
-      - name: Build Flutter production bundle
-        run: bash ./scripts/build_and_sync_flutter_web.sh --release --pwa-strategy=none
-
       - name: Build the stack
         run: docker compose build web api
 

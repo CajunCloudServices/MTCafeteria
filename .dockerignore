@@ -4,7 +4,9 @@
 .env.*
 artifacts
 Reference-Sheets
-frontend_flutter
+# Let Docker send source; exclude heavy local caches (fresh `pub get` in image).
+frontend_flutter/build
+frontend_flutter/.dart_tool
 scripts
 tools
 *.md

@@ -141,12 +141,11 @@ change the compose file deliberately.
 
 Deploys are defined in-repo now:
 
-- CI validates backend tests, web host tests, Flutter analyze/test, Flutter production build, and Docker image builds.
-- The deploy workflow runs the checked-in `scripts/deploy_production.sh`.
-- That script rebuilds the Flutter production bundle from `frontend_flutter/`, syncs it into `public/flutter-web`, rebuilds the Docker services, and runs post-deploy health checks.
+- CI validates backend tests, web host tests, Flutter analyze/test, and Docker image builds.
+- The `web` Docker image **compiles Flutter web inside the build** (`web/Dockerfile`), copies the output to `public/flutter-web` in the image, then runs the Node host. You do **not** need to commit changes under `public/flutter-web` for Docker-based deploys to pick up Dart edits.
+- The deploy workflow runs `scripts/deploy_production.sh`, which rebuilds containers and runs post-deploy health checks.
 
-`public/flutter-web` is a generated deployment artifact used by the Docker/web host flow.
-Do not hand-edit it. Frontend source changes no longer require a matching committed bundle update.
+For **local** runs of the Node server against static files without rebuilding the image, use `npm run flutter:web:sync` so `public/flutter-web` exists on disk. Do not hand-edit generated files there.
 
 ### Health checks
 

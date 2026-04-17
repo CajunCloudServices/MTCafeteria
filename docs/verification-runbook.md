@@ -126,9 +126,10 @@ cd frontend_flutter
 flutter analyze
 flutter test
 cd ..
-npm run flutter:web:sync -- --release --pwa-strategy=none
 docker compose build web api
 ```
+
+Optional: `npm run flutter:web:sync` if you need `public/flutter-web` on disk for a non-Docker local run. Docker deploys compile Flutter inside `web/Dockerfile`.
 
 If the change touches deploy/runtime behavior, also run:
 
@@ -149,9 +150,8 @@ docker compose --env-file .env.ci down -v
 Before merging or deploying:
 
 1. Confirm automated checks passed:
-   `backend`, `web`, `flutter analyze`, `flutter test`, Flutter web build.
-2. Confirm the generated web bundle was rebuilt from source:
-   `npm run flutter:web:sync -- --release --pwa-strategy=none`
+   `backend`, `web`, `flutter analyze`, `flutter test`, and `docker compose build web` (Flutter web compiles in the `web` image).
+2. For Docker-based production, confirm the `web` service image was rebuilt so it includes a fresh `flutter build web`.
 3. Confirm any task editor changes were validated against both required headers.
 4. Confirm chatbot changes were validated through `/api/chatbot/health` and
    `/api/chatbot/chat`, not just the widget shell.
@@ -204,7 +204,7 @@ Check:
 
 - `frontend_flutter/lib/widgets/dashboard_hub_card.dart`
 - `frontend_flutter/lib/app/main_shell.dart`
-- generated `public/flutter-web/main.dart.js`
+- the `web` Docker image (or `public/flutter-web/main.dart.js` if not using Docker)
 
 Then run:
 
@@ -267,16 +267,8 @@ Then redeploy and verify `/api/chatbot/health` reports `disabled`.
 
 ### Source looks correct but production looks stale
 
-Assume generated assets are stale until proven otherwise.
+Assume the running `web` container is an old image or a host that never rebuilt.
 
-Rebuild and sync:
+Rebuild and redeploy the `web` service (`docker compose build web --no-cache` if needed). For non-Docker static hosting, run `npm run flutter:web:sync` and redeploy files.
 
-```bash
-npm run flutter:web:sync -- --release --pwa-strategy=none
-```
-
-The repo pre-push hook now blocks pushes that modify `frontend_flutter/` without
-also committing updates under `public/flutter-web/`.
-
-Then validate the served `main.dart.js` contains the expected strings or
-behavior before declaring the deploy complete.
+Validate the served `main.dart.js` contains the expected strings or behavior before declaring the deploy complete.
