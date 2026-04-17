@@ -123,16 +123,16 @@ class _GlobalChatWidgetState extends State<GlobalChatWidget> {
   }
 
   Widget _buildFab(BuildContext context) {
-    return FloatingActionButton.extended(
+    return FloatingActionButton(
       key: const ValueKey('global-chat-open'),
+      tooltip: 'Open MTC Dining Assistant',
       onPressed: () async {
         setState(() {
           _isOpen = true;
         });
         await _ensureHealthLoaded();
       },
-      icon: const Icon(Icons.chat_bubble_outline),
-      label: const Text('MTC Assistant'),
+      child: const Icon(Icons.smart_toy_outlined),
     );
   }
 

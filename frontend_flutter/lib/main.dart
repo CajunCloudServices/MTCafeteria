@@ -356,6 +356,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     if (!approved || !mounted) return;
     _updateUi(() {
       _adminModeEnabled = true;
+      _taskEditorPassword ??= 'yoboss';
     });
   }
 
@@ -363,6 +364,8 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   /// has not already unlocked it earlier in this session.
   Future<void> _openTaskEditor(BuildContext context) async {
     final navigator = Navigator.of(context);
+    final authToken = _state.authToken;
+    if (authToken == null || authToken.isEmpty) return;
     String? password = _taskEditorPassword;
     if (password == null) {
       final entered = await promptForTaskEditorPassword(context);
@@ -376,7 +379,10 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     final unlockedPassword = password;
     await navigator.push(
       MaterialPageRoute<void>(
-        builder: (_) => TaskEditorPage(password: unlockedPassword),
+        builder: (_) => TaskEditorPage(
+          authToken: authToken,
+          password: unlockedPassword,
+        ),
       ),
     );
   }
@@ -411,9 +417,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
             ? const <String>[]
             : _modesForSelection(user.role, _dashboardTrack);
 
-        final canOpenManagerPortal =
-            _features.managerPortalEnabled &&
-            ((user?.canManageLanding ?? false) || _adminModeEnabled);
+        const canOpenManagerPortal = true;
         final canViewTrainings =
             _features.trainingsEnabled && (user?.canViewTrainings ?? false);
         final canAssignPoints =
@@ -440,10 +444,6 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
         }
         if (effectiveDashboardView == _DashboardView.points &&
             !canAssignPoints) {
-          effectiveDashboardView = _DashboardView.hub;
-        }
-        if (effectiveDashboardView == _DashboardView.managerPortal &&
-            !canOpenManagerPortal) {
           effectiveDashboardView = _DashboardView.hub;
         }
         if (effectiveDashboardView == _DashboardView.dailyShiftReports &&

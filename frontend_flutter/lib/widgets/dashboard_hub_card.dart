@@ -10,7 +10,6 @@ class DashboardHubCard extends StatelessWidget {
     required this.canOpenReference,
     required this.canOpenFindItem,
     required this.canOpenDiningMap,
-    required this.canOpenManagerPortal,
     required this.canViewTrainings,
     required this.onOpenWorkflow,
     required this.onOpenFindItem,
@@ -23,7 +22,6 @@ class DashboardHubCard extends StatelessWidget {
   final bool canOpenReference;
   final bool canOpenFindItem;
   final bool canOpenDiningMap;
-  final bool canOpenManagerPortal;
   final bool canViewTrainings;
   final VoidCallback onOpenWorkflow;
   final VoidCallback onOpenFindItem;
@@ -134,20 +132,18 @@ class DashboardHubCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (canOpenManagerPortal) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      key: const ValueKey('hub-open-manager-portal'),
-                      onPressed: onOpenManagerPortal,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text('Student Manager Portal'),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    key: const ValueKey('hub-open-manager-portal'),
+                    onPressed: onOpenManagerPortal,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
+                    child: const Text('Student Manager Portal'),
                   ),
-                ],
+                ),
               ],
             ),
           ),

@@ -91,7 +91,6 @@ extension _MainShell on _MtcCafeteriaAppState {
         canOpenReference: canViewReference,
         canOpenFindItem: canViewReference,
         canOpenDiningMap: canViewReference,
-        canOpenManagerPortal: canOpenManagerPortal,
         canViewTrainings: canViewTrainings,
         onOpenWorkflow: () {
           _updateUi(() {
@@ -111,7 +110,6 @@ extension _MainShell on _MtcCafeteriaAppState {
           });
         },
         onOpenManagerPortal: () async {
-          if (!canOpenManagerPortal) return;
           if (!_adminModeEnabled) {
             await _enableAdminMode(context);
             if (!_adminModeEnabled) return;
