@@ -54,6 +54,7 @@ class DashboardPage extends StatelessWidget {
     required this.onSelectMeal,
     required this.onSelectJob,
     required this.onTaskToggle,
+    required this.onReloadTaskBoard,
     required this.onResetEmployeeFlow,
     required this.onSelectTrainerMeal,
     required this.trainerTraineeCount,
@@ -64,6 +65,7 @@ class DashboardPage extends StatelessWidget {
     required this.onSetTrainerTraineeJob,
     required this.onSelectTrainerTraineeSlot,
     required this.onTrainerSlotTaskToggle,
+    required this.onReloadTrainerBoard,
     required this.onResetLeadTrainerFlow,
     required this.onSelectTrainerJobs,
     required this.onTrainerTaskToggle,
@@ -141,6 +143,7 @@ class DashboardPage extends StatelessWidget {
   final Future<void> Function(String meal) onSelectMeal;
   final Future<void> Function(int jobId) onSelectJob;
   final Future<void> Function(int taskId, bool completed) onTaskToggle;
+  final Future<void> Function() onReloadTaskBoard;
   final Future<void> Function(String meal, int jobId) onResetEmployeeFlow;
   final Future<void> Function(String meal) onSelectTrainerMeal;
   final ValueChanged<int> onSetTrainerTraineeCount;
@@ -148,6 +151,7 @@ class DashboardPage extends StatelessWidget {
   final ValueChanged<int> onSelectTrainerTraineeSlot;
   final Future<void> Function(int slot, int taskId, bool completed)
   onTrainerSlotTaskToggle;
+  final Future<void> Function() onReloadTrainerBoard;
   final VoidCallback onResetLeadTrainerFlow;
   final Future<void> Function(List<int> jobIds) onSelectTrainerJobs;
   final Future<void> Function(int traineeUserId, int taskId, bool completed)
@@ -221,6 +225,7 @@ class DashboardPage extends StatelessWidget {
               onAssignTraineeJob: onSetTrainerTraineeJob,
               onSelectTraineeSlot: onSelectTrainerTraineeSlot,
               onTaskToggle: onTrainerSlotTaskToggle,
+              onReloadBoard: onReloadTrainerBoard,
               onResetFlow: onResetLeadTrainerFlow,
             )
           else if (isLineTrack && isLineWorkerMode)
@@ -233,6 +238,7 @@ class DashboardPage extends StatelessWidget {
               onSelectMeal: onSelectMeal,
               onSelectJob: onSelectJob,
               onTaskToggle: onTaskToggle,
+              onReloadBoard: onReloadTaskBoard,
               onResetCompletedFlow: onResetEmployeeFlow,
             )
           else if (isLineTrack && isLineSupervisorMode)

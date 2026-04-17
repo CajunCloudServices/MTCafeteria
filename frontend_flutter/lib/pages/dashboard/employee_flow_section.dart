@@ -10,6 +10,7 @@ class _EmployeeTaskSection extends StatefulWidget {
     required this.onSelectMeal,
     required this.onSelectJob,
     required this.onTaskToggle,
+    required this.onReloadBoard,
     required this.onResetCompletedFlow,
   });
 
@@ -21,6 +22,7 @@ class _EmployeeTaskSection extends StatefulWidget {
   final Future<void> Function(String meal) onSelectMeal;
   final Future<void> Function(int jobId) onSelectJob;
   final Future<void> Function(int taskId, bool completed) onTaskToggle;
+  final Future<void> Function() onReloadBoard;
   final Future<void> Function(String meal, int jobId) onResetCompletedFlow;
 
   @override
@@ -154,7 +156,22 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
   Widget build(BuildContext context) {
     final taskBoard = widget.taskBoard;
     if (taskBoard == null) {
-      return const Text('Loading task board...');
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Loading task board...'),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: widget.onReloadBoard,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     _selectedMeal ??= taskBoard.selectedMeal;

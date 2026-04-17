@@ -16,6 +16,7 @@ class _LeadTrainerTaskSection extends StatefulWidget {
     required this.onAssignTraineeJob,
     required this.onSelectTraineeSlot,
     required this.onTaskToggle,
+    required this.onReloadBoard,
     required this.onResetFlow,
   });
   final int resetSignal;
@@ -34,6 +35,7 @@ class _LeadTrainerTaskSection extends StatefulWidget {
   final ValueChanged<int> onSelectTraineeSlot;
   final Future<void> Function(int slot, int taskId, bool completed)
   onTaskToggle;
+  final Future<void> Function() onReloadBoard;
   final VoidCallback onResetFlow;
 
   @override
@@ -101,7 +103,22 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
   Widget build(BuildContext context) {
     final trainerBoard = widget.trainerBoard;
     if (trainerBoard == null) {
-      return const Text('Loading trainer board...');
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Loading trainer board...'),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: widget.onReloadBoard,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     _selectedMeal ??= trainerBoard.selectedMeal;

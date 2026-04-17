@@ -249,6 +249,7 @@ extension _MainShell on _MtcCafeteriaAppState {
       ),
       onTaskToggle: (taskId, completed) =>
           _state.setTaskCompletion(taskId: taskId, completed: completed),
+      onReloadTaskBoard: () => _state.refreshTaskBoard(),
       onResetEmployeeFlow: (meal, jobId) =>
           _state.resetCurrentTaskFlow(meal: meal, jobId: jobId),
       onSelectTrainerMeal: (meal) => _state.refreshTrainerBoard(meal: meal),
@@ -267,6 +268,7 @@ extension _MainShell on _MtcCafeteriaAppState {
             taskId: taskId,
             completed: completed,
           ),
+      onReloadTrainerBoard: () => _state.refreshTrainerBoard(),
       onResetLeadTrainerFlow: () => _state.resetTrainerFlow(),
       onSelectTrainerJobs: (jobIds) async {},
       onTrainerTaskToggle: (traineeUserId, taskId, completed) async {},

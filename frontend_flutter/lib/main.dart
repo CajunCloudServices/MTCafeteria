@@ -258,6 +258,12 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     if (_dashboardTrack == 'Line' && _dashboardMode == 'Supervisor') {
       _state.refreshSupervisorBoard();
     }
+    if (_dashboardTrack == 'Line' && _dashboardMode == 'Employee') {
+      _state.refreshTaskBoard();
+    }
+    if (_dashboardTrack == 'Line' && _dashboardMode == 'Lead Trainer') {
+      _state.refreshTrainerBoard();
+    }
     if (_dashboardTrack == 'Student Manager Portal') {
       _state.refreshPointCenter();
     }
