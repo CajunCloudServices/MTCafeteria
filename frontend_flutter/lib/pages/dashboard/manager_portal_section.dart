@@ -1,6 +1,6 @@
 part of '../dashboard_page.dart';
 
-enum _StudentManagerPortalPane { announcements, points, reports }
+enum _StudentManagerPortalPane { announcements, points, reports, tasks }
 
 class _StudentManagerPortalSection extends StatefulWidget {
   const _StudentManagerPortalSection({
@@ -76,10 +76,17 @@ class _StudentManagerPortalSectionState
         return 'Assign Points';
       case _StudentManagerPortalPane.reports:
         return 'Daily Shift Reports';
+      case _StudentManagerPortalPane.tasks:
+        return 'Edit Jobs & Tasks';
     }
   }
 
   Future<void> _selectPane(_StudentManagerPortalPane pane) async {
+    if (pane == _StudentManagerPortalPane.tasks) {
+      await widget.onOpenTaskEditor();
+      if (!mounted) return;
+      return;
+    }
     if (pane == _StudentManagerPortalPane.reports) {
       await widget.onRefreshDailyShiftReports();
       if (!mounted) return;
@@ -104,10 +111,6 @@ class _StudentManagerPortalSectionState
                   'Student Manager Portal',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Manager-only tools for announcements, point assignments, daily shift reports, and task administration.',
-                ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<_StudentManagerPortalPane>(
                   initialValue: _selectedPane,
@@ -124,11 +127,6 @@ class _StudentManagerPortalSectionState
                     if (pane == null) return;
                     _selectPane(pane);
                   },
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton(
-                  onPressed: widget.onOpenTaskEditor,
-                  child: const Text('Edit Jobs & Tasks'),
                 ),
               ],
             ),

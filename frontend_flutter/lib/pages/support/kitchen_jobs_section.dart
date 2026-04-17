@@ -291,9 +291,7 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
         ),
         const SizedBox(height: 12),
         if (selectedSection == null)
-          _buildEmptySectionState(
-            'Choose a $title section to view the job instructions.',
-          )
+          const SizedBox.shrink()
         else
           _buildInstructionPanel(sections[selectedSection]!),
       ],
@@ -378,25 +376,5 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
       for (int i = 0; i < lines.length; i++) '${i + 1}. ${lines[i]}',
     ];
     return InstructionCard(lines: numbered);
-  }
-
-  Widget _buildEmptySectionState(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4F8FD),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFBFD2EA)),
-      ),
-      child: Text(
-        message,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF355C84),
-        ),
-      ),
-    );
   }
 }

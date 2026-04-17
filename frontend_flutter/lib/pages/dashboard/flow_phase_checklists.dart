@@ -30,10 +30,7 @@ class _TrainerPhaseChecklist extends StatelessWidget {
           Text(phase, style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           if (tasks.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Text('No tasks loaded for this section.'),
-            )
+            const SizedBox.shrink()
           else
             ...tasks.map(
               (task) => task.requiresCheckoff
@@ -54,9 +51,6 @@ class _TrainerPhaseChecklist extends StatelessWidget {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 6),
                       leading: const Icon(Icons.remove, size: 18),
                       title: Text(task.description),
-                      subtitle: const Text(
-                        'Continuous during-shift responsibility',
-                      ),
                     ),
             ),
         ],
@@ -93,10 +87,7 @@ class _PhaseChecklist extends StatelessWidget {
           Text(phase, style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           if (tasks.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Text('No tasks loaded for this section.'),
-            )
+            const SizedBox.shrink()
           else
             ...tasks.map(
               (task) => task.requiresCheckoff
@@ -117,9 +108,6 @@ class _PhaseChecklist extends StatelessWidget {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 6),
                       leading: const Icon(Icons.remove, size: 18),
                       title: Text(task.description),
-                      subtitle: const Text(
-                        'Continuous during-shift responsibility',
-                      ),
                     ),
             ),
         ],

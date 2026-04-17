@@ -92,6 +92,7 @@ extension _MainShell on _MtcCafeteriaAppState {
         canOpenFindItem: canViewReference,
         canOpenDiningMap: canViewReference,
         canViewTrainings: canViewTrainings,
+        canOpenManagerPortal: canOpenManagerPortal,
         onOpenWorkflow: () {
           _updateUi(() {
             _dashboardView = _DashboardView.workflow;
@@ -110,15 +111,15 @@ extension _MainShell on _MtcCafeteriaAppState {
           });
         },
         onOpenManagerPortal: () async {
-          if (!_adminModeEnabled) {
-            await _enableAdminMode(context);
-            if (!_adminModeEnabled) return;
-          }
+          if (!canOpenManagerPortal) return;
           _updateUi(() {
             _dashboardView = _DashboardView.managerPortal;
           });
           _state.refreshPointCenter();
           _state.refreshDailyShiftReports();
+        },
+        onOpenAppFeedback: () {
+          _openFeedbackForm(context);
         },
         onOpenTrainings: () {
           if (!canViewTrainings) return;
@@ -332,7 +333,7 @@ extension _MainShell on _MtcCafeteriaAppState {
           _state.updateLandingItem(id, payload),
       onDeleteAnnouncement: (id) => _state.deleteLandingItem(id),
       onOpenTaskEditor: () => _openTaskEditor(context),
-      );
+    );
   }
 
   Widget? _buildBottomNav(bool isLoggedIn) {

@@ -197,15 +197,15 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
     final showCondimentsRotation = selectedJobName == 'Condiments Prep';
     final showAnyInlineReferenceButton = selectedJobName != null;
 
-    final setupTasks = _applyTaskOverrides(taskBoard.tasks
-        .where((t) => t.phase == 'Setup')
-        .toList());
-    final duringTasks = _applyTaskOverrides(taskBoard.tasks
-        .where((t) => t.phase == 'During Shift')
-        .toList());
-    final cleanupTasks = _applyTaskOverrides(taskBoard.tasks
-        .where((t) => t.phase == 'Cleanup')
-        .toList());
+    final setupTasks = _applyTaskOverrides(
+      taskBoard.tasks.where((t) => t.phase == 'Setup').toList(),
+    );
+    final duringTasks = _applyTaskOverrides(
+      taskBoard.tasks.where((t) => t.phase == 'During Shift').toList(),
+    );
+    final cleanupTasks = _applyTaskOverrides(
+      taskBoard.tasks.where((t) => t.phase == 'Cleanup').toList(),
+    );
 
     final setupComplete = _allCheckoffComplete(setupTasks);
     final cleanupComplete = _allCheckoffComplete(cleanupTasks);
@@ -231,14 +231,6 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'All tasks complete. Report to your supervisor.',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF264D76),
-                ),
               ),
               const SizedBox(height: 14),
               SizedBox(
@@ -281,11 +273,6 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                   ),
                   const SizedBox(height: 12),
                   if (_step == 0) ...[
-                    const Text(
-                      'Step 1 of 5',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedMeal,
                       isExpanded: true,
@@ -326,11 +313,6 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                       ),
                     ),
                   ] else if (_step == 1) ...[
-                    const Text(
-                      'Step 2 of 5',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       initialValue: selectedJobId,
                       isExpanded: true,
@@ -372,10 +354,6 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                       ),
                     ),
                   ] else if (_step == 2) ...[
-                    const Text(
-                      'Step 3 of 5',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
                     const SizedBox(height: 8),
                     if (showAnyInlineReferenceButton) ...[
                       const SizedBox(height: 4),
@@ -430,10 +408,6 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                       ),
                     ),
                   ] else if (_step == 3) ...[
-                    const Text(
-                      'Step 4 of 5',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
                     if (showAnyInlineReferenceButton) ...[
                       const SizedBox(height: 8),
                       Column(
@@ -485,10 +459,6 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                       ),
                     ),
                   ] else if (_step == 4) ...[
-                    const Text(
-                      'Step 5 of 5',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
                     const SizedBox(height: 8),
                     if (showAnyInlineReferenceButton) ...[
                       const SizedBox(height: 4),
@@ -543,31 +513,7 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
                       ),
                     ),
                   ] else ...[
-                    const Text(
-                      'Step 5 of 5',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEAF4FF),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: const Color(
-                            0xFF1F5E9C,
-                          ).withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cleanup complete. Report to your supervisor.',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF113A67),
-                        ),
-                      ),
-                    ),
+                    const SizedBox.shrink(),
                   ],
                 ],
               ),

@@ -11,10 +11,12 @@ class DashboardHubCard extends StatelessWidget {
     required this.canOpenFindItem,
     required this.canOpenDiningMap,
     required this.canViewTrainings,
+    required this.canOpenManagerPortal,
     required this.onOpenWorkflow,
     required this.onOpenFindItem,
     required this.onOpenDiningMap,
     required this.onOpenManagerPortal,
+    required this.onOpenAppFeedback,
     required this.onOpenTrainings,
     required this.onOpenReference,
   });
@@ -23,10 +25,12 @@ class DashboardHubCard extends StatelessWidget {
   final bool canOpenFindItem;
   final bool canOpenDiningMap;
   final bool canViewTrainings;
+  final bool canOpenManagerPortal;
   final VoidCallback onOpenWorkflow;
   final VoidCallback onOpenFindItem;
   final VoidCallback onOpenDiningMap;
   final VoidCallback onOpenManagerPortal;
+  final VoidCallback onOpenAppFeedback;
   final VoidCallback onOpenTrainings;
   final VoidCallback onOpenReference;
 
@@ -132,18 +136,32 @@ class DashboardHubCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    key: const ValueKey('hub-open-manager-portal'),
-                    onPressed: onOpenManagerPortal,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                if (canOpenManagerPortal) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      key: const ValueKey('hub-open-manager-portal'),
+                      onPressed: onOpenManagerPortal,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('Student Manager Portal'),
                     ),
-                    child: const Text('Student Manager Portal'),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      key: const ValueKey('hub-open-app-feedback'),
+                      onPressed: onOpenAppFeedback,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('App Feedback'),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

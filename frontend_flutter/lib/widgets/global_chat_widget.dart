@@ -4,10 +4,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../models/chatbot.dart';
 
 class ChatMessage {
-  const ChatMessage({
-    required this.role,
-    required this.text,
-  });
+  const ChatMessage({required this.role, required this.text});
 
   final String role;
   final String text;
@@ -82,10 +79,7 @@ class _GlobalChatWidgetState extends State<GlobalChatWidget> {
       if (!mounted) return;
       setState(() {
         _messages.add(
-          ChatMessage(
-            role: 'assistant',
-            text: 'Chatbot unavailable: $error',
-          ),
+          ChatMessage(role: 'assistant', text: 'Chatbot unavailable: $error'),
         );
       });
     } finally {
@@ -133,10 +127,7 @@ class _GlobalChatWidgetState extends State<GlobalChatWidget> {
         });
         await _ensureHealthLoaded();
       },
-      child: const Text(
-        'AI',
-        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-      ),
+      child: const Icon(Icons.smart_toy_outlined),
     );
   }
 

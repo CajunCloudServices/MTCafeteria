@@ -181,11 +181,6 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
                   ),
                   const SizedBox(height: 12),
                   if (_step == 0) ...[
-                    const Text(
-                      'Step 1 of 4',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedMeal,
                       isExpanded: true,
@@ -223,11 +218,6 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
                       ),
                     ),
                   ] else if (_step == 1) ...[
-                    const Text(
-                      'Step 2 of 4',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       initialValue: _selectedCount,
                       isExpanded: true,
@@ -267,10 +257,6 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
                       ),
                     ),
                   ] else if (_step == 2) ...[
-                    const Text(
-                      'Step 3 of 4',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
                     const SizedBox(height: 8),
                     ...List.generate(widget.traineeCount, (slot) {
                       final jobId = widget.traineeJobBySlot[slot];
@@ -330,12 +316,6 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
                       ),
                     ),
                   ] else ...[
-                    Text(
-                      _step == 3
-                          ? 'Step 4 of $_finalStep'
-                          : 'Step 5 of $_finalStep',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
                     if (_step == 3) ...[
                       const SizedBox(height: 12),
                       Container(

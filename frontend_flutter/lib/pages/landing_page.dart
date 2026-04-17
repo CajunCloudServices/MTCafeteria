@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/link.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/landing_item.dart';
 import '../theme/app_ui_tokens.dart';
-
-const String _feedbackFormUrl =
-    'https://docs.google.com/forms/d/e/1FAIpQLSdpUPvjK-C2K9TbxKC0-L57WfJe2OFBVqHQpXwuFklC8DNI_Q/viewform?usp=header';
 
 Color _landingTypeColor(String type) {
   switch (type.toLowerCase()) {
@@ -66,17 +61,6 @@ class LandingPage extends StatelessWidget {
   final Future<void> Function(int id, Map<String, dynamic>) onUpdate;
   final Future<void> Function(int id) onDelete;
 
-  Future<void> _openFeedbackForm(BuildContext context) async {
-    final opened = await launchUrl(
-      Uri.parse(_feedbackFormUrl),
-      webOnlyWindowName: '_blank',
-    );
-    if (opened || !context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Could not open the feedback form.')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -94,50 +78,24 @@ class LandingPage extends StatelessWidget {
             const SizedBox(height: 10),
             Expanded(
               child: ListView.separated(
-                itemCount: items.length + 1,
+                itemCount: items.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  if (index < items.length) {
-                    final item = items[index];
-                    return _AnnouncementCard(
+                  final item = items[index];
+                  return _AnnouncementCard(
+                    item: item,
+                    isMobile: isMobile,
+                    canManage: canManage,
+                    onOpen: () => _showAnnouncementDetails(
+                      context,
                       item: item,
-                      isMobile: isMobile,
                       canManage: canManage,
-                      onOpen: () => _showAnnouncementDetails(
+                      onEdit: () => _showLandingDialog(
                         context,
-                        item: item,
-                        canManage: canManage,
-                        onEdit: () => _showLandingDialog(
-                          context,
-                          existing: item,
-                          onSave: (payload) => onUpdate(item.id, payload),
-                        ),
-                        onDelete: () => onDelete(item.id),
+                        existing: item,
+                        onSave: (payload) => onUpdate(item.id, payload),
                       ),
-                    );
-                  }
-
-                  return Link(
-                    uri: Uri.parse(_feedbackFormUrl),
-                    target: LinkTarget.blank,
-                    builder: (context, followLink) => _AnnouncementCard(
-                      item: const LandingItem(
-                        id: -1,
-                        type: 'Announcement',
-                        title: 'App Feedback',
-                        content: 'Tell us how the app is working on your shift.',
-                        startDate: '',
-                        endDate: '',
-                      ),
-                      isMobile: isMobile,
-                      canManage: false,
-                      onOpen: () {
-                        if (followLink != null) {
-                          followLink();
-                          return;
-                        }
-                        _openFeedbackForm(context);
-                      },
+                      onDelete: () => onDelete(item.id),
                     ),
                   );
                 },
@@ -350,7 +308,7 @@ class _HeaderPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Reminders',
+                  'Announcements',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
@@ -384,7 +342,7 @@ class _HeaderPanel extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Reminders',
+                        'Announcements',
                         style: TextStyle(
                           fontSize: 34,
                           fontWeight: FontWeight.w800,

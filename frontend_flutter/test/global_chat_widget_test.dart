@@ -34,7 +34,7 @@ void main() {
       ),
     );
 
-    expect(find.text('AI'), findsOneWidget);
+    expect(find.byIcon(Icons.smart_toy_outlined), findsOneWidget);
     expect(find.text('MTC Assistant'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('global-chat-open')));

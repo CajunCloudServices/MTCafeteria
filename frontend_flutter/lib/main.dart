@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/landing_page.dart';
 import 'pages/login_page.dart';
@@ -21,6 +22,9 @@ import 'widgets/global_chat_widget.dart';
 import 'widgets/shift_selection_cards.dart';
 
 part 'app/main_shell.dart';
+
+const String _feedbackFormUrl =
+    'https://docs.google.com/forms/d/e/1FAIpQLSdpUPvjK-C2K9TbxKC0-L57WfJe2OFBVqHQpXwuFklC8DNI_Q/viewform?usp=header';
 
 void main() {
   runApp(const MtcCafeteriaApp());
@@ -52,7 +56,9 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     _runtimeConfig,
   );
   late final AppState _state = AppState(runtimeConfig: _runtimeConfig);
-  late final ApiClient _chatApiClient = ApiClient(runtimeConfig: _runtimeConfig);
+  late final ApiClient _chatApiClient = ApiClient(
+    runtimeConfig: _runtimeConfig,
+  );
   int _selectedIndex = 0;
 
   @override
@@ -396,10 +402,19 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     if (!mounted) return;
     await navigator.push(
       MaterialPageRoute<void>(
-        builder: (_) => TaskEditorPage(
-          authToken: authToken,
-        ),
+        builder: (_) => TaskEditorPage(authToken: authToken),
       ),
+    );
+  }
+
+  Future<void> _openFeedbackForm(BuildContext context) async {
+    final opened = await launchUrl(
+      Uri.parse(_feedbackFormUrl),
+      webOnlyWindowName: '_blank',
+    );
+    if (opened || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not open the feedback form.')),
     );
   }
 
@@ -433,7 +448,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
             ? const <String>[]
             : _modesForSelection(user.role, _dashboardTrack);
 
-        const canOpenManagerPortal = true;
+        final canOpenManagerPortal = _adminModeEnabled;
         final canViewTrainings =
             _features.trainingsEnabled && (user?.canViewTrainings ?? false);
         final canAssignPoints =
@@ -460,6 +475,10 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
         }
         if (effectiveDashboardView == _DashboardView.points &&
             !canAssignPoints) {
+          effectiveDashboardView = _DashboardView.hub;
+        }
+        if (effectiveDashboardView == _DashboardView.managerPortal &&
+            !canOpenManagerPortal) {
           effectiveDashboardView = _DashboardView.hub;
         }
         if (effectiveDashboardView == _DashboardView.dailyShiftReports &&
@@ -803,9 +822,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  _adminModeEnabled
-                                      ? 'Hide Admin Buttons'
-                                      : 'Enter Student Manager Password',
+                                  _adminModeEnabled ? 'Hide Admin' : 'Admin',
                                 ),
                               ],
                             ),
@@ -818,7 +835,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                                 children: [
                                   Icon(Icons.menu_book_outlined, size: 18),
                                   SizedBox(width: 10),
-                                  Text('Search Guides'),
+                                  Text('Guides'),
                                 ],
                               ),
                             ),
@@ -830,7 +847,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                                 children: [
                                   Icon(Icons.search, size: 18),
                                   SizedBox(width: 10),
-                                  Text('Find an Item'),
+                                  Text('Find Item'),
                                 ],
                               ),
                             ),
@@ -842,7 +859,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                                 children: [
                                   Icon(Icons.map_outlined, size: 18),
                                   SizedBox(width: 10),
-                                  Text('Dining Map'),
+                                  Text('Map'),
                                 ],
                               ),
                             ),

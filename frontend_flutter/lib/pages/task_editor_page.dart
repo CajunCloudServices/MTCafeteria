@@ -11,11 +11,7 @@ import '../services/api_client.dart';
 /// backend request. If the backend ever rejects it, the page prompts the
 /// caller to cancel and re-unlock instead of silently failing.
 class TaskEditorPage extends StatefulWidget {
-  const TaskEditorPage({
-    super.key,
-    required this.authToken,
-    this.apiClient,
-  });
+  const TaskEditorPage({super.key, required this.authToken, this.apiClient});
 
   final String authToken;
   final ApiClient? apiClient;
@@ -25,7 +21,8 @@ class TaskEditorPage extends StatefulWidget {
 }
 
 class _TaskEditorPageState extends State<TaskEditorPage> {
-  late final ApiClient _api = widget.apiClient ??
+  late final ApiClient _api =
+      widget.apiClient ??
       ApiClient(runtimeConfig: AppRuntimeConfig.fromEnvironment);
 
   AdminTaskBoard? _board;
@@ -41,14 +38,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
   }
 
   List<String> get _mealOptions {
-    final board = _board;
-    if (board == null) return const ['All'];
-    final meals = <String>{};
-    for (final shift in board.shifts) {
-      if (shift.mealType.isNotEmpty) meals.add(shift.mealType);
-    }
-    final sorted = meals.toList()..sort();
-    return ['All', ...sorted];
+    return const ['All', 'Breakfast', 'Lunch', 'Dinner'];
   }
 
   List<AdminJob> get _visibleJobs {
@@ -248,9 +238,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(destructiveLabel),
           ),
@@ -298,10 +286,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
             width: double.infinity,
             color: Colors.red.shade50,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              _error!,
-              style: TextStyle(color: Colors.red.shade800),
-            ),
+            child: Text(_error!, style: TextStyle(color: Colors.red.shade800)),
           ),
         Expanded(child: _buildJobsList()),
       ],
@@ -311,7 +296,8 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
   Widget _buildFilterBar() {
     final options = _mealOptions;
     final totalJobs = _board?.jobs.length ?? 0;
-    final totalTasks = _board?.jobs.fold<int>(0, (a, j) => a + j.totalTaskCount) ?? 0;
+    final totalTasks =
+        _board?.jobs.fold<int>(0, (a, j) => a + j.totalTaskCount) ?? 0;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       color: Theme.of(context).colorScheme.surface,
@@ -323,18 +309,24 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: options
-                .map(
-                  (meal) => ChoiceChip(
-                    label: Text(meal),
-                    selected: _mealFilter == meal,
-                    onSelected: (_) => setState(() => _mealFilter = meal),
-                  ),
-                )
-                .toList(),
+          SizedBox(
+            width: 260,
+            child: DropdownButtonFormField<String>(
+              initialValue: _mealFilter,
+              decoration: const InputDecoration(labelText: 'Line jobs'),
+              items: options
+                  .map(
+                    (meal) => DropdownMenuItem<String>(
+                      value: meal,
+                      child: Text(meal),
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _mealFilter = value);
+              },
+            ),
           ),
         ],
       ),
@@ -347,7 +339,9 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Text('No jobs match this filter. Add one with the button below.'),
+          child: Text(
+            'No jobs match this filter. Add one with the button below.',
+          ),
         ),
       );
     }
@@ -628,8 +622,9 @@ class _JobFormDialog extends StatefulWidget {
 }
 
 class _JobFormDialogState extends State<_JobFormDialog> {
-  late final TextEditingController _nameController =
-      TextEditingController(text: widget.initialName);
+  late final TextEditingController _nameController = TextEditingController(
+    text: widget.initialName,
+  );
   late int _shiftId = widget.initialShiftId;
 
   @override
@@ -786,8 +781,12 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
                 border: OutlineInputBorder(),
               ),
               items: widget.phases
-                  .map((phase) =>
-                      DropdownMenuItem<String>(value: phase, child: Text(phase)))
+                  .map(
+                    (phase) => DropdownMenuItem<String>(
+                      value: phase,
+                      child: Text(phase),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value == null) return;
