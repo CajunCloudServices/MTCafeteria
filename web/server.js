@@ -46,15 +46,10 @@ async function checkApiReadiness({
 }
 
 function createProxy({ target, routePrefix }) {
-  // Chatbot POST may wait on a remote upstream (see backend CHATBOT_TIMEOUT_MS).
-  // Keep this above that value so the edge proxy does not cut the connection early.
-  const longProxyMs = Number(process.env.API_PROXY_TIMEOUT_MS || 120000);
   return createProxyMiddleware({
     target,
     changeOrigin: true,
     ws: true,
-    timeout: longProxyMs,
-    proxyTimeout: longProxyMs,
     on: {
       error(error, req, res) {
         if (res.headersSent) {

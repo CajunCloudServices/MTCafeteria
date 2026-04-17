@@ -179,16 +179,6 @@ curl -X POST http://100.84.218.4:18910/chat \
   -d "{\"message\":\"What are the setup tasks for beverages?\",\"sessionId\":\"ops-smoke\"}"'
 ```
 
-## When the UI shows `502` and HTML (`<!DOCTYPE html>`, Cloudflare `cf-` classes)
-
-That response body is almost always an **HTML error page from a proxy or CDN**, not the Express JSON errors this app returns. Typical causes:
-
-1. **The browser never reached your Node API** (Cloudflare ↔ origin connectivity, TLS mode, or origin down). Confirm other `/api/*` routes work from the same browser session.
-2. **The `web` container cut off a long chat request** before the API finished. The web host sets a long proxy timeout for `/api` (see `API_PROXY_TIMEOUT_MS` in `web/server.js`); ensure production env matches.
-3. **The API container cannot reach `CHATBOT_UPSTREAM_URL`** (Tailscale routing, firewall, or wrong URL/token). The backend would normally return JSON `{ "message": "Could not reach chatbot service: ..." }` — if you only ever see HTML, suspect (1) or (2) first.
-
-The Flutter client uses a **longer HTTP timeout for chatbot calls** than other API methods so slow remote bot replies are not aborted at 15 seconds.
-
 ## Failure Checklist
 
 If the widget opens but does not answer:

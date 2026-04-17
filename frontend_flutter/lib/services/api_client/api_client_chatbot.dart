@@ -5,7 +5,6 @@ extension ApiClientChatbot on ApiClient {
     final response = await _send(
       () => _httpClient.get(Uri.parse('$_baseUrl/api/chatbot/health')),
       'Failed to load chatbot health',
-      timeout: _chatbotRequestTimeout,
     );
 
     if (response.statusCode != 200 && response.statusCode != 503) {
@@ -38,7 +37,6 @@ extension ApiClientChatbot on ApiClient {
         }),
       ),
       'Failed to send chatbot message',
-      timeout: _chatbotRequestTimeout,
     );
 
     if (response.statusCode != 200) {

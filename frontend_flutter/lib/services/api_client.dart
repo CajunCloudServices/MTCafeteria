@@ -44,9 +44,6 @@ class ApiClient {
     String? baseUrl,
     AppRuntimeConfig? runtimeConfig,
     Duration? requestTimeout,
-    /// Chatbot calls the backend proxy, which may wait on a remote bot (see
-    /// `CHATBOT_TIMEOUT_MS`). Keep this comfortably above typical proxy latency.
-    Duration? chatbotRequestTimeout,
     http.Client? httpClient,
   }) : _baseUrl =
            (baseUrl != null && baseUrl.isNotEmpty)
@@ -54,13 +51,10 @@ class ApiClient {
                : (runtimeConfig ?? AppRuntimeConfig.fromEnvironment)
                    .resolveApiBaseUrl(Uri.base),
        _requestTimeout = requestTimeout ?? const Duration(seconds: 15),
-       _chatbotRequestTimeout =
-           chatbotRequestTimeout ?? const Duration(seconds: 90),
        _httpClient = httpClient ?? http.Client();
 
   final String _baseUrl;
   final Duration _requestTimeout;
-  final Duration _chatbotRequestTimeout;
   final http.Client _httpClient;
 
   Map<String, String> _authHeaders(String token) {
@@ -92,37 +86,20 @@ class ApiClient {
       }
       final trimmed = body.trim();
       if (trimmed.isNotEmpty) {
-        return _humanizeNonJsonErrorBody(trimmed);
+        return trimmed;
       }
     }
     return fallback;
-  }
-
-  /// Proxies/CDNs often return HTML bodies (e.g. Cloudflare 502). Never show
-  /// that verbatim in the chat UI.
-  String _humanizeNonJsonErrorBody(String body) {
-    final lower = body.toLowerCase();
-    if (body.trimLeft().startsWith('<!') ||
-        lower.startsWith('<html') ||
-        lower.contains('cloudflare') && lower.contains('cf-')) {
-      return 'Gateway returned an HTML error page (often a proxy/CDN issue). '
-          'Confirm the API is up and can reach the chatbot upstream.';
-    }
-    if (body.length > 280) {
-      return '${body.substring(0, 280)}…';
-    }
-    return body;
   }
 
   /// Wraps an HTTP call with a timeout and converts network-level failures
   /// into [ApiClientException] so call sites only need to handle one type.
   Future<http.Response> _send(
     Future<http.Response> Function() request,
-    String fallback, {
-    Duration? timeout,
-  }) async {
+    String fallback,
+  ) async {
     try {
-      return await request().timeout(timeout ?? _requestTimeout);
+      return await request().timeout(_requestTimeout);
     } on ApiClientException {
       rethrow;
     } catch (error) {
