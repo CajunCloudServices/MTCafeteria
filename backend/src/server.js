@@ -15,6 +15,7 @@ const taskBoardRoutes = require('./routes/taskBoardRoutes');
 const taskAdminRoutes = require('./routes/taskAdminRoutes');
 const pointsRoutes = require('./routes/pointsRoutes');
 const dailyShiftReportRoutes = require('./routes/dailyShiftReportRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 const app = express();
 
@@ -103,6 +104,7 @@ app.use('/api', taskBoardRoutes);
 app.use('/api', taskAdminRoutes);
 app.use('/api', pointsRoutes);
 app.use('/api', dailyShiftReportRoutes);
+app.use('/api', chatbotRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: 'Not found.' });

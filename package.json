@@ -7,6 +7,7 @@
     "flutter:web:sync": "./scripts/build_and_sync_flutter_web.sh",
     "deploy:prod": "bash ./scripts/deploy_production.sh",
     "db:migrate": "npm --prefix backend run migrate",
+    "chatbot:smoke": "node ./scripts/chatbot_smoke.mjs",
     "git-hooks:setup": "./scripts/setup_git_hooks.sh",
     "live:screenshot": "node tools/live-site.js screenshot",
     "live:actions": "node tools/live-site.js actions",

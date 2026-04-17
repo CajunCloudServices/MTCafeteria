@@ -119,6 +119,9 @@ const env = {
   jwtSecret: jwtSecret || 'dev-secret',
   useMockData,
   corsOrigins,
+  chatbotUpstreamUrl: String(process.env.CHATBOT_UPSTREAM_URL || '').trim(),
+  chatbotApiToken: String(process.env.CHATBOT_API_TOKEN || '').trim(),
+  chatbotTimeoutMs: Number(process.env.CHATBOT_TIMEOUT_MS || 65000),
 };
 
 module.exports = env;

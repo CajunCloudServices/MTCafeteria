@@ -42,6 +42,7 @@ The app uses two kinds of content:
 
 - bundled reference and training text in the Flutter app
 - shared backend-backed overrides for admin edits
+- a remote MTC Dining chatbot reached through the local backend proxy
 
 That means most of the text-heavy surfaces can be updated without rebuilding the entire app, while the 2-minute trainings remain static app content.
 
@@ -52,6 +53,7 @@ The backend serves these main domains:
 - announcements and other shared content
 - task board and supervisor board data
 - training feeds for legacy compatibility
+- chatbot proxy endpoints for the MTC Dining assistant
 
 The app does not use a public login endpoint or user account flow.
 
@@ -170,6 +172,8 @@ Set the real values in `.env`:
 - `POSTGRES_PASSWORD`
 - `DATABASE_URL`
 - `TASK_EDITOR_PASSWORD`
+- `CHATBOT_UPSTREAM_URL`
+- `CHATBOT_API_TOKEN`
 
 Database schema changes now flow through `backend/sql/migrations/`.
 The backend container runs `npm run migrate` before startup, and local reseeding
@@ -205,7 +209,12 @@ After deploy completes, verify health as needed:
 
 ```bash
 npm run health:deploy
+npm run chatbot:smoke
 ```
+
+Detailed chatbot architecture, remote host wiring, and break/fix steps:
+
+- `docs/chatbot-integration.md`
 
 ### Low-level bundle sync helper
 

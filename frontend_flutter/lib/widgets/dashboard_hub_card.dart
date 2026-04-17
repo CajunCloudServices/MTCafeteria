@@ -12,18 +12,12 @@ class DashboardHubCard extends StatelessWidget {
     required this.canOpenDiningMap,
     required this.canOpenManagerPortal,
     required this.canViewTrainings,
-    required this.canAssignPoints,
-    required this.canViewDailyShiftReports,
-    required this.canOpenTaskEditor,
     required this.onOpenWorkflow,
     required this.onOpenFindItem,
     required this.onOpenDiningMap,
     required this.onOpenManagerPortal,
     required this.onOpenTrainings,
-    required this.onOpenPoints,
     required this.onOpenReference,
-    required this.onOpenDailyShiftReports,
-    required this.onOpenTaskEditor,
   });
 
   final bool canOpenReference;
@@ -31,18 +25,12 @@ class DashboardHubCard extends StatelessWidget {
   final bool canOpenDiningMap;
   final bool canOpenManagerPortal;
   final bool canViewTrainings;
-  final bool canAssignPoints;
-  final bool canViewDailyShiftReports;
-  final bool canOpenTaskEditor;
   final VoidCallback onOpenWorkflow;
   final VoidCallback onOpenFindItem;
   final VoidCallback onOpenDiningMap;
   final VoidCallback onOpenManagerPortal;
   final VoidCallback onOpenTrainings;
-  final VoidCallback onOpenPoints;
   final VoidCallback onOpenReference;
-  final VoidCallback onOpenDailyShiftReports;
-  final VoidCallback onOpenTaskEditor;
 
   @override
   Widget build(BuildContext context) {
@@ -146,34 +134,6 @@ class DashboardHubCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (canAssignPoints) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      key: const ValueKey('hub-open-points'),
-                      onPressed: onOpenPoints,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text('Assign Points'),
-                    ),
-                  ),
-                ],
-                if (canViewDailyShiftReports) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      key: const ValueKey('hub-open-daily-shift-reports'),
-                      onPressed: onOpenDailyShiftReports,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text('Daily Shift Reports'),
-                    ),
-                  ),
-                ],
                 if (canOpenManagerPortal) ...[
                   const SizedBox(height: 10),
                   SizedBox(
@@ -184,22 +144,7 @@ class DashboardHubCard extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text('Open Student Manager Portal'),
-                    ),
-                  ),
-                ],
-                if (canOpenTaskEditor) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      key: const ValueKey('hub-open-task-editor'),
-                      onPressed: onOpenTaskEditor,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      icon: const Icon(Icons.edit_note, size: 20),
-                      label: const Text('Edit Jobs & Tasks'),
+                      child: const Text('Student Manager Portal'),
                     ),
                   ),
                 ],

@@ -400,3 +400,76 @@ test('postgres readiness reports degraded when the database probe fails', async 
     }
   );
 });
+
+test('chatbot proxy reports disabled when no upstream is configured', async (t) => {
+  await withFreshApp(
+    {
+      NODE_ENV: 'test',
+      USE_MOCK_DATA: 'true',
+      JWT_SECRET: 'test-secret',
+      TASK_EDITOR_PASSWORD: 'editor-secret',
+      CHATBOT_UPSTREAM_URL: null,
+      CHATBOT_API_TOKEN: null,
+    },
+    async (app) => {
+      const { server, port } = await startServer(app);
+      t.after(() => new Promise((resolve) => server.close(resolve)));
+
+      const res = await request(port, 'GET', '/api/chatbot/health');
+      assert.equal(res.status, 503);
+      assert.equal(res.body.configured, false);
+      assert.equal(res.body.status, 'disabled');
+    }
+  );
+});
+
+test('chatbot proxy forwards health and chat requests', async (t) => {
+  await withFreshApp(
+    {
+      NODE_ENV: 'test',
+      USE_MOCK_DATA: 'true',
+      JWT_SECRET: 'test-secret',
+      TASK_EDITOR_PASSWORD: 'editor-secret',
+      CHATBOT_UPSTREAM_URL: 'http://chatbot.example.test',
+      CHATBOT_API_TOKEN: 'chatbot-token',
+    },
+    async (app) => {
+      const chatbotService = require('../src/services/chatbotService');
+      const originalHealth = chatbotService.checkChatbotHealth;
+      const originalSend = chatbotService.sendChatMessage;
+
+      chatbotService.checkChatbotHealth = async () => ({
+        ok: true,
+        configured: true,
+        status: 'ok',
+        upstreamStatus: 200,
+        payload: { ok: true },
+      });
+      chatbotService.sendChatMessage = async ({ message, sessionId }) => ({
+        reply: `Echo: ${message}`,
+        sessionId: sessionId || 'generated-session',
+      });
+
+      t.after(() => {
+        chatbotService.checkChatbotHealth = originalHealth;
+        chatbotService.sendChatMessage = originalSend;
+      });
+
+      const { server, port } = await startServer(app);
+      t.after(() => new Promise((resolve) => server.close(resolve)));
+
+      const health = await request(port, 'GET', '/api/chatbot/health');
+      assert.equal(health.status, 200);
+      assert.equal(health.body.ok, true);
+      assert.equal(health.body.status, 'ok');
+
+      const chat = await request(port, 'POST', '/api/chatbot/chat', {
+        message: 'Where are the drinks?',
+        sessionId: 'test-session',
+      });
+      assert.equal(chat.status, 200);
+      assert.equal(chat.body.reply, 'Echo: Where are the drinks?');
+      assert.equal(chat.body.sessionId, 'test-session');
+    }
+  );
+});

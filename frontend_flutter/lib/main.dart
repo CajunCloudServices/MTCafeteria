@@ -9,6 +9,7 @@ import 'pages/training_detail_page.dart';
 import 'config/app_features.dart';
 import 'config/runtime_config.dart';
 import 'models/user_session.dart';
+import 'services/api_client.dart';
 import 'state/app_state.dart';
 import 'theme/app_ui_tokens.dart';
 import 'widgets/app_bottom_nav.dart';
@@ -16,6 +17,7 @@ import 'widgets/app_header.dart';
 import 'widgets/admin_password_dialog.dart';
 import 'widgets/daily_shift_reports_view.dart';
 import 'widgets/dashboard_hub_card.dart';
+import 'widgets/global_chat_widget.dart';
 import 'widgets/shift_selection_cards.dart';
 import 'widgets/task_editor_password_dialog.dart';
 
@@ -51,6 +53,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     _runtimeConfig,
   );
   late final AppState _state = AppState(runtimeConfig: _runtimeConfig);
+  late final ApiClient _chatApiClient = ApiClient(runtimeConfig: _runtimeConfig);
   int _selectedIndex = 0;
 
   @override
@@ -348,7 +351,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   Future<void> _enableAdminMode(BuildContext context) async {
     final approved = await promptForAdminPassword(
       context,
-      title: 'Enter Admin Password',
+      title: 'Enter Student Manager Password',
     );
     if (!approved || !mounted) return;
     _updateUi(() {
@@ -787,7 +790,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                                 Text(
                                   _adminModeEnabled
                                       ? 'Hide Admin Buttons'
-                                      : 'Enter Admin Password',
+                                      : 'Enter Student Manager Password',
                                 ),
                               ],
                             ),
@@ -860,52 +863,66 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                       ),
                   ],
                 ),
-                body: DecoratedBox(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFF9FCFF), Color(0xFFE7EEF9)],
-                    ),
-                  ),
-                  child: Align(
-                    alignment: isLoggedIn && _selectedIndex == 1
-                        ? Alignment.center
-                        : Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: isMobile ? 640 : 1240,
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          isMobile ? 16 : 20,
-                          isMobile ? 14 : 14,
-                          isMobile ? 16 : 20,
-                          isMobile ? 16 : 18,
+                body: Stack(
+                  children: [
+                    DecoratedBox(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFF9FCFF), Color(0xFFE7EEF9)],
                         ),
-                        child: MediaQuery(
-                          data: MediaQuery.of(
-                            context,
-                          ).copyWith(textScaler: textScaler),
-                          child: _buildMainShellContent(
-                            context: context,
-                            isLoggedIn: isLoggedIn,
-                            user: user,
-                            canViewReference: canViewReference,
-                            canOpenManagerPortal: canOpenManagerPortal,
-                            canViewTrainings: canViewTrainings,
-                            canAssignPoints: canAssignPoints,
-                            canViewDailyShiftReports: canViewDailyShiftReports,
-                            effectiveDashboardView: effectiveDashboardView,
-                            showTrackSelection: showTrackSelection,
-                            showModeSelection: showModeSelection,
-                            availableTracks: availableTracks,
-                            availableModes: availableModes,
+                      ),
+                      child: Align(
+                        alignment: isLoggedIn && _selectedIndex == 1
+                            ? Alignment.center
+                            : Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: isMobile ? 640 : 1240,
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              isMobile ? 16 : 20,
+                              isMobile ? 14 : 14,
+                              isMobile ? 16 : 20,
+                              isMobile ? 16 : 18,
+                            ),
+                            child: MediaQuery(
+                              data: MediaQuery.of(
+                                context,
+                              ).copyWith(textScaler: textScaler),
+                              child: _buildMainShellContent(
+                                context: context,
+                                isLoggedIn: isLoggedIn,
+                                user: user,
+                                canViewReference: canViewReference,
+                                canOpenManagerPortal: canOpenManagerPortal,
+                                canViewTrainings: canViewTrainings,
+                                canAssignPoints: canAssignPoints,
+                                canViewDailyShiftReports:
+                                    canViewDailyShiftReports,
+                                effectiveDashboardView: effectiveDashboardView,
+                                showTrackSelection: showTrackSelection,
+                                showModeSelection: showModeSelection,
+                                availableTracks: availableTracks,
+                                availableModes: availableModes,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                    if (isLoggedIn && _features.chatbotEnabled)
+                      GlobalChatWidget(
+                        loadHealth: _chatApiClient.getChatbotHealth,
+                        sendMessage: (message, sessionId) =>
+                            _chatApiClient.sendChatbotMessage(
+                              message,
+                              sessionId: sessionId,
+                            ),
+                      ),
+                  ],
                 ),
                 bottomNavigationBar: _buildBottomNav(isLoggedIn),
               );

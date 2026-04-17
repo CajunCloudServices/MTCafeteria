@@ -31,7 +31,7 @@ class _AdminPasswordDialogState extends State<_AdminPasswordDialog> {
   }
 
   void _submit() {
-    if (_passwordController.text.trim() == 'admin') {
+    if (_passwordController.text.trim() == 'yoboss') {
       Navigator.of(context).pop(true);
       return;
     }

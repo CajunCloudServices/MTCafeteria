@@ -10,6 +10,7 @@ class AppFeatures {
     required this.pointsEnabled,
     required this.dailyShiftReportsEnabled,
     required this.managerPortalEnabled,
+    required this.chatbotEnabled,
   });
 
   final bool referencesEnabled;
@@ -17,6 +18,7 @@ class AppFeatures {
   final bool pointsEnabled;
   final bool dailyShiftReportsEnabled;
   final bool managerPortalEnabled;
+  final bool chatbotEnabled;
 
   static AppFeatures fromRuntimeConfig(AppRuntimeConfig config) {
     bool resolveToggle(String value) {
@@ -31,6 +33,7 @@ class AppFeatures {
       pointsEnabled: resolveToggle(config.featurePoints),
       dailyShiftReportsEnabled: resolveToggle(config.featureDailyShiftReports),
       managerPortalEnabled: resolveToggle(config.featureManagerPortal),
+      chatbotEnabled: resolveToggle(config.featureChatbot),
     );
   }
 }

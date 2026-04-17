@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/runtime_config.dart';
 import '../models/admin_task_board.dart';
+import '../models/chatbot.dart';
 import '../models/daily_shift_report.dart';
 import '../models/landing_item.dart';
 import '../models/point_assignment.dart';
@@ -14,6 +15,7 @@ import '../models/training.dart';
 import '../models/user_session.dart';
 
 part 'api_client/api_client_auth.dart';
+part 'api_client/api_client_chatbot.dart';
 part 'api_client/api_client_content.dart';
 part 'api_client/api_client_points.dart';
 part 'api_client/api_client_reports.dart';

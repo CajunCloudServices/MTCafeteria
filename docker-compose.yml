@@ -45,6 +45,9 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-}
       TASK_EDITOR_PASSWORD: ${TASK_EDITOR_PASSWORD:?TASK_EDITOR_PASSWORD is required}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      CHATBOT_UPSTREAM_URL: ${CHATBOT_UPSTREAM_URL:-}
+      CHATBOT_API_TOKEN: ${CHATBOT_API_TOKEN:-}
+      CHATBOT_TIMEOUT_MS: ${CHATBOT_TIMEOUT_MS:-65000}
     depends_on:
       postgres:
         condition: service_healthy

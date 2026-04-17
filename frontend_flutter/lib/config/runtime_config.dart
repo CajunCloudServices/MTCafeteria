@@ -12,6 +12,7 @@ class AppRuntimeConfig {
     required this.apiBaseUrl,
     required this.appMode,
     required this.featureManagerPortal,
+    required this.featureChatbot,
     required this.featurePoints,
     required this.featureDailyShiftReports,
     required this.featureTrainings,
@@ -21,6 +22,7 @@ class AppRuntimeConfig {
   final String apiBaseUrl;
   final String appMode;
   final String featureManagerPortal;
+  final String featureChatbot;
   final String featurePoints;
   final String featureDailyShiftReports;
   final String featureTrainings;
@@ -31,6 +33,10 @@ class AppRuntimeConfig {
     appMode: String.fromEnvironment('APP_MODE', defaultValue: 'dev'),
     featureManagerPortal: String.fromEnvironment(
       'FEATURE_MANAGER_PORTAL',
+      defaultValue: 'auto',
+    ),
+    featureChatbot: String.fromEnvironment(
+      'FEATURE_CHATBOT',
       defaultValue: 'auto',
     ),
     featurePoints: String.fromEnvironment(

@@ -4,15 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../config/line_deep_clean_assignments.dart';
 import '../models/daily_shift_report.dart';
+import '../models/landing_item.dart';
 import '../models/point_assignment.dart';
 import '../models/supervisor_board.dart';
 import '../models/task_board.dart';
 import '../models/trainer_board.dart';
 import '../models/training.dart';
 import '../models/user_session.dart';
+import '../widgets/daily_shift_reports_view.dart';
 import '../widgets/supervisor_daily_shift_report_form.dart';
 import 'reference_sheets_view.dart';
 import 'dashboard_support_sections.dart';
+import 'landing_page.dart';
 import 'reporting_page.dart';
 
 part 'dashboard/manager_portal_section.dart';
@@ -82,14 +85,22 @@ class DashboardPage extends StatelessWidget {
     required this.pointSentAssignments,
     required this.pointApprovalAssignments,
     required this.pointAssignableUsers,
+    required this.landingItems,
+    required this.dailyShiftReports,
     required this.pointInboxError,
     required this.pointSentError,
     required this.pointAssignableUsersError,
     required this.pointApprovalQueueError,
+    required this.dailyShiftReportsError,
     required this.onAcceptPointAssignment,
     required this.onAssignPoints,
     required this.onApprovePointAssignment,
     required this.onRefreshPointCenter,
+    required this.onRefreshDailyShiftReports,
+    required this.onCreateAnnouncement,
+    required this.onUpdateAnnouncement,
+    required this.onDeleteAnnouncement,
+    required this.onOpenTaskEditor,
   });
 
   final UserSession user;
@@ -119,10 +130,13 @@ class DashboardPage extends StatelessWidget {
   final List<PointAssignment> pointSentAssignments;
   final List<PointAssignment> pointApprovalAssignments;
   final List<AssignableUser> pointAssignableUsers;
+  final List<LandingItem> landingItems;
+  final List<DailyShiftReport> dailyShiftReports;
   final String? pointInboxError;
   final String? pointSentError;
   final String? pointAssignableUsersError;
   final String? pointApprovalQueueError;
+  final String? dailyShiftReportsError;
 
   final Future<void> Function(String meal) onSelectMeal;
   final Future<void> Function(int jobId) onSelectJob;
@@ -168,6 +182,11 @@ class DashboardPage extends StatelessWidget {
   onAssignPoints;
   final Future<void> Function(int assignmentId) onApprovePointAssignment;
   final Future<void> Function() onRefreshPointCenter;
+  final Future<void> Function() onRefreshDailyShiftReports;
+  final Future<void> Function(Map<String, dynamic>) onCreateAnnouncement;
+  final Future<void> Function(int id, Map<String, dynamic>) onUpdateAnnouncement;
+  final Future<void> Function(int id) onDeleteAnnouncement;
+  final Future<void> Function() onOpenTaskEditor;
 
   @override
   Widget build(BuildContext context) {
@@ -271,6 +290,8 @@ class DashboardPage extends StatelessWidget {
           else if (isManagerTrack)
             _StudentManagerPortalSection(
               user: user,
+              landingItems: landingItems,
+              dailyShiftReports: dailyShiftReports,
               pendingAssignments: pendingAssignments,
               pointSentAssignments: pointSentAssignments,
               pointApprovalAssignments: pointApprovalAssignments,
@@ -279,10 +300,16 @@ class DashboardPage extends StatelessWidget {
               pointSentError: pointSentError,
               pointAssignableUsersError: pointAssignableUsersError,
               pointApprovalQueueError: pointApprovalQueueError,
+              dailyShiftReportsError: dailyShiftReportsError,
               onAcceptPointAssignment: onAcceptPointAssignment,
               onAssignPoints: onAssignPoints,
               onApprovePointAssignment: onApprovePointAssignment,
               onRefreshPointCenter: onRefreshPointCenter,
+              onRefreshDailyShiftReports: onRefreshDailyShiftReports,
+              onCreateAnnouncement: onCreateAnnouncement,
+              onUpdateAnnouncement: onUpdateAnnouncement,
+              onDeleteAnnouncement: onDeleteAnnouncement,
+              onOpenTaskEditor: onOpenTaskEditor,
             )
           else
             const SizedBox.shrink(),

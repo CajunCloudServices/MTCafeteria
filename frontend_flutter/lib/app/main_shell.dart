@@ -93,9 +93,6 @@ extension _MainShell on _MtcCafeteriaAppState {
         canOpenDiningMap: canViewReference,
         canOpenManagerPortal: canOpenManagerPortal,
         canViewTrainings: canViewTrainings,
-        canAssignPoints: canAssignPoints,
-        canViewDailyShiftReports: canViewDailyShiftReports,
-        canOpenTaskEditor: true,
         onOpenWorkflow: () {
           _updateUi(() {
             _dashboardView = _DashboardView.workflow;
@@ -113,12 +110,17 @@ extension _MainShell on _MtcCafeteriaAppState {
             _dashboardView = _DashboardView.diningMap;
           });
         },
-        onOpenManagerPortal: () {
+        onOpenManagerPortal: () async {
           if (!canOpenManagerPortal) return;
+          if (!_adminModeEnabled) {
+            await _enableAdminMode(context);
+            if (!_adminModeEnabled) return;
+          }
           _updateUi(() {
             _dashboardView = _DashboardView.managerPortal;
-            _state.refreshPointCenter();
           });
+          _state.refreshPointCenter();
+          _state.refreshDailyShiftReports();
         },
         onOpenTrainings: () {
           if (!canViewTrainings) return;
@@ -131,27 +133,12 @@ extension _MainShell on _MtcCafeteriaAppState {
             ),
           );
         },
-        onOpenPoints: () {
-          if (!canAssignPoints) return;
-          _updateUi(() {
-            _dashboardView = _DashboardView.points;
-          });
-          _state.refreshPointCenter();
-        },
         onOpenReference: () {
           if (!canViewReference) return;
           _updateUi(() {
             _dashboardView = _DashboardView.reference;
           });
         },
-        onOpenDailyShiftReports: () {
-          if (!canViewDailyShiftReports) return;
-          _updateUi(() {
-            _dashboardView = _DashboardView.dailyShiftReports;
-          });
-          _state.refreshDailyShiftReports();
-        },
-        onOpenTaskEditor: () => _openTaskEditor(context),
       );
     }
 
@@ -312,10 +299,13 @@ extension _MainShell on _MtcCafeteriaAppState {
       pointSentAssignments: _state.pointSent,
       pointApprovalAssignments: _state.pointApprovalQueue,
       pointAssignableUsers: _state.pointAssignableUsers,
+      landingItems: _state.landingItems,
+      dailyShiftReports: _state.dailyShiftReports,
       pointInboxError: _state.pointInboxError,
       pointSentError: _state.pointSentError,
       pointAssignableUsersError: _state.pointAssignableUsersError,
       pointApprovalQueueError: _state.pointApprovalQueueError,
+      dailyShiftReportsError: _state.dailyShiftReportsError,
       onAcceptPointAssignment: (assignmentId, initials) => _state
           .acceptAssignedPoints(assignmentId: assignmentId, initials: initials),
       onAssignPoints:
@@ -335,7 +325,13 @@ extension _MainShell on _MtcCafeteriaAppState {
       onApprovePointAssignment: (assignmentId) =>
           _state.approvePointAssignment(assignmentId: assignmentId),
       onRefreshPointCenter: () => _state.refreshPointCenter(),
-    );
+      onRefreshDailyShiftReports: () => _state.refreshDailyShiftReports(),
+      onCreateAnnouncement: (payload) => _state.createLandingItem(payload),
+      onUpdateAnnouncement: (id, payload) =>
+          _state.updateLandingItem(id, payload),
+      onDeleteAnnouncement: (id) => _state.deleteLandingItem(id),
+      onOpenTaskEditor: () => _openTaskEditor(context),
+      );
   }
 
   Widget? _buildBottomNav(bool isLoggedIn) {

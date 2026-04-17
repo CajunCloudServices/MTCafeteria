@@ -239,6 +239,7 @@ class AppState extends ChangeNotifier {
   bool get canManagePoints => user?.canManagePoints ?? false;
   bool get canSubmitPointRequests => user?.canSubmitPointRequests ?? false;
   bool get canViewDailyShiftReports => user?.canViewDailyShiftReports ?? false;
+  String? get authToken => _token;
 
   bool _didAttemptBootstrapLogin = false;
 

@@ -8,6 +8,7 @@ void main() {
       apiBaseUrl: '',
       appMode: 'test',
       featureManagerPortal: 'auto',
+      featureChatbot: 'auto',
       featurePoints: 'auto',
       featureDailyShiftReports: 'auto',
       featureTrainings: 'auto',
@@ -19,6 +20,7 @@ void main() {
         apiBaseUrl: ' https://cafeteria.example.com/ ',
         appMode: 'prod',
         featureManagerPortal: 'auto',
+        featureChatbot: 'auto',
         featurePoints: 'auto',
         featureDailyShiftReports: 'auto',
         featureTrainings: 'auto',
@@ -65,6 +67,7 @@ void main() {
         apiBaseUrl: '',
         appMode: 'prod',
         featureManagerPortal: 'auto',
+        featureChatbot: 'auto',
         featurePoints: 'auto',
         featureDailyShiftReports: 'auto',
         featureTrainings: 'auto',
@@ -74,6 +77,7 @@ void main() {
       final features = AppFeatures.fromRuntimeConfig(config);
 
       expect(features.managerPortalEnabled, isTrue);
+      expect(features.chatbotEnabled, isTrue);
       expect(features.pointsEnabled, isTrue);
       expect(features.dailyShiftReportsEnabled, isTrue);
       expect(features.trainingsEnabled, isTrue);
@@ -85,6 +89,7 @@ void main() {
         apiBaseUrl: '',
         appMode: 'prod',
         featureManagerPortal: 'false',
+        featureChatbot: 'off',
         featurePoints: 'off',
         featureDailyShiftReports: 'FALSE',
         featureTrainings: ' Off ',
@@ -94,6 +99,7 @@ void main() {
       final features = AppFeatures.fromRuntimeConfig(config);
 
       expect(features.managerPortalEnabled, isFalse);
+      expect(features.chatbotEnabled, isFalse);
       expect(features.pointsEnabled, isFalse);
       expect(features.dailyShiftReportsEnabled, isFalse);
       expect(features.trainingsEnabled, isFalse);
