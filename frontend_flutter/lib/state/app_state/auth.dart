@@ -1,6 +1,15 @@
 part of 'package:frontend_flutter/state/app_state.dart';
 
 extension AppStateAuth on AppState {
+  Future<void> _runBootstrapRefresh(Future<void> Function() refresh) async {
+    try {
+      await refresh();
+    } catch (_) {
+      // Best-effort hydration: session auth must succeed even if one
+      // feature endpoint is temporarily unhealthy.
+    }
+  }
+
   Future<void> _hydrateSession({
     required String email,
     required String password,
@@ -9,14 +18,17 @@ extension AppStateAuth on AppState {
     _token = result.token;
     user = result.user;
     await Future.wait([
-      refreshLandingItems(),
-      if (_features.trainingsEnabled) refreshTrainingsIfAllowed(),
-      refreshTaskBoard(),
-      if (canAccessTrainerBoard) refreshTrainerBoard(),
-      if (canAccessSupervisorBoard) refreshSupervisorBoard(),
-      if (_features.pointsEnabled) refreshPointCenter(),
+      _runBootstrapRefresh(() => refreshLandingItems()),
+      if (_features.trainingsEnabled)
+        _runBootstrapRefresh(() => refreshTrainingsIfAllowed()),
+      _runBootstrapRefresh(() => refreshTaskBoard()),
+      if (canAccessTrainerBoard)
+        _runBootstrapRefresh(() => refreshTrainerBoard()),
+      if (canAccessSupervisorBoard)
+        _runBootstrapRefresh(() => refreshSupervisorBoard()),
+      if (_features.pointsEnabled) _runBootstrapRefresh(() => refreshPointCenter()),
       if (_features.dailyShiftReportsEnabled && canViewDailyShiftReports)
-        refreshDailyShiftReports(),
+        _runBootstrapRefresh(() => refreshDailyShiftReports()),
     ]);
   }
 

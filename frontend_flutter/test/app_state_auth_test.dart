@@ -151,4 +151,109 @@ void main() {
       expect(reportAuthHeaders.last, 'Bearer supervisor-token');
     },
   );
+
+  test('manager unlock still succeeds when a feature refresh fails', () async {
+    var reportsCalls = 0;
+
+    final client = MockClient((request) async {
+      if (request.url.path == '/api/auth/login' && request.method == 'POST') {
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        final email = body['email'] as String;
+        final isManager = email == 'manager@mtc.local';
+        return http.Response(
+          jsonEncode({
+            'token': isManager ? 'manager-token' : 'supervisor-token',
+            'user': {
+              'id': isManager ? 4 : 3,
+              'email': email,
+              'role': isManager ? 'Student Manager' : 'Supervisor',
+              'points': isManager ? 6 : 9,
+            },
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+
+      if (request.url.path == '/api/content/landing-items') {
+        return http.Response('[]', 200);
+      }
+
+      if (request.url.path == '/api/task-board') {
+        return http.Response(
+          jsonEncode({
+            'meals': ['Breakfast', 'Lunch', 'Dinner'],
+            'selectedMeal': 'Breakfast',
+            'jobs': [
+              {'id': 27, 'name': 'Beverages'},
+            ],
+            'selectedJobId': 27,
+            'tasks': <Map<String, dynamic>>[],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+
+      if (request.url.path == '/api/supervisor-board') {
+        return http.Response(
+          jsonEncode({
+            'meals': ['Breakfast', 'Lunch', 'Dinner'],
+            'selectedMeal': 'Breakfast',
+            'jobs': <Map<String, dynamic>>[],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+
+      if (request.url.path == '/api/trainer-board') {
+        return http.Response(
+          jsonEncode({
+            'meals': ['Breakfast', 'Lunch', 'Dinner'],
+            'selectedMeal': 'Breakfast',
+            'jobs': <Map<String, dynamic>>[],
+            'selectedJobIds': <int>[],
+            'trainees': <Map<String, dynamic>>[],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+
+      if (request.url.path == '/api/daily-shift-reports/current') {
+        return http.Response(
+          jsonEncode({'report': null}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+
+      if (request.url.path == '/api/daily-shift-reports') {
+        reportsCalls += 1;
+        if (reportsCalls == 2) {
+          return http.Response('boom', 500);
+        }
+        return http.Response('[]', 200);
+      }
+
+      return http.Response('Not found', 404);
+    });
+
+    final state = AppState(
+      apiClient: ApiClient(
+        baseUrl: 'http://example.test',
+        httpClient: client,
+      ),
+      runtimeConfig: runtimeConfig,
+    );
+
+    await state.initialize();
+    expect(state.user?.role, 'Supervisor');
+    expect(state.authToken, 'supervisor-token');
+
+    await state.enterStudentManagerMode();
+    expect(state.user?.role, 'Student Manager');
+    expect(state.authToken, 'manager-token');
+  });
 }
