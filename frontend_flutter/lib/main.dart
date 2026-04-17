@@ -156,16 +156,6 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     }
   }
 
-  bool _modeRequiresAdmin(String track, String mode) {
-    if (track == 'Line' && (mode == 'Supervisor' || mode == 'Lead Trainer')) {
-      return true;
-    }
-    if (track == 'Dishroom' && mode == 'Dishroom Lead Trainer') {
-      return true;
-    }
-    return false;
-  }
-
   void _resetDashboardSelectorsForRole(String role) {
     // Returning to the dashboard hub should clear any partial workflow state so
     // users never land mid-flow after changing tabs.

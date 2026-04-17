@@ -190,11 +190,6 @@ extension _MainShell on _MtcCafeteriaAppState {
         selectedMode: _dashboardMode,
         onModeChanged: (mode) => _updateUi(() => _dashboardMode = mode),
         onContinue: () async {
-          if (_modeRequiresAdmin(_dashboardTrack, _dashboardMode) &&
-              !_adminModeEnabled) {
-            await _enableAdminMode(context);
-            if (!_adminModeEnabled) return;
-          }
           _updateUi(() {
             _dashboardRoleConfirmed = true;
           });
