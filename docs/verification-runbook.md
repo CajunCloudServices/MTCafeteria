@@ -126,7 +126,7 @@ cd frontend_flutter
 flutter analyze
 flutter test
 cd ..
-bash ./scripts/build_and_sync_flutter_web.sh --release --pwa-strategy=none
+npm run flutter:web:sync -- --release --pwa-strategy=none
 docker compose build web api
 ```
 
@@ -151,7 +151,7 @@ Before merging or deploying:
 1. Confirm automated checks passed:
    `backend`, `web`, `flutter analyze`, `flutter test`, Flutter web build.
 2. Confirm the generated web bundle was rebuilt from source:
-   `bash ./scripts/build_and_sync_flutter_web.sh --release --pwa-strategy=none`
+   `npm run flutter:web:sync -- --release --pwa-strategy=none`
 3. Confirm any task editor changes were validated against both required headers.
 4. Confirm chatbot changes were validated through `/api/chatbot/health` and
    `/api/chatbot/chat`, not just the widget shell.
@@ -272,8 +272,11 @@ Assume generated assets are stale until proven otherwise.
 Rebuild and sync:
 
 ```bash
-bash ./scripts/build_and_sync_flutter_web.sh --release --pwa-strategy=none
+npm run flutter:web:sync -- --release --pwa-strategy=none
 ```
+
+The repo pre-push hook now blocks pushes that modify `frontend_flutter/` without
+also committing updates under `public/flutter-web/`.
 
 Then validate the served `main.dart.js` contains the expected strings or
 behavior before declaring the deploy complete.

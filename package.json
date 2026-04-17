@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Local tooling for live site screenshots/actions",
   "scripts": {
-    "flutter:web:sync": "./scripts/build_and_sync_flutter_web.sh",
+    "flutter:web:sync": "node ./scripts/flutter_web_sync.mjs",
     "deploy:prod": "bash ./scripts/deploy_production.sh",
     "db:migrate": "npm --prefix backend run migrate",
     "chatbot:smoke": "node ./scripts/chatbot_smoke.mjs",

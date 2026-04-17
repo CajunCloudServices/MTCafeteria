@@ -30,12 +30,14 @@ done
 
 if [ "$frontend_changed" -eq 1 ] && [ "$bundle_changed" -eq 0 ]; then
   cat >&2 <<'EOF'
-Notice: this push includes frontend_flutter/ changes without committed updates under public/flutter-web/.
+ERROR: this push includes frontend_flutter/ changes without committed updates under public/flutter-web/.
 
-That is allowed now. Production rebuilds the Flutter bundle during CI/deploy, so the tracked copy under public/flutter-web is no longer the deployment source of truth.
+This repository deploys the tracked Flutter web artifact from public/flutter-web.
+Push is blocked to prevent stale production frontend bundles.
 
-If you want a local Docker/web smoke test before pushing, regenerate the bundle locally with:
+Regenerate and commit the bundle, then push again:
 
   npm run flutter:web:sync
 EOF
+  exit 1
 fi

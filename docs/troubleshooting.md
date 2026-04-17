@@ -65,10 +65,8 @@ If tags do not match intended commit, recreate/redeploy services.
 If a fix is already in source but not effective live, do all steps below:
 
 1. Ensure fix is committed and pushed to `main`.
-2. Build Flutter web:
-   - `flutter build web --release --pwa-strategy=none`
-3. Sync generated output to deployment artifact:
-   - mirror `frontend_flutter/build/web` -> `public/flutter-web`
+2. Build + sync Flutter web artifact:
+   - `npm run flutter:web:sync -- --release --pwa-strategy=none`
 4. Sync updated repo content to live app directory in Coolify app source.
 5. Rebuild/recreate live `web` and `api` services.
 6. Re-check:
@@ -90,6 +88,7 @@ Before declaring a production fix complete:
 
 1. Verify source fix is committed.
 2. Verify Flutter bundle rebuilt and synced.
+   - pre-push now blocks frontend-only pushes without `public/flutter-web` updates.
 3. Verify live container image tags correspond to fix commit.
 4. Verify API endpoints with auth token.
 5. Verify UI flow manually in browser after hard refresh.
