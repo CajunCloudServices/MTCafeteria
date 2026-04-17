@@ -14,12 +14,10 @@ class TaskEditorPage extends StatefulWidget {
   const TaskEditorPage({
     super.key,
     required this.authToken,
-    required this.password,
     this.apiClient,
   });
 
   final String authToken;
-  final String password;
   final ApiClient? apiClient;
 
   @override
@@ -66,10 +64,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
       _error = null;
     });
     try {
-      final board = await _api.getTaskAdminBoard(
-        widget.authToken,
-        widget.password,
-      );
+      final board = await _api.getTaskAdminBoard(widget.authToken);
       if (!mounted) return;
       setState(() {
         _board = board;
@@ -115,7 +110,6 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     try {
       await _api.createAdminJob(
         widget.authToken,
-        widget.password,
         name: result.name,
         shiftId: result.shiftId,
       );
@@ -143,7 +137,6 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     try {
       await _api.renameAdminJob(
         widget.authToken,
-        widget.password,
         jobId: job.id,
         name: result.name,
       );
@@ -163,7 +156,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     );
     if (!confirmed) return;
     try {
-      await _api.deleteAdminJob(widget.authToken, widget.password, job.id);
+      await _api.deleteAdminJob(widget.authToken, job.id);
       _toast('Job deleted');
       await _refresh();
     } on ApiClientException catch (e) {
@@ -184,7 +177,6 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     try {
       await _api.createAdminTask(
         widget.authToken,
-        widget.password,
         jobId: job.id,
         description: result.description,
         phase: result.phase,
@@ -212,7 +204,6 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     try {
       await _api.updateAdminTask(
         widget.authToken,
-        widget.password,
         taskId: task.id,
         description: result.description,
         phase: result.phase,
@@ -233,7 +224,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     );
     if (!confirmed) return;
     try {
-      await _api.deleteAdminTask(widget.authToken, widget.password, task.id);
+      await _api.deleteAdminTask(widget.authToken, task.id);
       _toast('Task deleted');
       await _refresh();
     } on ApiClientException catch (e) {

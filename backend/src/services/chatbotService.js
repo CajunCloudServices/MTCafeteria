@@ -10,7 +10,7 @@ class ChatbotProxyError extends Error {
 }
 
 function isChatbotConfigured() {
-  return Boolean(env.chatbotUpstreamUrl);
+  return env.chatbotProxyEnabled && Boolean(env.chatbotUpstreamUrl);
 }
 
 function joinUrl(baseUrl, routePath) {
@@ -60,6 +60,15 @@ async function fetchUpstream(routePath, options = {}, fetchImpl = fetch) {
 
 async function checkChatbotHealth(fetchImpl = fetch) {
   try {
+    if (!env.chatbotProxyEnabled) {
+      return {
+        ok: false,
+        configured: false,
+        status: 'disabled',
+        message: 'Chatbot is temporarily disabled.',
+      };
+    }
+
     const response = await fetchUpstream(
       '/health',
       {
@@ -110,6 +119,20 @@ async function sendChatMessage({ message, sessionId }, fetchImpl = fetch) {
   if (!trimmedMessage) {
     throw new ChatbotProxyError('Message is required.', { statusCode: 400 });
   }
+  if (trimmedMessage.length > env.chatbotMaxMessageChars) {
+    throw new ChatbotProxyError(
+      `Message is too long. Maximum length is ${env.chatbotMaxMessageChars} characters.`,
+      { statusCode: 400 }
+    );
+  }
+
+  const trimmedSessionId = String(sessionId || '').trim();
+  if (trimmedSessionId.length > env.chatbotMaxSessionIdChars) {
+    throw new ChatbotProxyError(
+      `Session id is too long. Maximum length is ${env.chatbotMaxSessionIdChars} characters.`,
+      { statusCode: 400 }
+    );
+  }
 
   const response = await fetchUpstream(
     '/chat',
@@ -118,7 +141,7 @@ async function sendChatMessage({ message, sessionId }, fetchImpl = fetch) {
       headers: buildHeaders(true),
       body: JSON.stringify({
         message: trimmedMessage,
-        ...(sessionId ? { sessionId: String(sessionId).trim() } : {}),
+        ...(trimmedSessionId ? { sessionId: trimmedSessionId } : {}),
       }),
     },
     fetchImpl
@@ -145,7 +168,7 @@ async function sendChatMessage({ message, sessionId }, fetchImpl = fetch) {
 
   return {
     reply,
-    sessionId: String(payload?.sessionId || sessionId || '').trim(),
+    sessionId: String(payload?.sessionId || trimmedSessionId || '').trim(),
   };
 }
 

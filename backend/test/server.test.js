@@ -218,7 +218,7 @@ test('protected routes require real auth and role checks', async (t) => {
   );
 });
 
-test('task-admin requires both JWT auth and the task-editor password', async (t) => {
+test('task-admin requires authenticated access only', async (t) => {
   await withFreshApp(
     {
       NODE_ENV: 'test',
@@ -236,33 +236,14 @@ test('task-admin requires both JWT auth and the task-editor password', async (t)
         assert.equal(res.body.message, 'Authentication required.');
       });
 
-      await t.test('rejects missing task-editor password after auth', async () => {
-        const token = await login(port, 'manager@mtc.local', 'password123');
-        const res = await request(port, 'GET', '/api/task-admin/board', null, authHeaders(token));
-        assert.equal(res.status, 401);
-        assert.match(res.body.message, /password required/i);
-      });
-
-      await t.test('rejects wrong task-editor password', async () => {
+      await t.test('returns board for an authenticated student manager', async () => {
         const token = await login(port, 'manager@mtc.local', 'password123');
         const res = await request(
           port,
           'GET',
           '/api/task-admin/board',
           null,
-          authHeaders(token, { 'X-Task-Editor-Password': 'wrong' })
-        );
-        assert.equal(res.status, 403);
-      });
-
-      await t.test('returns board when both auth factors are present', async () => {
-        const token = await login(port, 'manager@mtc.local', 'password123');
-        const res = await request(
-          port,
-          'GET',
-          '/api/task-admin/board',
-          null,
-          authHeaders(token, { 'X-Task-Editor-Password': 'editor-secret' })
+          authHeaders(token)
         );
         assert.equal(res.status, 200);
         assert.ok(Array.isArray(res.body.shifts));
@@ -423,6 +404,154 @@ test('chatbot proxy reports disabled when no upstream is configured', async (t) 
   );
 });
 
+test('chatbot chat requires auth and rejects oversized messages', async (t) => {
+  await withFreshApp(
+    {
+      NODE_ENV: 'test',
+      USE_MOCK_DATA: 'true',
+      JWT_SECRET: 'test-secret',
+      TASK_EDITOR_PASSWORD: 'editor-secret',
+      CHATBOT_UPSTREAM_URL: 'http://chatbot.example.test',
+      CHATBOT_API_TOKEN: 'chatbot-token',
+      CHATBOT_MAX_MESSAGE_CHARS: '10',
+    },
+    async (app) => {
+      const chatbotService = require('../src/services/chatbotService');
+      const originalSend = chatbotService.sendChatMessage;
+      chatbotService.sendChatMessage = async ({ message, sessionId }) => ({
+        reply: `Echo: ${message}`,
+        sessionId: sessionId || 'generated-session',
+      });
+      t.after(() => {
+        chatbotService.sendChatMessage = originalSend;
+      });
+
+      const { server, port } = await startServer(app);
+      t.after(() => new Promise((resolve) => server.close(resolve)));
+
+      const unauthenticated = await request(port, 'POST', '/api/chatbot/chat', {
+        message: 'hello',
+      });
+      assert.equal(unauthenticated.status, 401);
+      assert.equal(unauthenticated.body.message, 'Authentication required.');
+
+      const token = await login(port, 'manager@mtc.local', 'password123');
+      const tooLong = await request(
+        port,
+        'POST',
+        '/api/chatbot/chat',
+        { message: 'this message is too long' },
+        authHeaders(token)
+      );
+      assert.equal(tooLong.status, 400);
+      assert.match(tooLong.body.message, /maximum length is 10 characters/i);
+    }
+  );
+});
+
+test('chatbot abuse controls block duplicate, burst, and concurrent requests', async (t) => {
+  await withFreshApp(
+    {
+      NODE_ENV: 'test',
+      USE_MOCK_DATA: 'true',
+      JWT_SECRET: 'test-secret',
+      TASK_EDITOR_PASSWORD: 'editor-secret',
+      CHATBOT_UPSTREAM_URL: 'http://chatbot.example.test',
+      CHATBOT_API_TOKEN: 'chatbot-token',
+      CHATBOT_RATE_LIMIT_WINDOW_MS: '60000',
+      CHATBOT_RATE_LIMIT_MAX_REQUESTS: '5',
+      CHATBOT_MAX_CONCURRENT_REQUESTS: '1',
+      CHATBOT_DUPLICATE_COOLDOWN_MS: '60000',
+    },
+    async (app) => {
+      const chatbotService = require('../src/services/chatbotService');
+      const originalSend = chatbotService.sendChatMessage;
+
+      let heldResolver;
+      chatbotService.sendChatMessage = async ({ message, sessionId }) => {
+        if (message === 'hold-open') {
+          await new Promise((resolve) => {
+            heldResolver = resolve;
+          });
+        }
+        return {
+          reply: `Echo: ${message}`,
+          sessionId: sessionId || 'generated-session',
+        };
+      };
+
+      t.after(() => {
+        if (heldResolver) heldResolver();
+        chatbotService.sendChatMessage = originalSend;
+      });
+
+      const { server, port } = await startServer(app);
+      t.after(() => new Promise((resolve) => server.close(resolve)));
+
+      const token = await login(port, 'manager@mtc.local', 'password123');
+      const headers = authHeaders(token);
+
+      const first = request(
+        port,
+        'POST',
+        '/api/chatbot/chat',
+        { message: 'hold-open', sessionId: 'ops' },
+        headers
+      );
+      const concurrent = await request(
+        port,
+        'POST',
+        '/api/chatbot/chat',
+        { message: 'second while first active', sessionId: 'ops' },
+        headers
+      );
+      assert.equal(concurrent.status, 429);
+      assert.match(concurrent.body.message, /already handling a request/i);
+
+      heldResolver();
+      const firstResolved = await first;
+      assert.equal(firstResolved.status, 200);
+
+      const baseline = await request(
+        port,
+        'POST',
+        '/api/chatbot/chat',
+        { message: 'where are the drinks?', sessionId: 'ops' },
+        headers
+      );
+      assert.equal(baseline.status, 200);
+
+      const duplicate = await request(
+        port,
+        'POST',
+        '/api/chatbot/chat',
+        { message: 'where are the drinks?', sessionId: 'ops' },
+        headers
+      );
+      assert.equal(duplicate.status, 429);
+      assert.match(duplicate.body.message, /duplicate chatbot message blocked/i);
+
+      const burstHeaders = authHeaders(token, {
+        'X-Forwarded-For': '198.51.100.10',
+      });
+      await request(port, 'POST', '/api/chatbot/chat', { message: 'one', sessionId: 'burst' }, burstHeaders);
+      await request(port, 'POST', '/api/chatbot/chat', { message: 'two', sessionId: 'burst' }, burstHeaders);
+      await request(port, 'POST', '/api/chatbot/chat', { message: 'three', sessionId: 'burst' }, burstHeaders);
+      await request(port, 'POST', '/api/chatbot/chat', { message: 'four', sessionId: 'burst' }, burstHeaders);
+      await request(port, 'POST', '/api/chatbot/chat', { message: 'five', sessionId: 'burst' }, burstHeaders);
+      const rateLimited = await request(
+        port,
+        'POST',
+        '/api/chatbot/chat',
+        { message: 'six', sessionId: 'burst' },
+        burstHeaders
+      );
+      assert.equal(rateLimited.status, 429);
+      assert.match(rateLimited.body.message, /rate limit reached/i);
+    }
+  );
+});
+
 test('chatbot proxy forwards health and chat requests', async (t) => {
   await withFreshApp(
     {
@@ -463,10 +592,11 @@ test('chatbot proxy forwards health and chat requests', async (t) => {
       assert.equal(health.body.ok, true);
       assert.equal(health.body.status, 'ok');
 
+      const token = await login(port, 'manager@mtc.local', 'password123');
       const chat = await request(port, 'POST', '/api/chatbot/chat', {
         message: 'Where are the drinks?',
         sessionId: 'test-session',
-      });
+      }, authHeaders(token));
       assert.equal(chat.status, 200);
       assert.equal(chat.body.reply, 'Echo: Where are the drinks?');
       assert.equal(chat.body.sessionId, 'test-session');

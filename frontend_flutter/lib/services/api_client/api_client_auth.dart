@@ -6,7 +6,7 @@ extension ApiClientAuth on ApiClient {
     required String email,
     required String password,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),

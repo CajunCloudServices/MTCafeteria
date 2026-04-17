@@ -3,7 +3,7 @@ part of 'package:frontend_flutter/services/api_client.dart';
 extension ApiClientChatbot on ApiClient {
   Future<ChatbotHealth> getChatbotHealth() async {
     final response = await _send(
-      () => http.get(Uri.parse('$_baseUrl/api/chatbot/health')),
+      () => _httpClient.get(Uri.parse('$_baseUrl/api/chatbot/health')),
       'Failed to load chatbot health',
     );
 
@@ -20,13 +20,17 @@ extension ApiClientChatbot on ApiClient {
   }
 
   Future<ChatbotReply> sendChatbotMessage(
+    String token,
     String message, {
     String? sessionId,
   }) async {
     final response = await _send(
-      () => http.post(
+      () => _httpClient.post(
         Uri.parse('$_baseUrl/api/chatbot/chat'),
-        headers: const {'Content-Type': 'application/json'},
+        headers: {
+          ..._authHeaders(token),
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode({
           'message': message,
           if (sessionId != null && sessionId.isNotEmpty) 'sessionId': sessionId,

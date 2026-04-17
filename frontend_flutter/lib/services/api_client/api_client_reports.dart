@@ -28,7 +28,7 @@ extension ApiClientReports on ApiClient {
       '$_baseUrl/api/daily-shift-reports/current',
     ).replace(queryParameters: {'meal': meal});
 
-    final response = await http.get(uri, headers: _authHeaders(token));
+    final response = await _httpClient.get(uri, headers: _authHeaders(token));
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch daily shift report');
     }
@@ -45,7 +45,7 @@ extension ApiClientReports on ApiClient {
     required String meal,
     required Map<String, String> payload,
   }) async {
-    final response = await http.put(
+    final response = await _httpClient.put(
       Uri.parse('$_baseUrl/api/daily-shift-reports/current'),
       headers: _jsonHeaders(token),
       body: jsonEncode({'meal': meal, 'payload': payload}),
@@ -65,7 +65,7 @@ extension ApiClientReports on ApiClient {
     required String meal,
     required Map<String, String> payload,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/daily-shift-reports/current/submit'),
       headers: _jsonHeaders(token),
       body: jsonEncode({
@@ -84,7 +84,7 @@ extension ApiClientReports on ApiClient {
   }
 
   Future<List<DailyShiftReport>> getDailyShiftReports(String token) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$_baseUrl/api/daily-shift-reports'),
       headers: _authHeaders(token),
     );

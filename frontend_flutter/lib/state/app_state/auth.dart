@@ -1,6 +1,25 @@
 part of 'package:frontend_flutter/state/app_state.dart';
 
 extension AppStateAuth on AppState {
+  Future<void> _hydrateSession({
+    required String email,
+    required String password,
+  }) async {
+    final result = await _apiClient.login(email: email, password: password);
+    _token = result.token;
+    user = result.user;
+    await Future.wait([
+      refreshLandingItems(),
+      if (_features.trainingsEnabled) refreshTrainingsIfAllowed(),
+      refreshTaskBoard(),
+      if (canAccessTrainerBoard) refreshTrainerBoard(),
+      if (canAccessSupervisorBoard) refreshSupervisorBoard(),
+      if (_features.pointsEnabled) refreshPointCenter(),
+      if (_features.dailyShiftReportsEnabled && canViewDailyShiftReports)
+        refreshDailyShiftReports(),
+    ]);
+  }
+
   Future<void> initialize() async {
     if (isAuthenticated || _didAttemptBootstrapLogin) {
       return;
@@ -12,29 +31,10 @@ extension AppStateAuth on AppState {
     _stateChanged();
 
     try {
-      // The app runs as a shared operational session, so boot directly into a
-      // supervisor-capable user instead of showing a credential form.
-      _token = '';
-      user = const UserSession(
-        id: 0,
-        email: 'shared-session@mtc.local',
-        role: 'Supervisor',
-        points: 0,
+      await _hydrateSession(
+        email: AppState._sharedSessionEmail,
+        password: AppState._seedAccountPassword,
       );
-      // Notify immediately so UI can switch off the boot/login screen and
-      // render the authenticated shell while background data loads below.
-      _stateChanged();
-
-      await Future.wait([
-        refreshLandingItems(),
-        if (_features.trainingsEnabled) refreshTrainingsIfAllowed(),
-        refreshTaskBoard(),
-        if (canAccessTrainerBoard) refreshTrainerBoard(),
-        if (canAccessSupervisorBoard) refreshSupervisorBoard(),
-        if (_features.pointsEnabled) refreshPointCenter(),
-        if (_features.dailyShiftReportsEnabled && canViewDailyShiftReports)
-          refreshDailyShiftReports(),
-      ]);
     } catch (e) {
       error = e.toString();
     } finally {
@@ -49,27 +49,27 @@ extension AppStateAuth on AppState {
     _stateChanged();
 
     try {
-      final result = await _apiClient.login(email: email, password: password);
-      _token = result.token;
-      user = result.user;
-      // Refresh only the feature areas that are actually enabled so the app
-      // does not depend on any module that has been toggled off at build time.
-      await Future.wait([
-        refreshLandingItems(),
-        if (_features.trainingsEnabled) refreshTrainingsIfAllowed(),
-        refreshTaskBoard(),
-        if (canAccessTrainerBoard) refreshTrainerBoard(),
-        if (canAccessSupervisorBoard) refreshSupervisorBoard(),
-        if (_features.pointsEnabled) refreshPointCenter(),
-        if (_features.dailyShiftReportsEnabled && canViewDailyShiftReports)
-          refreshDailyShiftReports(),
-      ]);
+      await _hydrateSession(email: email, password: password);
     } catch (e) {
       error = e.toString();
     } finally {
       isLoading = false;
       _stateChanged();
     }
+  }
+
+  Future<void> enterStudentManagerMode() async {
+    await _hydrateSession(
+      email: AppState._studentManagerEmail,
+      password: AppState._seedAccountPassword,
+    );
+  }
+
+  Future<void> restoreSharedSession() async {
+    await _hydrateSession(
+      email: AppState._sharedSessionEmail,
+      password: AppState._seedAccountPassword,
+    );
   }
 
   void logout() {

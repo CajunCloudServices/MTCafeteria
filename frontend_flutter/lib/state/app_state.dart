@@ -25,6 +25,10 @@ part 'app_state/reports.dart';
 /// The UI stays mostly declarative and pushes orchestration into this class so
 /// the same role/feature rules apply consistently across pages.
 class AppState extends ChangeNotifier {
+  static const String _sharedSessionEmail = 'supervisor@mtc.local';
+  static const String _studentManagerEmail = 'manager@mtc.local';
+  static const String _seedAccountPassword = 'password123';
+
   AppState({ApiClient? apiClient, AppRuntimeConfig? runtimeConfig})
     : _features = AppFeatures.fromRuntimeConfig(
         runtimeConfig ?? AppRuntimeConfig.fromEnvironment,

@@ -20,7 +20,7 @@ extension ApiClientTasks on ApiClient {
       '$_baseUrl/api/task-board',
     ).replace(queryParameters: params.isEmpty ? null : params);
 
-    final response = await http.get(uri, headers: _authHeaders(token));
+    final response = await _httpClient.get(uri, headers: _authHeaders(token));
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch task board');
     }
@@ -35,7 +35,7 @@ extension ApiClientTasks on ApiClient {
     required int taskId,
     required bool completed,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/task-board/tasks/$taskId/completion'),
       headers: _jsonHeaders(token),
       body: jsonEncode({'completed': completed}),
@@ -51,7 +51,7 @@ extension ApiClientTasks on ApiClient {
     required String meal,
     required int jobId,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/task-board/reset-flow'),
       headers: _jsonHeaders(token),
       body: jsonEncode({'meal': meal, 'jobId': jobId}),
@@ -76,7 +76,7 @@ extension ApiClientTasks on ApiClient {
       '$_baseUrl/api/trainer-board',
     ).replace(queryParameters: params.isEmpty ? null : params);
 
-    final response = await http.get(uri, headers: _authHeaders(token));
+    final response = await _httpClient.get(uri, headers: _authHeaders(token));
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch trainer board');
     }
@@ -92,7 +92,7 @@ extension ApiClientTasks on ApiClient {
     required int taskId,
     required bool completed,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse(
         '$_baseUrl/api/trainer-board/trainees/$traineeUserId/tasks/$taskId/completion',
       ),

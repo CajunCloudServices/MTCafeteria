@@ -132,7 +132,10 @@ class _GlobalChatWidgetState extends State<GlobalChatWidget> {
         });
         await _ensureHealthLoaded();
       },
-      child: const Icon(Icons.smart_toy_outlined),
+      child: const Text(
+        'AI',
+        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+      ),
     );
   }
 

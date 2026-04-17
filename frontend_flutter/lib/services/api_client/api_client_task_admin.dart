@@ -1,30 +1,25 @@
 part of 'package:frontend_flutter/services/api_client.dart';
 
 extension ApiClientTaskAdmin on ApiClient {
-  Map<String, String> _taskAdminHeaders(
-    String token,
-    String password, {
-    bool json = false,
-  }) {
+  Map<String, String> _taskAdminHeaders(String token, {bool json = false}) {
     return {
       ..._authHeaders(token),
-      'X-Task-Editor-Password': password,
       'Cache-Control': 'no-cache',
       'Pragma': 'no-cache',
       if (json) 'Content-Type': 'application/json',
     };
   }
 
-  Future<AdminTaskBoard> getTaskAdminBoard(String token, String password) async {
+  Future<AdminTaskBoard> getTaskAdminBoard(String token) async {
     final uri = Uri.parse(
       '$_baseUrl/api/task-admin/board',
     ).replace(queryParameters: {
       '_': DateTime.now().millisecondsSinceEpoch.toString(),
     });
     final response = await _send(
-      () => http.get(
+      () => _httpClient.get(
         uri,
-        headers: _taskAdminHeaders(token, password),
+        headers: _taskAdminHeaders(token),
       ),
       'Failed to load job/task board',
     );
@@ -41,14 +36,14 @@ extension ApiClientTaskAdmin on ApiClient {
 
   Future<AdminJob> createAdminJob(
     String token,
-    String password, {
+    {
     required String name,
     required int shiftId,
   }) async {
     final response = await _send(
-      () => http.post(
+      () => _httpClient.post(
         Uri.parse('$_baseUrl/api/task-admin/jobs'),
-        headers: _taskAdminHeaders(token, password, json: true),
+        headers: _taskAdminHeaders(token, json: true),
         body: jsonEncode({'name': name, 'shiftId': shiftId}),
       ),
       'Failed to create job',
@@ -64,14 +59,14 @@ extension ApiClientTaskAdmin on ApiClient {
 
   Future<AdminJob> renameAdminJob(
     String token,
-    String password, {
+    {
     required int jobId,
     required String name,
   }) async {
     final response = await _send(
-      () => http.patch(
+      () => _httpClient.patch(
         Uri.parse('$_baseUrl/api/task-admin/jobs/$jobId'),
-        headers: _taskAdminHeaders(token, password, json: true),
+        headers: _taskAdminHeaders(token, json: true),
         body: jsonEncode({'name': name}),
       ),
       'Failed to rename job',
@@ -85,11 +80,11 @@ extension ApiClientTaskAdmin on ApiClient {
     return AdminJob.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
-  Future<void> deleteAdminJob(String token, String password, int jobId) async {
+  Future<void> deleteAdminJob(String token, int jobId) async {
     final response = await _send(
-      () => http.delete(
+      () => _httpClient.delete(
         Uri.parse('$_baseUrl/api/task-admin/jobs/$jobId'),
-        headers: _taskAdminHeaders(token, password),
+        headers: _taskAdminHeaders(token),
       ),
       'Failed to delete job',
     );
@@ -103,16 +98,16 @@ extension ApiClientTaskAdmin on ApiClient {
 
   Future<AdminTask> createAdminTask(
     String token,
-    String password, {
+    {
     required int jobId,
     required String description,
     required String phase,
     bool? requiresCheckoff,
   }) async {
     final response = await _send(
-      () => http.post(
+      () => _httpClient.post(
         Uri.parse('$_baseUrl/api/task-admin/jobs/$jobId/tasks'),
-        headers: _taskAdminHeaders(token, password, json: true),
+        headers: _taskAdminHeaders(token, json: true),
         body: jsonEncode({
           'description': description,
           'phase': phase,
@@ -134,7 +129,7 @@ extension ApiClientTaskAdmin on ApiClient {
 
   Future<AdminTask> updateAdminTask(
     String token,
-    String password, {
+    {
     required int taskId,
     String? description,
     String? phase,
@@ -146,9 +141,9 @@ extension ApiClientTaskAdmin on ApiClient {
     if (requiresCheckoff != null) payload['requiresCheckoff'] = requiresCheckoff;
 
     final response = await _send(
-      () => http.patch(
+      () => _httpClient.patch(
         Uri.parse('$_baseUrl/api/task-admin/tasks/$taskId'),
-        headers: _taskAdminHeaders(token, password, json: true),
+        headers: _taskAdminHeaders(token, json: true),
         body: jsonEncode(payload),
       ),
       'Failed to update task',
@@ -164,11 +159,11 @@ extension ApiClientTaskAdmin on ApiClient {
     );
   }
 
-  Future<void> deleteAdminTask(String token, String password, int taskId) async {
+  Future<void> deleteAdminTask(String token, int taskId) async {
     final response = await _send(
-      () => http.delete(
+      () => _httpClient.delete(
         Uri.parse('$_baseUrl/api/task-admin/tasks/$taskId'),
-        headers: _taskAdminHeaders(token, password),
+        headers: _taskAdminHeaders(token),
       ),
       'Failed to delete task',
     );

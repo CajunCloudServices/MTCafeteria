@@ -2,7 +2,7 @@ part of 'package:frontend_flutter/services/api_client.dart';
 
 extension ApiClientPoints on ApiClient {
   Future<List<AssignableUser>> getAssignableUsers(String token) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$_baseUrl/api/points/assignable-users'),
       headers: _authHeaders(token),
     );
@@ -25,7 +25,7 @@ extension ApiClientPoints on ApiClient {
     required String reason,
     required String assignmentDescription,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/points/assignments'),
       headers: _jsonHeaders(token),
       body: jsonEncode({
@@ -49,7 +49,7 @@ extension ApiClientPoints on ApiClient {
   }
 
   Future<List<PointAssignment>> getPointAssignmentInbox(String token) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$_baseUrl/api/points/assignments/inbox'),
       headers: _authHeaders(token),
     );
@@ -65,7 +65,7 @@ extension ApiClientPoints on ApiClient {
   }
 
   Future<List<PointAssignment>> getPointAssignmentsSent(String token) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$_baseUrl/api/points/assignments/sent'),
       headers: _authHeaders(token),
     );
@@ -81,7 +81,7 @@ extension ApiClientPoints on ApiClient {
   }
 
   Future<List<PointAssignment>> getPointApprovalQueue(String token) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$_baseUrl/api/points/assignments/approval-queue'),
       headers: _authHeaders(token),
     );
@@ -100,7 +100,7 @@ extension ApiClientPoints on ApiClient {
     String token, {
     required int assignmentId,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/points/assignments/$assignmentId/approve'),
       headers: _jsonHeaders(token),
       body: jsonEncode({}),
@@ -122,7 +122,7 @@ extension ApiClientPoints on ApiClient {
     required int assignmentId,
     required String initials,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/points/assignments/$assignmentId/accept'),
       headers: _jsonHeaders(token),
       body: jsonEncode({'initials': initials}),

@@ -104,3 +104,6 @@ jobs:
 
       - name: Deploy on production runner
         run: bash ./scripts/deploy_production.sh
+
+      - name: Verify deployed health endpoints again
+        run: node ./scripts/post_deploy_healthcheck.mjs

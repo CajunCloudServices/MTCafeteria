@@ -97,7 +97,6 @@ class _StudentManagerPortalSectionState
                   children: [
                     _PortalButton(
                       label: 'Edit Announcements',
-                      icon: Icons.campaign_outlined,
                       selected:
                           _selectedPane == _StudentManagerPortalPane.announcements,
                       onPressed: () {
@@ -109,7 +108,6 @@ class _StudentManagerPortalSectionState
                     ),
                     _PortalButton(
                       label: 'Assign Points',
-                      icon: Icons.workspace_premium_outlined,
                       selected: _selectedPane == _StudentManagerPortalPane.points,
                       onPressed: () {
                         setState(() {
@@ -119,7 +117,6 @@ class _StudentManagerPortalSectionState
                     ),
                     _PortalButton(
                       label: 'Daily Shift Reports',
-                      icon: Icons.fact_check_outlined,
                       selected:
                           _selectedPane == _StudentManagerPortalPane.reports,
                       onPressed: () async {
@@ -132,7 +129,6 @@ class _StudentManagerPortalSectionState
                     ),
                     _PortalButton(
                       label: 'Edit Jobs & Tasks',
-                      icon: Icons.edit_note,
                       selected: false,
                       onPressed: widget.onOpenTaskEditor,
                     ),
@@ -187,19 +183,17 @@ class _StudentManagerPortalSectionState
 class _PortalButton extends StatelessWidget {
   const _PortalButton({
     required this.label,
-    required this.icon,
     required this.selected,
     required this.onPressed,
   });
 
   final String label;
-  final IconData icon;
   final bool selected;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
+    return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         backgroundColor: selected ? const Color(0xFFE6F0FC) : Colors.white,
@@ -208,8 +202,7 @@ class _PortalButton extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      icon: Icon(icon, size: 20),
-      label: Text(label),
+      child: Text(label),
     );
   }
 }

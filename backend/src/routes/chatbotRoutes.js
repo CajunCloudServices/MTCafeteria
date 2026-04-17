@@ -1,5 +1,7 @@
 const express = require('express');
 const asyncHandler = require('../middleware/asyncHandler');
+const { requireAuth } = require('../middleware/authMiddleware');
+const { validateChatbotAccess } = require('../middleware/chatbotGuard');
 const chatbotService = require('../services/chatbotService');
 
 const router = express.Router();
@@ -14,10 +16,12 @@ router.get(
 
 router.post(
   '/chatbot/chat',
+  requireAuth,
+  validateChatbotAccess,
   asyncHandler(async (req, res) => {
     const reply = await chatbotService.sendChatMessage({
-      message: req.body?.message,
-      sessionId: req.body?.sessionId,
+      message: req.chatbotMessage,
+      sessionId: req.chatbotSessionId,
     });
     res.status(200).json(reply);
   })

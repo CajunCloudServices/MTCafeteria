@@ -3,7 +3,7 @@ part of 'package:frontend_flutter/services/api_client.dart';
 extension ApiClientContent on ApiClient {
   Future<List<LandingItem>> getLandingItems(String token) async {
     final response = await _send(
-      () => http.get(
+      () => _httpClient.get(
         Uri.parse('$_baseUrl/api/content/landing-items'),
         headers: _authHeaders(token),
       ),
@@ -27,7 +27,7 @@ extension ApiClientContent on ApiClient {
     Map<String, dynamic> payload,
   ) async {
     final response = await _send(
-      () => http.post(
+      () => _httpClient.post(
         Uri.parse('$_baseUrl/api/content/landing-items'),
         headers: _jsonHeaders(token),
         body: jsonEncode(payload),
@@ -51,7 +51,7 @@ extension ApiClientContent on ApiClient {
     Map<String, dynamic> payload,
   ) async {
     final response = await _send(
-      () => http.put(
+      () => _httpClient.put(
         Uri.parse('$_baseUrl/api/content/landing-items/$id'),
         headers: _jsonHeaders(token),
         body: jsonEncode(payload),
@@ -71,7 +71,7 @@ extension ApiClientContent on ApiClient {
 
   Future<void> deleteLandingItem(String token, int id) async {
     final response = await _send(
-      () => http.delete(
+      () => _httpClient.delete(
         Uri.parse('$_baseUrl/api/content/landing-items/$id'),
         headers: _authHeaders(token),
       ),
@@ -90,7 +90,7 @@ extension ApiClientContent on ApiClient {
     // Legacy prototype feed. The active detailed training viewer reads the
     // local manual corpus in `training_text_data.dart` instead of this API.
     final response = await _send(
-      () => http.get(
+      () => _httpClient.get(
         Uri.parse('$_baseUrl/api/trainings'),
         headers: _authHeaders(token),
       ),

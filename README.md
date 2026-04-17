@@ -215,6 +215,23 @@ npm run chatbot:smoke
 Detailed chatbot architecture, remote host wiring, and break/fix steps:
 
 - `docs/chatbot-integration.md`
+- `docs/verification-runbook.md`
+
+## Verification Standard
+
+Do not rely on a successful deploy alone as evidence that the app is healthy.
+The minimum release standard for this repo is:
+
+- `npm --prefix backend test`
+- `npm --prefix web test`
+- `flutter analyze`
+- `flutter test`
+- Flutter production bundle rebuild from source
+- post-deploy health checks
+
+The full pre-push, pre-deploy, and post-deploy checklist is documented in:
+
+- `docs/verification-runbook.md`
 
 ### Low-level bundle sync helper
 

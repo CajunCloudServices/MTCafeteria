@@ -53,6 +53,19 @@ function assertConfigured(name, value, validator, requirementMessage, placeholde
   }
 }
 
+function parseBoolean(value, defaultValue) {
+  if (value == null || value === '') return defaultValue;
+  const normalized = String(value).trim().toLowerCase();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  return defaultValue;
+}
+
+function parsePositiveInteger(value, defaultValue) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : defaultValue;
+}
+
 const jwtSecret = process.env.JWT_SECRET || '';
 if (!useMockData && !jwtSecret) {
   throw new Error('JWT_SECRET is required when USE_MOCK_DATA=false.');
@@ -119,9 +132,16 @@ const env = {
   jwtSecret: jwtSecret || 'dev-secret',
   useMockData,
   corsOrigins,
+  chatbotProxyEnabled: parseBoolean(process.env.CHATBOT_PROXY_ENABLED, true),
   chatbotUpstreamUrl: String(process.env.CHATBOT_UPSTREAM_URL || '').trim(),
   chatbotApiToken: String(process.env.CHATBOT_API_TOKEN || '').trim(),
   chatbotTimeoutMs: Number(process.env.CHATBOT_TIMEOUT_MS || 65000),
+  chatbotMaxMessageChars: parsePositiveInteger(process.env.CHATBOT_MAX_MESSAGE_CHARS, 300),
+  chatbotMaxSessionIdChars: parsePositiveInteger(process.env.CHATBOT_MAX_SESSION_ID_CHARS, 120),
+  chatbotRateLimitWindowMs: parsePositiveInteger(process.env.CHATBOT_RATE_LIMIT_WINDOW_MS, 60000),
+  chatbotRateLimitMaxRequests: parsePositiveInteger(process.env.CHATBOT_RATE_LIMIT_MAX_REQUESTS, 6),
+  chatbotMaxConcurrentRequests: parsePositiveInteger(process.env.CHATBOT_MAX_CONCURRENT_REQUESTS, 1),
+  chatbotDuplicateCooldownMs: parsePositiveInteger(process.env.CHATBOT_DUPLICATE_COOLDOWN_MS, 15000),
 };
 
 module.exports = env;

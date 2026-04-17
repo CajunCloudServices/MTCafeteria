@@ -79,6 +79,13 @@ Set these in the repo `.env` used by the backend/container:
 CHATBOT_UPSTREAM_URL=http://100.84.218.4:18910
 CHATBOT_API_TOKEN=...
 CHATBOT_TIMEOUT_MS=65000
+CHATBOT_PROXY_ENABLED=true
+CHATBOT_MAX_MESSAGE_CHARS=300
+CHATBOT_MAX_SESSION_ID_CHARS=120
+CHATBOT_RATE_LIMIT_WINDOW_MS=60000
+CHATBOT_RATE_LIMIT_MAX_REQUESTS=6
+CHATBOT_MAX_CONCURRENT_REQUESTS=1
+CHATBOT_DUPLICATE_COOLDOWN_MS=15000
 ```
 
 Relevant backend files:
@@ -92,6 +99,23 @@ Backend proxy endpoints:
 
 - `GET /api/chatbot/health`
 - `POST /api/chatbot/chat`
+
+## Abuse Protections
+
+The backend proxy now enforces low-cost guardrails before the request ever
+reaches the remote bot:
+
+- `POST /api/chatbot/chat` requires authenticated app traffic
+- request message length is capped
+- session id length is capped
+- duplicate messages are blocked briefly
+- burst traffic is rate-limited in-memory by authenticated user + client IP
+- only a small number of in-flight chatbot requests are allowed per user/IP
+- the proxy can be shut off immediately with `CHATBOT_PROXY_ENABLED=false`
+
+These limits are intentionally conservative because this bot is budget-limited.
+If you only have a small balance, keep the defaults small and lower them
+further before expanding usage.
 
 ## Frontend Files
 
@@ -200,7 +224,8 @@ Focus on:
 Backend:
 
 - `backend/test/server.test.js`
-  verifies disabled-chatbot handling and proxy forwarding behavior
+  verifies disabled-chatbot handling, auth enforcement, rate limits,
+  duplicate blocking, concurrency limits, and proxy forwarding behavior
 
 Frontend:
 

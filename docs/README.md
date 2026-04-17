@@ -16,6 +16,9 @@ is reference material for deeper work.
 - `kubernetes-architecture.md` — reference architecture for a future
   Kubernetes deployment. Not used by the current Docker Compose / Coolify
   setup.
+- `verification-runbook.md` — release-blocking validation checklist for
+  dashboard manager tools, task editor auth, chatbot behavior, generated web
+  assets, and post-deploy health checks.
 
 ## Conventions
 

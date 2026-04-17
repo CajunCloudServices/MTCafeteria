@@ -19,7 +19,6 @@ import 'widgets/daily_shift_reports_view.dart';
 import 'widgets/dashboard_hub_card.dart';
 import 'widgets/global_chat_widget.dart';
 import 'widgets/shift_selection_cards.dart';
-import 'widgets/task_editor_password_dialog.dart';
 
 part 'app/main_shell.dart';
 
@@ -70,7 +69,6 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   int _dashboardBackSignal = 0;
   _DashboardView _dashboardView = _DashboardView.hub;
   bool _adminModeEnabled = false;
-  String? _taskEditorPassword;
 
   static final DateTime _mealRotationAnchor = DateTime(2026, 3, 16);
   static const List<String> _mealWeekOrder = [
@@ -349,39 +347,61 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   }
 
   Future<void> _enableAdminMode(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     final approved = await promptForAdminPassword(
       context,
       title: 'Enter Student Manager Password',
     );
     if (!approved || !mounted) return;
+    try {
+      await _state.enterStudentManagerMode();
+      if (!mounted) return;
+      _updateUi(() {
+        _adminModeEnabled = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Could not unlock the Student Manager Portal.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _disableAdminMode(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await _state.restoreSharedSession();
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Could not return to the shared session.'),
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
     _updateUi(() {
-      _adminModeEnabled = true;
-      _taskEditorPassword ??= 'yoboss';
+      _adminModeEnabled = false;
+      if (_dashboardView == _DashboardView.managerPortal) {
+        _dashboardView = _DashboardView.hub;
+      }
     });
   }
 
-  /// Opens the task/job editor, prompting for the yoboss password if the user
-  /// has not already unlocked it earlier in this session.
+  /// Opens the task/job editor. Access is already gated by the Student
+  /// Manager Portal password, so there is no second prompt here.
   Future<void> _openTaskEditor(BuildContext context) async {
     final navigator = Navigator.of(context);
     final authToken = _state.authToken;
     if (authToken == null || authToken.isEmpty) return;
-    String? password = _taskEditorPassword;
-    if (password == null) {
-      final entered = await promptForTaskEditorPassword(context);
-      if (entered == null || entered.isEmpty || !mounted) return;
-      password = entered;
-      _updateUi(() {
-        _taskEditorPassword = entered;
-      });
-    }
     if (!mounted) return;
-    final unlockedPassword = password;
     await navigator.push(
       MaterialPageRoute<void>(
         builder: (_) => TaskEditorPage(
           authToken: authToken,
-          password: unlockedPassword,
         ),
       ),
     );
@@ -697,9 +717,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           }
 
                           if (value == 'exit-admin') {
-                            _updateUi(() {
-                              _adminModeEnabled = false;
-                            });
+                            _disableAdminMode(context);
                             return;
                           }
 
@@ -919,6 +937,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                         loadHealth: _chatApiClient.getChatbotHealth,
                         sendMessage: (message, sessionId) =>
                             _chatApiClient.sendChatbotMessage(
+                              _state.authToken ?? '',
                               message,
                               sessionId: sessionId,
                             ),

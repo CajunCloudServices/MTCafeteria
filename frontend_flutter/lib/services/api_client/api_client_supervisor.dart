@@ -9,7 +9,7 @@ extension ApiClientSupervisor on ApiClient {
       '$_baseUrl/api/supervisor-board',
     ).replace(queryParameters: meal == null ? null : {'meal': meal});
 
-    final response = await http.get(uri, headers: _authHeaders(token));
+    final response = await _httpClient.get(uri, headers: _authHeaders(token));
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch supervisor board');
     }
@@ -25,7 +25,7 @@ extension ApiClientSupervisor on ApiClient {
     required int jobId,
     required bool checked,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/supervisor-board/jobs/$jobId/check'),
       headers: _jsonHeaders(token),
       body: jsonEncode({'meal': meal, 'checked': checked}),
@@ -40,7 +40,7 @@ extension ApiClientSupervisor on ApiClient {
     String token, {
     required String meal,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/api/supervisor-board/reset'),
       headers: _jsonHeaders(token),
       body: jsonEncode({'meal': meal}),
@@ -60,7 +60,7 @@ extension ApiClientSupervisor on ApiClient {
       '$_baseUrl/api/supervisor-board/jobs/$jobId/tasks',
     ).replace(queryParameters: {'meal': meal});
 
-    final response = await http.get(uri, headers: _authHeaders(token));
+    final response = await _httpClient.get(uri, headers: _authHeaders(token));
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch supervisor job tasks');
     }
@@ -77,7 +77,7 @@ extension ApiClientSupervisor on ApiClient {
     required int taskId,
     required bool checked,
   }) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse(
         '$_baseUrl/api/supervisor-board/jobs/$jobId/tasks/$taskId/check',
       ),

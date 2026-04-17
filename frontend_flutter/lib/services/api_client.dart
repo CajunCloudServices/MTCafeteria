@@ -44,15 +44,18 @@ class ApiClient {
     String? baseUrl,
     AppRuntimeConfig? runtimeConfig,
     Duration? requestTimeout,
+    http.Client? httpClient,
   }) : _baseUrl =
            (baseUrl != null && baseUrl.isNotEmpty)
                ? baseUrl
                : (runtimeConfig ?? AppRuntimeConfig.fromEnvironment)
                    .resolveApiBaseUrl(Uri.base),
-       _requestTimeout = requestTimeout ?? const Duration(seconds: 15);
+       _requestTimeout = requestTimeout ?? const Duration(seconds: 15),
+       _httpClient = httpClient ?? http.Client();
 
   final String _baseUrl;
   final Duration _requestTimeout;
+  final http.Client _httpClient;
 
   Map<String, String> _authHeaders(String token) {
     return {'Authorization': 'Bearer $token'};
