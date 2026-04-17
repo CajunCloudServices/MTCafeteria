@@ -35,7 +35,8 @@ extension _MainShell on _MtcCafeteriaAppState {
     if (_selectedIndex == 0) {
       return LandingPage(
         items: _state.landingItems,
-        canManage: user!.canManageLanding && _adminModeEnabled,
+        // Announcements are editable only from Student Manager Portal, not Home.
+        canManage: false,
         onCreate: (payload) => _state.createLandingItem(payload),
         onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
         onDelete: (id) => _state.deleteLandingItem(id),
@@ -65,7 +66,8 @@ extension _MainShell on _MtcCafeteriaAppState {
 
     return LandingPage(
       items: _state.landingItems,
-      canManage: user!.canManageLanding && _adminModeEnabled,
+      // Same as Home tab: read-only here; edit in Student Manager Portal.
+      canManage: false,
       onCreate: (payload) => _state.createLandingItem(payload),
       onUpdate: (id, payload) => _state.updateLandingItem(id, payload),
       onDelete: (id) => _state.deleteLandingItem(id),
