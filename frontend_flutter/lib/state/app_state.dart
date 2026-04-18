@@ -25,9 +25,9 @@ part 'app_state/reports.dart';
 /// The UI stays mostly declarative and pushes orchestration into this class so
 /// the same role/feature rules apply consistently across pages.
 class AppState extends ChangeNotifier {
-  /// Default kiosk/demo login after app load (must exist in seed DB). Employee
-  /// with modest points reads better than a supervisor account on the profile chip.
-  static const String _sharedSessionEmail = 'employee3@mtc.local';
+  /// Default kiosk/demo login after app load (must exist in seed DB).
+  /// Keep this account capable of supervisor/lead flows used in Line mode.
+  static const String _sharedSessionEmail = 'manager@mtc.local';
   static const String _studentManagerEmail = 'manager@mtc.local';
   static const String _seedAccountPassword = 'password123';
 

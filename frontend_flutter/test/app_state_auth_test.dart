@@ -20,7 +20,7 @@ void main() {
   );
 
   test(
-    'shared session boots as employee and manager unlock swaps report auth',
+    'shared session boots as student manager and retains report auth',
     () async {
       final reportAuthHeaders = <String?>[];
 
@@ -37,21 +37,6 @@ void main() {
                   'email': email,
                   'role': 'Student Manager',
                   'points': 6,
-                },
-              }),
-              200,
-              headers: {'content-type': 'application/json'},
-            );
-          }
-          if (email == 'employee3@mtc.local') {
-            return http.Response(
-              jsonEncode({
-                'token': 'employee-shared-token',
-                'user': {
-                  'id': 6,
-                  'email': email,
-                  'role': 'Employee',
-                  'points': 5,
                 },
               }),
               200,
@@ -151,10 +136,9 @@ void main() {
 
       await state.initialize();
 
-      expect(state.user?.role, 'Employee');
-      expect(state.user?.points, 5);
-      expect(state.authToken, 'employee-shared-token');
-      expect(reportAuthHeaders, isEmpty);
+      expect(state.user?.role, 'Student Manager');
+      expect(state.authToken, 'manager-token');
+      expect(reportAuthHeaders.last, 'Bearer manager-token');
 
       await state.enterStudentManagerMode();
 
@@ -164,9 +148,8 @@ void main() {
 
       await state.restoreSharedSession();
 
-      expect(state.user?.role, 'Employee');
-      expect(state.user?.points, 5);
-      expect(state.authToken, 'employee-shared-token');
+      expect(state.user?.role, 'Student Manager');
+      expect(state.authToken, 'manager-token');
       expect(reportAuthHeaders.last, 'Bearer manager-token');
     },
   );
@@ -187,21 +170,6 @@ void main() {
                 'email': email,
                 'role': 'Student Manager',
                 'points': 6,
-              },
-            }),
-            200,
-            headers: {'content-type': 'application/json'},
-          );
-        }
-        if (email == 'employee3@mtc.local') {
-          return http.Response(
-            jsonEncode({
-              'token': 'employee-shared-token',
-              'user': {
-                'id': 6,
-                'email': email,
-                'role': 'Employee',
-                'points': 5,
               },
             }),
             200,
@@ -285,8 +253,8 @@ void main() {
     );
 
     await state.initialize();
-    expect(state.user?.role, 'Employee');
-    expect(state.authToken, 'employee-shared-token');
+    expect(state.user?.role, 'Student Manager');
+    expect(state.authToken, 'manager-token');
 
     await state.enterStudentManagerMode();
     expect(state.user?.role, 'Student Manager');
