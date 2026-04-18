@@ -10,9 +10,14 @@ const { createApp } = require('../server');
 function createFlutterBuildFixture() {
   const buildDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mtc-web-build-'));
   fs.mkdirSync(path.join(buildDir, 'assets'), { recursive: true });
+  fs.mkdirSync(path.join(buildDir, 'assets', 'fonts'), { recursive: true });
   fs.writeFileSync(path.join(buildDir, 'index.html'), '<!doctype html><html><body>app</body></html>');
   fs.writeFileSync(path.join(buildDir, 'main.dart.js'), 'console.log("app");');
   fs.writeFileSync(path.join(buildDir, 'assets', 'logo.txt'), 'asset');
+  fs.writeFileSync(
+    path.join(buildDir, 'assets', 'fonts', 'MaterialIcons-Regular.otf'),
+    'font'
+  );
   return buildDir;
 }
 
@@ -194,6 +199,27 @@ test('static hashed assets use immutable cache headers', async () => {
       response.headers.get('cache-control'),
       'public, max-age=31536000, immutable'
     );
+  } finally {
+    await web.close();
+    await api.close();
+    fs.rmSync(buildDir, { recursive: true, force: true });
+  }
+});
+
+test('icon fonts revalidate on every request', async () => {
+  const buildDir = createFlutterBuildFixture();
+  const api = await createApiStub();
+  const web = await createWebServer({
+    buildDir,
+    apiUpstreamUrl: api.baseUrl,
+  });
+
+  try {
+    const response = await fetch(
+      `${web.baseUrl}/assets/fonts/MaterialIcons-Regular.otf`
+    );
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
   } finally {
     await web.close();
     await api.close();

@@ -161,7 +161,9 @@ function createApp(options = {}) {
           name === 'main.dart.js' ||
           name === 'flutter_bootstrap.js' ||
           name === 'flutter.js' ||
-          name === 'flutter_service_worker.js'
+          name === 'flutter_service_worker.js' ||
+          name === 'MaterialIcons-Regular.otf' ||
+          name === 'CupertinoIcons.ttf'
         ) {
           res.setHeader('Cache-Control', 'no-store');
           return;
