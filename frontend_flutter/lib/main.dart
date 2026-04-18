@@ -130,16 +130,9 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   }
 
   List<String> _lineModesForRole(String role) {
-    switch (role) {
-      case 'Lead Trainer':
-        return const ['Lead Trainer', 'Employee'];
-      case 'Supervisor':
-        return const ['Supervisor', 'Lead Trainer', 'Employee'];
-      case 'Student Manager':
-        return const ['Supervisor', 'Lead Trainer', 'Employee'];
-      default:
-        return const ['Employee'];
-    }
+    // Line flow roles are an operational mode selector, not a strict mirror of
+    // the authenticated account role. Always present all three options.
+    return const ['Supervisor', 'Lead Trainer', 'Employee'];
   }
 
   List<String> _dishroomModesForRole(String role) {
