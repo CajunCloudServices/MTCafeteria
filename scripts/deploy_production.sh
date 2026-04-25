@@ -12,7 +12,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 echo "Building and syncing Flutter web bundle into public/flutter-web..."
-bash "$ROOT_DIR/scripts/build_and_sync_flutter_web.sh" --release --pwa-strategy=none
+bash "$ROOT_DIR/scripts/build_and_sync_flutter_web.sh" --release --pwa-strategy=none --no-tree-shake-icons
 
 echo "Deploying Docker stack..."
 docker compose --env-file "$ENV_FILE" up -d --build --remove-orphans

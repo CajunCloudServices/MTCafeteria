@@ -53,7 +53,7 @@ jobs:
         run: flutter test
 
       - name: Build and sync Flutter web bundle
-        run: npm run flutter:web:sync -- --release --pwa-strategy=none
+        run: npm run flutter:web:sync -- --release --pwa-strategy=none --no-tree-shake-icons
 
       - name: Verify Docker image builds
         run: docker compose build web api
@@ -103,7 +103,7 @@ jobs:
         run: flutter test
 
       - name: Build and sync Flutter web bundle
-        run: npm run flutter:web:sync -- --release --pwa-strategy=none
+        run: npm run flutter:web:sync -- --release --pwa-strategy=none --no-tree-shake-icons
 
       - name: Deploy on production runner
         run: bash ./scripts/deploy_production.sh

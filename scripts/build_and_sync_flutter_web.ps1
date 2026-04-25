@@ -16,7 +16,7 @@ if (-not (Test-Path $frontendDir)) {
 
 $buildArgs = $args
 if (-not $buildArgs -or $buildArgs.Count -eq 0) {
-  $buildArgs = @("--release", "--pwa-strategy=none")
+  $buildArgs = @("--release", "--pwa-strategy=none", "--no-tree-shake-icons")
 }
 
 Write-Host "Running Flutter dependency sync..."
