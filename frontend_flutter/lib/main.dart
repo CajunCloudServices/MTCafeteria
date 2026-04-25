@@ -592,7 +592,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
             builder: (context, constraints) {
               final isMobile = constraints.maxWidth < 760;
               final textScaler = isMobile
-                  ? const TextScaler.linear(1.1)
+                  ? const TextScaler.linear(1.08)
                   : MediaQuery.of(context).textScaler;
 
               final headerTitle = showDashboardBack

@@ -152,6 +152,7 @@ Before merging or deploying:
 1. Confirm automated checks passed:
    `backend`, `web`, `flutter analyze`, `flutter test`, `npm run flutter:web:sync`, and `docker compose build web`.
 2. Confirm `npm run flutter:web:sync` ran successfully and refreshed `public/flutter-web` from `frontend_flutter/build/web`.
+   The sync/build path should include `--no-tree-shake-icons` so mobile web keeps the full Material icon font.
 3. For Docker-based production, confirm the `web` service image was rebuilt after that sync so it includes the refreshed Flutter bundle.
 4. Confirm any task editor changes were validated against both required headers.
 5. Confirm chatbot changes were validated through `/api/chatbot/health` and
@@ -274,5 +275,9 @@ Assume one of two things first:
 2. The running `web` container is an old image built before that refresh.
 
 Run `npm run flutter:web:sync`, then rebuild and redeploy the `web` service (`docker compose build web --no-cache` if needed). For non-Docker static hosting, the same sync step is still required before redeploying files.
+
+If mobile icons are missing, check `assets/fonts/MaterialIcons-Regular.otf` on the live host. A very small file usually means icons were tree-shaken out of the production bundle. Rebuild with `--no-tree-shake-icons`, refresh `public/flutter-web`, and redeploy.
+
+If announcements did not change after deploy, check the live API response from `/api/content/landing-items`. Once production already has rows in `announcements`, updating `seed.sql` alone will not replace them; use a migration instead.
 
 Validate the served `main.dart.js` contains the expected strings or behavior before declaring the deploy complete.

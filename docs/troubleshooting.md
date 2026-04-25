@@ -35,6 +35,7 @@ The public host currently consumes the prebuilt Flutter bundle under `public/flu
 - `frontend_flutter/` changed but `public/flutter-web` was never refreshed
 - the host rebuilt from repo source but used the stale committed bundle
 - the running container is still an older image built before the refreshed bundle landed
+- the bundle was rebuilt with icon tree-shaking, so runtime-selected Material icons disappeared on mobile
 
 If you run the Node web server **without** Docker, it reads `public/flutter-web` from disk; you still must run `npm run flutter:web:sync` after Dart changes.
 
@@ -75,8 +76,19 @@ If a fix is already in source but not effective live, do all steps below:
 5. Rebuild/recreate live `web` and `api` services.
 6. Re-check:
    - public bundle content (`main.dart.js`)
+   - live `assets/fonts/MaterialIcons-Regular.otf` size if mobile icons are missing
    - API role endpoints
    - UI flow behavior in browser
+
+### 4) Announcement seed vs live database confusion
+
+Changing `backend/sql/seed.sql` or `backend/src/db/mockData.js` does not replace existing production announcements once the live `announcements` table already has rows.
+
+If the site still shows older announcements after deploy:
+
+- check `/api/content/landing-items`
+- if it still returns old rows, ship a migration that updates or replaces those rows
+- do not rely on seed-only changes for live production data fixes
 
 ## UI Hardening Expectations
 

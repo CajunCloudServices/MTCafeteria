@@ -144,6 +144,7 @@ Deploys are defined in-repo now:
 - CI validates backend tests, web host tests, Flutter analyze/test, and Docker image builds.
 - The deployed `web` container serves the prebuilt Flutter bundle from `public/flutter-web`.
 - CI and production deploys now run `npm run flutter:web:sync` first, which builds `frontend_flutter/` and syncs the output into `public/flutter-web` before rebuilding the `web` image.
+- The production bundle is built with `--no-tree-shake-icons` so runtime-selected Material icons are not stripped out of the web font on mobile.
 - The deploy workflow runs `scripts/deploy_production.sh`, which rebuilds containers and runs post-deploy health checks.
 
 For **local** runs of the Node server against static files without rebuilding the image, use `npm run flutter:web:sync` so `public/flutter-web` exists on disk. Do not hand-edit generated files there.
@@ -202,6 +203,11 @@ git push origin your-branch
 4. CI rebuilds the production bundle from source and validates the Docker/web artifact.
 
 5. When changes land on `main`, the deploy workflow rebuilds and syncs the Flutter bundle on the production runner before rebuilding the `web` container and bringing the stack up.
+
+Important production note:
+
+- if you change announcement defaults, seed/mock data alone does not update live data once production already has rows in `announcements`
+- use a real SQL migration under `backend/sql/migrations/` for production announcement replacements
 
 ### Backend or stack deploy checks
 
