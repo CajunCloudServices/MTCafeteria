@@ -4,9 +4,10 @@ $rootDir = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $frontendDir = Join-Path $rootDir "frontend_flutter"
 $buildDir = Join-Path $frontendDir "build\web"
 $targetDir = Join-Path $rootDir "public\flutter-web"
+$flutterBin = if ($env:FLUTTER_BIN) { $env:FLUTTER_BIN } else { "flutter" }
 
-if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
-  throw "Flutter CLI not found in PATH."
+if (-not (Get-Command $flutterBin -ErrorAction SilentlyContinue)) {
+  throw "Flutter CLI not found. Set FLUTTER_BIN or add flutter to PATH."
 }
 
 if (-not (Test-Path $frontendDir)) {
@@ -19,7 +20,7 @@ if (-not $buildArgs -or $buildArgs.Count -eq 0) {
 }
 
 Write-Host "Running Flutter dependency sync..."
-& flutter pub get --directory $frontendDir
+& $flutterBin pub get --directory $frontendDir
 if ($LASTEXITCODE -ne 0) {
   throw "flutter pub get failed."
 }
@@ -27,7 +28,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Building Flutter web bundle..."
 Push-Location $frontendDir
 try {
-  & flutter build web @buildArgs
+  & $flutterBin build web @buildArgs
   if ($LASTEXITCODE -ne 0) {
     throw "flutter build web failed."
   }

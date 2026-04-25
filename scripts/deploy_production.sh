@@ -11,7 +11,10 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
-echo "Deploying Docker stack (web image builds Flutter inside the Dockerfile)..."
+echo "Building and syncing Flutter web bundle into public/flutter-web..."
+bash "$ROOT_DIR/scripts/build_and_sync_flutter_web.sh" --release --pwa-strategy=none
+
+echo "Deploying Docker stack..."
 docker compose --env-file "$ENV_FILE" up -d --build --remove-orphans
 
 echo "Running post-deploy health checks..."

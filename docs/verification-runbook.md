@@ -150,12 +150,13 @@ docker compose --env-file .env.ci down -v
 Before merging or deploying:
 
 1. Confirm automated checks passed:
-   `backend`, `web`, `flutter analyze`, `flutter test`, and `docker compose build web` (Flutter web compiles in the `web` image).
-2. For Docker-based production, confirm the `web` service image was rebuilt so it includes a fresh `flutter build web`.
-3. Confirm any task editor changes were validated against both required headers.
-4. Confirm chatbot changes were validated through `/api/chatbot/health` and
+   `backend`, `web`, `flutter analyze`, `flutter test`, `npm run flutter:web:sync`, and `docker compose build web`.
+2. Confirm `npm run flutter:web:sync` ran successfully and refreshed `public/flutter-web` from `frontend_flutter/build/web`.
+3. For Docker-based production, confirm the `web` service image was rebuilt after that sync so it includes the refreshed Flutter bundle.
+4. Confirm any task editor changes were validated against both required headers.
+5. Confirm chatbot changes were validated through `/api/chatbot/health` and
    `/api/chatbot/chat`, not just the widget shell.
-5. Confirm deploy workflow and local scripts still point at the same health
+6. Confirm deploy workflow and local scripts still point at the same health
    contract: `/health`, `/readyz`, and `/api/health`.
 
 ## Post-Deploy Verification
@@ -267,8 +268,11 @@ Then redeploy and verify `/api/chatbot/health` reports `disabled`.
 
 ### Source looks correct but production looks stale
 
-Assume the running `web` container is an old image or a host that never rebuilt.
+Assume one of two things first:
 
-Rebuild and redeploy the `web` service (`docker compose build web --no-cache` if needed). For non-Docker static hosting, run `npm run flutter:web:sync` and redeploy files.
+1. `public/flutter-web` was never refreshed from current Flutter source.
+2. The running `web` container is an old image built before that refresh.
+
+Run `npm run flutter:web:sync`, then rebuild and redeploy the `web` service (`docker compose build web --no-cache` if needed). For non-Docker static hosting, the same sync step is still required before redeploying files.
 
 Validate the served `main.dart.js` contains the expected strings or behavior before declaring the deploy complete.

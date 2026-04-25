@@ -52,7 +52,10 @@ jobs:
         working-directory: frontend_flutter
         run: flutter test
 
-      - name: Verify Docker image builds (Flutter web bundle built inside web image)
+      - name: Build and sync Flutter web bundle
+        run: npm run flutter:web:sync -- --release --pwa-strategy=none
+
+      - name: Verify Docker image builds
         run: docker compose build web api
 
   deploy:
@@ -98,6 +101,9 @@ jobs:
       - name: Run Flutter tests
         working-directory: frontend_flutter
         run: flutter test
+
+      - name: Build and sync Flutter web bundle
+        run: npm run flutter:web:sync -- --release --pwa-strategy=none
 
       - name: Deploy on production runner
         run: bash ./scripts/deploy_production.sh
