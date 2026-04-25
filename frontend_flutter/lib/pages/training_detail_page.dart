@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'training/training_text_data.dart';
+import '../theme/stitch_tokens.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/app_header.dart';
 import '../widgets/shift_selection_cards.dart';
+import '../widgets/ui/stitch_buttons.dart';
+import '../widgets/ui/stitch_card.dart';
+import '../widgets/ui/stitch_chip.dart';
 
 /// Full-screen manual 2-minute training viewer with rotating daily default
 /// content.
 ///
-/// This page reads the local training corpus from `training_text_data.dart`.
-/// It does not consume the legacy backend `/api/trainings` feed that still
-/// exists for older prototype flows.
+/// Visual spec mirrors `2_minute_training/code.html`:
+/// - Editorial headline (Manrope extrabold) + eyebrow ("2-Minute Training")
+/// - Objective / Key Directives cards with soft shadow and ringed surface
+/// - Optional picker strip above viewer when "See All" is on
 class TrainingDetailPage extends StatefulWidget {
   const TrainingDetailPage({
     super.key,
@@ -42,8 +47,6 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
     }
   }
 
-  /// Rotation is calendar-based so the highlighted training advances daily
-  /// without requiring per-day backend assignments.
   DateTime _todayDateOnly() {
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
@@ -56,8 +59,6 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
 
   int _rotationIndexForDate(DateTime date, _TrainingTrack track) {
     if (_trainings.isEmpty) return 0;
-    // Line rotation anchor: March 18, 2026 should resolve to training #7
-    // ("Proper Lifting"), which is index 6 in the line track list.
     final cycleStart = track == _TrainingTrack.line
         ? DateTime(2026, 3, 12)
         : DateTime(2026, 3, 17);
@@ -130,11 +131,40 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
     return today.add(Duration(days: delta));
   }
 
-  String _formatDate(DateTime date) {
-    final y = date.year.toString().padLeft(4, '0');
-    final m = date.month.toString().padLeft(2, '0');
-    final d = date.day.toString().padLeft(2, '0');
-    return '$y-$m-$d';
+  String _formatDateLong(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _formatDateShort(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}';
   }
 
   void _selectTraining(int index) {
@@ -165,6 +195,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
   Widget build(BuildContext context) {
     if (_selectedTrack == null) {
       return Scaffold(
+        backgroundColor: StitchColors.surface,
         appBar: AppBar(
           toolbarHeight: appHeaderToolbarHeight(context),
           centerTitle: true,
@@ -194,28 +225,19 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
             ),
           ],
         ),
-        body: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFF9FCFF), Color(0xFFE7EEF9)],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ShiftTrackSelectionCard(
-              availableTracks: const ['Line', 'Dishroom'],
-              selectedTrack: _pendingTrack == _TrainingTrack.dishroom
-                  ? 'Dishroom'
-                  : 'Line',
-              onTrackChanged: (value) => setState(() {
-                _pendingTrack = value == 'Dishroom'
-                    ? _TrainingTrack.dishroom
-                    : _TrainingTrack.line;
-              }),
-              onContinue: _confirmTrack,
-            ),
+        body: Padding(
+          padding: const EdgeInsets.all(StitchSpacing.lg),
+          child: ShiftTrackSelectionCard(
+            availableTracks: const ['Line', 'Dishroom'],
+            selectedTrack: _pendingTrack == _TrainingTrack.dishroom
+                ? 'Dishroom'
+                : 'Line',
+            onTrackChanged: (value) {
+              _pendingTrack = value == 'Dishroom'
+                  ? _TrainingTrack.dishroom
+                  : _TrainingTrack.line;
+              _confirmTrack();
+            },
           ),
         ),
         bottomNavigationBar: AppBottomNav(
@@ -229,7 +251,9 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
         _selectedTrack == _TrainingTrack.dishroom &&
         _isSunday(_todayDateOnly());
     final selectedTraining = _trainings[_selectedTrainingIndex];
-    final displayDate = _formatDate(_trainingDateFor(_selectedTrainingIndex));
+    final displayDate = _formatDateLong(
+      _trainingDateFor(_selectedTrainingIndex),
+    );
 
     return PopScope(
       canPop: _selectedTrack == null,
@@ -244,6 +268,7 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
         }
       },
       child: Scaffold(
+        backgroundColor: StitchColors.surface,
         appBar: AppBar(
           toolbarHeight: appHeaderToolbarHeight(context),
           centerTitle: true,
@@ -320,389 +345,434 @@ class _TrainingDetailPageState extends State<TrainingDetailPage> {
           currentIndex: widget.navIndex,
           onTap: _handleBottomNavSelection,
         ),
-        body: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFF9FCFF), Color(0xFFE7EEF9)],
-            ),
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 960;
-              final picker = Container(
-                width: isWide ? 340 : double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FBFF),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFF1F5E9C).withValues(alpha: 0.24),
-                  ),
-                ),
-                child: isWide
-                    ? ListView.separated(
-                        itemCount: _trainings.length,
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) {
-                          final isSelected = _selectedTrainingIndex == index;
-                          final date = _formatDate(_trainingDateFor(index));
-                          return InkWell(
-                            onTap: () => _selectTraining(index),
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFFE6F0FF)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? const Color(0xFF1F5E9C)
-                                      : const Color(0xFFB3C7E2),
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _trainingTitleFor(index),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF123A65),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    date,
-                                    style: const TextStyle(
-                                      color: Color(0xFF4E6786),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 10),
-                      )
-                    : SizedBox(
-                        height: 116,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _trainings.length,
-                          itemBuilder: (context, index) {
-                            final isSelected = _selectedTrainingIndex == index;
-                            return InkWell(
-                              onTap: () => _selectTraining(index),
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                width: 186,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? const Color(0xFFE6F0FF)
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? const Color(0xFF1F5E9C)
-                                        : const Color(0xFFB3C7E2),
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _trainingTitleFor(index),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF123A65),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      'Tap to view',
-                                      style: TextStyle(
-                                        color: const Color(
-                                          0xFF1F5E9C,
-                                        ).withValues(alpha: 0.85),
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(width: 10),
-                        ),
-                      ),
-              );
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 960;
 
-              final viewer = Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFF1F5E9C).withValues(alpha: 0.24),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                      child: Text(
-                        displayDate,
-                        style: const TextStyle(
-                          color: Color(0xFF4E6786),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEAF4FF),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: const Color(0xFF9FB6D3),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    selectedTraining.title,
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF123A65),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    selectedTraining.objective,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF2E4E70),
-                                      height: 1.35,
-                                    ),
-                                  ),
-                                  if (selectedTraining.teachingIdea != null &&
-                                      selectedTraining.teachingIdea!
-                                          .trim()
-                                          .isNotEmpty) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      selectedTraining.teachingIdea!,
-                                      style: const TextStyle(
-                                        color: Color(0xFF365A80),
-                                        height: 1.35,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            if (selectedTraining
-                                .generalGuidelines
-                                .isNotEmpty) ...[
-                              const SizedBox(height: 10),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF9F4E6),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: const Color(0xFFD4BC8D),
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'General Guidelines',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF5B3F11),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    ...selectedTraining.generalGuidelines.map(
-                                      (line) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 4,
-                                        ),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              '- ',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            Expanded(child: Text(line)),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 10),
-                            ...selectedTraining.sections.map(
-                              (section) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF7FAFF),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: const Color(0xFFB3C7E2),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        section.heading,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          color: Color(0xFF123A65),
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      ...section.bullets.map(
-                                        (line) => Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 5,
-                                          ),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                '- ',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  line,
-                                                  style: const TextStyle(
-                                                    height: 1.35,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+            final viewer = _TrainingViewerPanel(
+              training: selectedTraining,
+              displayDate: displayDate,
+              track: _trackLabel(_selectedTrack!),
+            );
 
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (isDishroomSunday) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF9F4E6),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFD4BC8D)),
-                        ),
-                        child: const Text(
-                          'No dishroom training is scheduled on Sunday. Showing the next scheduled training.',
-                          style: TextStyle(
-                            color: Color(0xFF5B3F11),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                    Expanded(
-                      child: _showAllTrainings
-                          ? isWide
-                                ? Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      picker,
-                                      const SizedBox(width: 12),
-                                      Expanded(child: viewer),
-                                    ],
-                                  )
-                                : Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      picker,
-                                      const SizedBox(height: 10),
-                                      Expanded(child: viewer),
-                                    ],
-                                  )
-                          : viewer,
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
+            final picker = _TrainingPickerPanel(
+              trainings: _trainings,
+              isWide: isWide,
+              selectedIndex: _selectedTrainingIndex,
+              titleFor: _trainingTitleFor,
+              dateFor: (i) => _formatDateShort(_trainingDateFor(i)),
+              onSelect: _selectTraining,
+            );
+
+            return Padding(
+              padding: const EdgeInsets.all(StitchSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (isDishroomSunday) ...[
+                    Container(
                       width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => setState(
-                          () => _showAllTrainings = !_showAllTrainings,
-                        ),
-                        child: Text(_showAllTrainings ? 'Hide all' : 'See all'),
+                      padding: const EdgeInsets.all(StitchSpacing.md),
+                      decoration: BoxDecoration(
+                        color: StitchColors.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(StitchRadii.md),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                            color: StitchColors.onTertiaryContainer,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'No dishroom training is scheduled on Sunday. Showing the next scheduled training.',
+                              style: StitchText.bodyStrong.copyWith(
+                                color: StitchColors.onTertiaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: StitchSpacing.md),
                   ],
+                  Expanded(
+                    child: _showAllTrainings
+                        ? isWide
+                              ? Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    SizedBox(width: 340, child: picker),
+                                    const SizedBox(width: StitchSpacing.md),
+                                    Expanded(child: viewer),
+                                  ],
+                                )
+                              : Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    picker,
+                                    const SizedBox(height: StitchSpacing.md),
+                                    Expanded(child: viewer),
+                                  ],
+                                )
+                        : viewer,
+                  ),
+                  const SizedBox(height: StitchSpacing.md),
+                  StitchSecondaryButton(
+                    label: _showAllTrainings ? 'Hide All' : 'See All',
+                    icon: _showAllTrainings
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    onPressed: () =>
+                        setState(() => _showAllTrainings = !_showAllTrainings),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _TrainingViewerPanel extends StatelessWidget {
+  const _TrainingViewerPanel({
+    required this.training,
+    required this.displayDate,
+    required this.track,
+  });
+
+  final TrainingTextContent training;
+  final String displayDate;
+  final String track;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1080),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.timer_rounded,
+                  size: 18,
+                  color: StitchColors.primary,
                 ),
-              );
-            },
+                const SizedBox(width: 6),
+                Text(
+                  '2-Minute Training',
+                  style: StitchText.eyebrowBold.copyWith(
+                    color: StitchColors.onSurface,
+                  ),
+                ),
+                Text('  •  ', style: StitchText.eyebrow),
+                Text(
+                  track,
+                  style: StitchText.eyebrowBold.copyWith(
+                    color: StitchColors.onSurface,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  displayDate,
+                  style: StitchText.bodyStrong.copyWith(
+                    color: StitchColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: StitchSpacing.md),
+            Text(
+              training.title,
+              style: StitchText.displayXl.copyWith(
+                color: StitchColors.onSurface,
+                height: 1.1,
+              ),
+            ),
+            const SizedBox(height: StitchSpacing.xl),
+            _ObjectiveSection(training: training),
+            if (training.generalGuidelines.isNotEmpty) ...[
+              const SizedBox(height: StitchSpacing.xl),
+              _GeneralGuidelinesSection(lines: training.generalGuidelines),
+            ],
+            const SizedBox(height: StitchSpacing.xl),
+            ...training.sections.map(
+              (section) => Padding(
+                padding: const EdgeInsets.only(bottom: StitchSpacing.xl),
+                child: _TrainingSectionBlock(section: section),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ObjectiveSection extends StatelessWidget {
+  const _ObjectiveSection({required this.training});
+
+  final TrainingTextContent training;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.lightbulb_outline_rounded,
+              size: 22,
+              color: StitchColors.primary,
+            ),
+            const SizedBox(width: 10),
+            Text('The Objective', style: StitchText.titleLg),
+          ],
+        ),
+        const SizedBox(height: StitchSpacing.md),
+        Text(
+          training.objective,
+          style: StitchText.titleSm.copyWith(
+            height: 1.5,
+            color: StitchColors.onSurface,
+            fontWeight: FontWeight.w500,
           ),
         ),
+        if (training.teachingIdea != null &&
+            training.teachingIdea!.trim().isNotEmpty) ...[
+          const SizedBox(height: StitchSpacing.md),
+          Text(
+            training.teachingIdea!,
+            style: StitchText.bodyLg.copyWith(
+              color: StitchColors.onSurface,
+              height: 1.55,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _GeneralGuidelinesSection extends StatelessWidget {
+  const _GeneralGuidelinesSection({required this.lines});
+
+  final List<String> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const StitchChip(
+          label: 'General Guidelines',
+          tone: StitchChipTone.tertiary,
+        ),
+        const SizedBox(height: StitchSpacing.md),
+        ...lines.map(
+          (line) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Icon(
+                    Icons.circle,
+                    size: 6,
+                    color: StitchColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    line,
+                    style: StitchText.bodyLg.copyWith(
+                      color: StitchColors.onSurface,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrainingSectionBlock extends StatelessWidget {
+  const _TrainingSectionBlock({required this.section});
+
+  final TrainingTextSection section;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: StitchColors.outlineVariant)),
+      ),
+      padding: const EdgeInsets.only(top: StitchSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.list_alt_rounded,
+                size: 20,
+                color: StitchColors.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Text(section.heading, style: StitchText.titleLg)),
+            ],
+          ),
+          const SizedBox(height: StitchSpacing.lg),
+          for (var i = 0; i < section.bullets.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: StitchColors.primaryFixed,
+                      borderRadius: BorderRadius.circular(StitchRadii.pill),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${i + 1}',
+                      style: StitchText.bodyStrong.copyWith(
+                        color: StitchColors.onPrimaryFixed,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        section.bullets[i],
+                        style: StitchText.titleSm.copyWith(
+                          height: 1.5,
+                          color: StitchColors.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrainingPickerPanel extends StatelessWidget {
+  const _TrainingPickerPanel({
+    required this.trainings,
+    required this.isWide,
+    required this.selectedIndex,
+    required this.titleFor,
+    required this.dateFor,
+    required this.onSelect,
+  });
+
+  final List<TrainingTextContent> trainings;
+  final bool isWide;
+  final int selectedIndex;
+  final String Function(int index) titleFor;
+  final String Function(int index) dateFor;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isWide) {
+      return StitchCard(
+        padding: const EdgeInsets.all(StitchSpacing.md),
+        child: ListView.separated(
+          itemCount: trainings.length,
+          shrinkWrap: true,
+          itemBuilder: (context, index) => _TrainingPickerTile(
+            title: titleFor(index),
+            date: dateFor(index),
+            selected: index == selectedIndex,
+            onTap: () => onSelect(index),
+          ),
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+        ),
+      );
+    }
+    return SizedBox(
+      height: 120,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: trainings.length,
+        itemBuilder: (context, index) => SizedBox(
+          width: 200,
+          child: _TrainingPickerTile(
+            title: titleFor(index),
+            date: dateFor(index),
+            selected: index == selectedIndex,
+            onTap: () => onSelect(index),
+          ),
+        ),
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
+      ),
+    );
+  }
+}
+
+class _TrainingPickerTile extends StatelessWidget {
+  const _TrainingPickerTile({
+    required this.title,
+    required this.date,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String date;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.md),
+      elevation: StitchCardElevation.subtle,
+      ring: true,
+      ringColor: selected ? StitchColors.primary : StitchColors.hairline,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: StitchText.titleSm.copyWith(
+              color: selected ? StitchColors.primary : StitchColors.onSurface,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(date, style: StitchText.caption),
+        ],
       ),
     );
   }

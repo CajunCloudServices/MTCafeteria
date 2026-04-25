@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_session.dart';
-import '../theme/app_ui_tokens.dart';
+import '../theme/stitch_tokens.dart';
+import '../widgets/ui/stitch_card.dart';
 
-/// Personal profile and point summary for the authenticated user.
+/// Stitch-aligned profile view.
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key, required this.user});
 
@@ -11,145 +12,247 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final roleLabel = user.role == 'Employee' ? 'Line Worker' : user.role;
     final status = _pointsStatus(user.points);
+    final displayName = _displayName(user.email);
+    final initials = _initials(displayName);
+
+    // Progress is capped at 20 to match the warning/termination threshold.
+    final clamped = user.points.clamp(0, 20);
+    final pct = clamped / 20;
 
     return ListView(
+      padding: const EdgeInsets.only(top: 8, bottom: 32),
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Profile', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 12),
-                _InfoRow(label: 'Role', value: roleLabel),
-                const SizedBox(height: 8),
-                _InfoRow(label: 'Email', value: user.email),
-              ],
-            ),
-          ),
+        _ProfileHeader(
+          displayName: displayName,
+          email: user.email,
+          initials: initials,
         ),
-        const SizedBox(height: 14),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Points', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 12),
-                Text(
-                  '${user.points}',
-                  style: const TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.w800,
-                    height: 1,
-                    color: Color(0xFF12365E),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-                  child: LinearProgressIndicator(
-                    value: (user.points.clamp(0, 20)) / 20,
-                    minHeight: 10,
-                    backgroundColor: const Color(0xFFE6EDF7),
-                    color: status.color,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: status.color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-                    border: Border.all(
-                      color: status.color.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    status.message,
-                    style: TextStyle(
-                      color: status.color,
-                      fontWeight: FontWeight.w700,
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        const SizedBox(height: StitchSpacing.lg),
+        _PointsCard(
+          points: user.points,
+          progress: pct,
+          status: status,
         ),
       ],
     );
   }
 }
 
-/// Small two-column metadata row used by the profile card.
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.displayName,
+    required this.email,
+    required this.initials,
+  });
+
+  final String displayName;
+  final String email;
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.xl),
+      elevation: StitchCardElevation.subtle,
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: StitchColors.surfaceContainer,
+              borderRadius: BorderRadius.circular(StitchRadii.md),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              initials,
+              style: StitchText.titleLg.copyWith(color: StitchColors.primary),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  displayName,
+                  style: StitchText.titleLg,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                _ProfileMetaRow(label: 'Email', value: email),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileMetaRow extends StatelessWidget {
+  const _ProfileMetaRow({required this.label, required this.value});
 
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Wrap(
+      spacing: 6,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        SizedBox(
-          width: 84,
-          child: Text(
-            '$label:',
-            style: const TextStyle(
-              color: Color(0xFF456283),
-              fontWeight: FontWeight.w700,
-            ),
+        Text(
+          '$label:',
+          style: StitchText.bodyStrong.copyWith(
+            color: StitchColors.onSurfaceVariant,
           ),
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF12365E),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+        Text(
+          value,
+          style: StitchText.body,
         ),
       ],
     );
   }
 }
 
-/// Color/message pair for the point threshold banner.
+class _PointsCard extends StatelessWidget {
+  const _PointsCard({
+    required this.points,
+    required this.progress,
+    required this.status,
+  });
+
+  final int points;
+  final double progress;
+  final _PointsStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.xl2),
+      elevation: StitchCardElevation.card,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: StitchColors.tertiaryFixed,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.star_rounded,
+                  size: 20,
+                  color: StitchColors.onTertiaryFixedVariant,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text('Penalty Points', style: StitchText.titleSm),
+              ),
+              Text(
+                '$points / 20',
+                style: StitchText.metric.copyWith(color: status.color),
+              ),
+            ],
+          ),
+          const SizedBox(height: StitchSpacing.lg),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(StitchRadii.pill),
+            child: Container(
+              height: 10,
+              color: StitchColors.surfaceContainer,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: progress,
+                  child: Container(color: status.color),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: StitchSpacing.lg),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: status.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(StitchRadii.md),
+              border: Border.all(
+                color: status.color.withValues(alpha: 0.35),
+              ),
+            ),
+            child: Text(
+              status.message,
+              style: StitchText.bodyStrong.copyWith(color: status.color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PointsStatus {
-  const _PointsStatus({required this.message, required this.color});
+  const _PointsStatus({
+    required this.message,
+    required this.color,
+    required this.trailing,
+  });
 
   final String message;
   final Color color;
+  final String trailing;
 }
 
-/// Converts the current point total into the warning tier displayed in the UI.
 _PointsStatus _pointsStatus(int points) {
   if (points >= 20) {
-    return const _PointsStatus(
-      message: 'Critical: 20+ points means termination threshold.',
-      color: Color(0xFFB42318),
+    return _PointsStatus(
+      message: 'Critical',
+      color: StitchColors.error,
+      trailing: '$points / 20',
     );
   }
-
   if (points >= 15) {
-    return const _PointsStatus(
-      message: 'Warning: 15+ points means supervisor conversation threshold.',
-      color: Color(0xFFB54708),
+    return _PointsStatus(
+      message: 'Warning',
+      color: const Color(0xFFB54708),
+      trailing: '$points / 20',
     );
   }
-
-  return const _PointsStatus(
-    message: 'Below warning threshold.',
-    color: Color(0xFF217A3C),
+  return _PointsStatus(
+    message: 'On Track',
+    color: const Color(0xFF217A3C),
+    trailing: '$points / 20',
   );
+}
+
+String _displayName(String email) {
+  final local = email.split('@').first;
+  return local
+      .replaceAll(RegExp(r'[._-]+'), ' ')
+      .split(' ')
+      .where((s) => s.isNotEmpty)
+      .map((s) => s[0].toUpperCase() + s.substring(1))
+      .join(' ');
+}
+
+String _initials(String name) {
+  final parts = name.split(' ').where((s) => s.isNotEmpty).toList();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+  return (parts.first[0] + parts.last[0]).toUpperCase();
 }

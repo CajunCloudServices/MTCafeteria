@@ -109,26 +109,51 @@ void showJobQuickReferenceDialog(
   showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text('$jobName Reference'),
+      title: Text(
+        '$jobName Reference',
+        style: StitchText.titleLg.copyWith(color: StitchColors.onSurface),
+      ),
       content: SizedBox(
-        width: 480,
+        width: 520,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               if (lines.isEmpty)
-                const Text('No notes yet for this job.')
+                Text(
+                  'No notes yet for this job.',
+                  style: StitchText.bodyLg.copyWith(
+                    color: StitchColors.onSurface,
+                  ),
+                )
               else
                 for (final line in lines) ...[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('- '),
-                      Expanded(child: Text(line)),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          '- ',
+                          style: StitchText.bodyLg.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: StitchColors.onSurface,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          line,
+                          style: StitchText.bodyLg.copyWith(
+                            color: StitchColors.onSurface,
+                            height: 1.55,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 10),
                 ],
             ],
           ),
@@ -137,7 +162,12 @@ void showJobQuickReferenceDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text(
+            'Close',
+            style: StitchText.bodyStrong.copyWith(
+              color: StitchColors.primary,
+            ),
+          ),
         ),
       ],
     ),

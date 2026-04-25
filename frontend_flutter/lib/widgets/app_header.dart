@@ -1,20 +1,31 @@
 import 'package:flutter/material.dart';
 
+import '../theme/stitch_tokens.dart';
+
 double appHeaderToolbarHeight(BuildContext context) =>
-    MediaQuery.of(context).size.width < 760 ? 108 : 96;
+    MediaQuery.of(context).size.width < StitchLayout.mobileBreakpoint ? 88 : 72;
 
 double appHeaderMenuIconSize(BuildContext context) =>
-    MediaQuery.of(context).size.width < 760 ? 32 : 28;
+    MediaQuery.of(context).size.width < StitchLayout.mobileBreakpoint ? 26 : 24;
 
+/// Canonical page title used by every screen's app bar.
+///
+/// This is the single source of truth for the page header style, so every
+/// page reads identically — same font, weight, size, color — regardless of
+/// whether it is a root tab or a sub-view with a back button.
 Text buildAppHeaderTitle(BuildContext context, String label) {
-  final isMobile = MediaQuery.of(context).size.width < 760;
+  final isMobile =
+      MediaQuery.of(context).size.width < StitchLayout.mobileBreakpoint;
   return Text(
     label,
     style: TextStyle(
-      fontSize: isMobile ? 26 : 24,
+      fontFamily: StitchFonts.headline,
+      fontFamilyFallback: StitchFonts.fallback,
+      fontSize: isMobile ? 24 : 26,
       fontWeight: FontWeight.w800,
-      letterSpacing: 0.2,
-      color: const Color(0xFF12365E),
+      letterSpacing: -0.3,
+      color: StitchColors.primary,
+      height: 1.15,
     ),
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
@@ -33,10 +44,15 @@ class AppHeaderMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 760;
+    final isMobile =
+        MediaQuery.of(context).size.width < StitchLayout.mobileBreakpoint;
     return PopupMenuButton<String>(
-      padding: EdgeInsets.only(left: 8, right: isMobile ? 14 : 10),
-      icon: Icon(Icons.menu, size: appHeaderMenuIconSize(context)),
+      padding: EdgeInsets.only(left: 8, right: isMobile ? 12 : 10),
+      icon: Icon(
+        Icons.menu_rounded,
+        size: appHeaderMenuIconSize(context),
+        color: StitchColors.primary,
+      ),
       onSelected: onSelected,
       itemBuilder: itemBuilder,
     );

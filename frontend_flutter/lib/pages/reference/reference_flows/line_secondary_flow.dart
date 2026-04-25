@@ -61,99 +61,149 @@ extension _LineSecondaryReferenceFlow on _ReferenceSheetsViewState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_lineSecondaryStep == 0) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _lineSecondaryMeal,
-            decoration: const InputDecoration(labelText: 'Meal'),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(value: 'Breakfast', child: Text('Breakfast')),
-              DropdownMenuItem(value: 'Lunch', child: Text('Lunch')),
-              DropdownMenuItem(value: 'Dinner', child: Text('Dinner')),
+        if (_lineSecondaryStep == 0)
+          _buildGuideSelectionList(
+            title: 'Select Meal',
+            options: [
+              (
+                label: 'Breakfast',
+                subtitle: null,
+                icon: Icons.bakery_dining_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryMeal = 'Breakfast';
+                    _lineSecondaryStep = 1;
+                  });
+                },
+              ),
+              (
+                label: 'Lunch',
+                subtitle: null,
+                icon: Icons.lunch_dining_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryMeal = 'Lunch';
+                    _lineSecondaryStep = 1;
+                  });
+                },
+              ),
+              (
+                label: 'Dinner',
+                subtitle: null,
+                icon: Icons.restaurant_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryMeal = 'Dinner';
+                    _lineSecondaryStep = 1;
+                  });
+                },
+              ),
             ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() => _lineSecondaryMeal = value);
+            backLabel: 'Back to Line Guides',
+            onBack: () {
+              _updateReferenceState(() {
+                _selectedLineGuideSection = 'Select';
+                _lineSecondaryStep = 0;
+              });
             },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () =>
-                  _updateReferenceState(() => _lineSecondaryStep = 1),
-              child: const Text('Next'),
-            ),
-          ),
-        ] else if (_lineSecondaryStep == 1) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _lineSecondaryGroup,
-            decoration: const InputDecoration(labelText: 'Section'),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(
-                value: 'While Doors Open',
-                child: Text('While Doors Open'),
+          )
+        else if (_lineSecondaryStep == 1)
+          _buildGuideSelectionList(
+            title: 'Select Section',
+            options: [
+              (
+                label: 'While Doors Open',
+                subtitle: null,
+                icon: Icons.door_front_door_outlined,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryGroup = 'While Doors Open';
+                    _lineSecondaryStep = 2;
+                  });
+                },
               ),
-              DropdownMenuItem(
-                value: 'After Doors Close',
-                child: Text('After Doors Close'),
+              (
+                label: 'After Doors Close',
+                subtitle: null,
+                icon: Icons.nightlight_round_outlined,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryGroup = 'After Doors Close';
+                    _lineSecondaryStep = 2;
+                  });
+                },
               ),
-              DropdownMenuItem(
-                value: 'Shift-Specific',
-                child: Text('Shift-Specific'),
+              (
+                label: 'Shift-Specific',
+                subtitle: _lineSecondaryMeal,
+                icon: Icons.event_repeat_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryGroup = 'Shift-Specific';
+                    _lineSecondaryStep = 2;
+                  });
+                },
               ),
-              DropdownMenuItem(
-                value: 'Supervisor Checkoff',
-                child: Text('Supervisor Checkoff'),
+              (
+                label: 'Supervisor Checkoff',
+                subtitle: null,
+                icon: Icons.fact_check_outlined,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryGroup = 'Supervisor Checkoff';
+                    _lineSecondaryStep = 2;
+                  });
+                },
               ),
-              DropdownMenuItem(
-                value: 'Lead Trainer Checkoff',
-                child: Text('Lead Trainer Checkoff'),
+              (
+                label: 'Lead Trainer Checkoff',
+                subtitle: null,
+                icon: Icons.assignment_turned_in_outlined,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _lineSecondaryGroup = 'Lead Trainer Checkoff';
+                    _lineSecondaryStep = 2;
+                  });
+                },
               ),
             ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() => _lineSecondaryGroup = value);
+            backLabel: 'Back to Meal',
+            onBack: () {
+              _updateReferenceState(() {
+                _lineSecondaryStep = 0;
+              });
             },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () =>
-                  _updateReferenceState(() => _lineSecondaryStep = 2),
-              child: const Text('Next'),
+          )
+        else
+          _buildGuideContentScreen(
+            backLabel: 'Back to Section',
+            onBack: () {
+              _updateReferenceState(() {
+                _lineSecondaryStep = 1;
+              });
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildReferenceSummaryChip(_lineSecondaryMeal),
+                    _buildReferenceSummaryChip(_lineSecondaryGroup),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _buildReferenceTaskCard(
+                  title: _lineSecondaryGroup,
+                  items: effectiveLines,
+                  icon: _lineSecondaryGroup.contains('Checkoff')
+                      ? Icons.fact_check_outlined
+                      : Icons.checklist_rtl_outlined,
+                ),
+              ],
             ),
           ),
-        ] else ...[
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildReferenceSummaryChip(_lineSecondaryMeal),
-              _buildReferenceSummaryChip(_lineSecondaryGroup),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _buildReferenceTaskCard(
-            title: _lineSecondaryGroup,
-            items: effectiveLines,
-            icon: _lineSecondaryGroup.contains('Checkoff')
-                ? Icons.fact_check_outlined
-                : Icons.checklist_rtl_outlined,
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => _updateReferenceState(
-                () => _lineSecondaryStep = (_lineSecondaryStep - 1).clamp(0, 2),
-              ),
-              child: const Text('Back'),
-            ),
-          ),
-        ],
       ],
     );
   }

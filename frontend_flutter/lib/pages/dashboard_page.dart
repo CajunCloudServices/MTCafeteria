@@ -11,8 +11,18 @@ import '../models/task_board.dart';
 import '../models/trainer_board.dart';
 import '../models/training.dart';
 import '../models/user_session.dart';
+import '../theme/stitch_tokens.dart';
+import '../widgets/app_header.dart';
 import '../widgets/daily_shift_reports_view.dart';
+import '../widgets/manager_portal_nav.dart';
 import '../widgets/supervisor_daily_shift_report_form.dart';
+import '../widgets/ui/stitch_buttons.dart';
+import '../widgets/ui/stitch_card.dart';
+import '../widgets/ui/stitch_chip.dart';
+import '../widgets/ui/stitch_dropdown_field.dart';
+import '../widgets/ui/stitch_list_row.dart';
+import '../widgets/ui/stitch_selection_screen.dart';
+import '../widgets/ui/stitch_task_widgets.dart';
 import 'reference_sheets_view.dart';
 import 'dashboard_support_sections.dart';
 import 'landing_page.dart';
@@ -27,6 +37,36 @@ part 'dashboard/supervisor_flow_section.dart';
 part 'dashboard/supervisor_flow_helpers.dart';
 part 'dashboard/supervisor_flow_views.dart';
 part 'dashboard/job_notes_dialogs.dart';
+
+Future<bool> _showShiftFinishPrompt(
+  BuildContext context, {
+  String title = 'Finished with this shift?',
+  String message =
+      'Everything is checked off. Are you ready to finish the shift now?',
+  String confirmLabel = 'Yes, Finish Shift',
+  String cancelLabel = 'Not Yet',
+}) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(cancelLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      );
+    },
+  );
+  return result ?? false;
+}
 
 /// Main workflow page for line, supervisor, trainer, and support-track flows.
 class DashboardPage extends StatelessWidget {
@@ -103,6 +143,7 @@ class DashboardPage extends StatelessWidget {
     required this.onUpdateAnnouncement,
     required this.onDeleteAnnouncement,
     required this.onOpenTaskEditor,
+    required this.managerPortalBack,
   });
 
   final UserSession user;
@@ -191,6 +232,7 @@ class DashboardPage extends StatelessWidget {
   final Future<void> Function(int id, Map<String, dynamic>) onUpdateAnnouncement;
   final Future<void> Function(int id) onDeleteAnnouncement;
   final Future<void> Function() onOpenTaskEditor;
+  final ManagerPortalBackController managerPortalBack;
 
   @override
   Widget build(BuildContext context) {
@@ -316,6 +358,7 @@ class DashboardPage extends StatelessWidget {
               onUpdateAnnouncement: onUpdateAnnouncement,
               onDeleteAnnouncement: onDeleteAnnouncement,
               onOpenTaskEditor: onOpenTaskEditor,
+              backController: managerPortalBack,
             )
           else
             const SizedBox.shrink(),

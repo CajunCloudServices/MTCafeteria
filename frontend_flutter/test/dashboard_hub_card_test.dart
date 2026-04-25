@@ -32,7 +32,7 @@ void main() {
   testWidgets('student manager portal appears under trainings', (tester) async {
     await pumpHubCard(tester);
 
-    expect(find.text('2-minute Trainings'), findsOneWidget);
+    expect(find.text('2-Minute Trainings'), findsOneWidget);
     expect(find.text('Student Manager Portal'), findsOneWidget);
   });
 
@@ -42,6 +42,6 @@ void main() {
     await pumpHubCard(tester, canOpenManagerPortal: false);
 
     expect(find.text('Student Manager Portal'), findsNothing);
-    expect(find.text('App Feedback'), findsOneWidget);
+    expect(find.text('Send Feedback'), findsOneWidget);
   });
 }

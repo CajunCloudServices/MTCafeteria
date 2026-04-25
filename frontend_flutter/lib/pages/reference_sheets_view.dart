@@ -6,6 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/line_deep_clean_assignments.dart';
 import '../theme/app_ui_tokens.dart';
+import '../theme/stitch_tokens.dart';
+import '../widgets/ui/stitch_buttons.dart';
+import '../widgets/ui/stitch_card.dart';
+import '../widgets/ui/stitch_chip.dart';
+import '../widgets/ui/stitch_list_row.dart';
 
 part 'reference/reference_catalog.dart';
 part 'reference/reference_section_registry.dart';
@@ -26,6 +31,16 @@ part 'reference/reference_flows/dining_map_flow.dart';
 
 /// Guided reference browser for line operations, item lookup, condiments, and
 /// map content.
+class ReferenceSheetsBackController {
+  bool Function()? _tryPopHandler;
+
+  bool tryPop() => _tryPopHandler?.call() ?? false;
+
+  void _bind(bool Function()? handler) {
+    _tryPopHandler = handler;
+  }
+}
+
 class ReferenceSheetsView extends StatefulWidget {
   const ReferenceSheetsView({
     super.key,
@@ -33,12 +48,14 @@ class ReferenceSheetsView extends StatefulWidget {
     this.lockSection = false,
     this.useOuterCard = true,
     this.adminModeEnabled = false,
+    this.backController,
   });
 
   final String initialSection;
   final bool lockSection;
   final bool useOuterCard;
   final bool adminModeEnabled;
+  final ReferenceSheetsBackController? backController;
 
   @override
   State<ReferenceSheetsView> createState() => _ReferenceSheetsViewState();
@@ -75,8 +92,8 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   String _selectedRecipeCard = 'Select';
   String _selectedSafetyCard = 'Select';
   String _selectedGeneralInformationCard = 'Select';
+  String _selectedLockerLocation = 'Select';
   String _selectedLockerAddLocation = '1';
-  bool _showLockerBrowsePanel = false;
   bool _showLockerAddPanel = false;
   bool _showLockerDeleteMode = false;
   Map<String, List<String>> _customLockerInventory = const {};
@@ -94,6 +111,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
   void initState() {
     super.initState();
     _selectedSection = widget.initialSection;
+    widget.backController?._bind(_handleInternalBackNavigation);
     _referenceFuture = _loadReferenceData();
     _loadCustomLockerInventory();
     _loadDeletedLockerInventory();
@@ -102,6 +120,7 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
 
   @override
   void dispose() {
+    widget.backController?._bind(null);
     _mapTransformationController.dispose();
     _lockerSearchController.dispose();
     _lockerAddItemController.dispose();
@@ -602,133 +621,310 @@ class _ReferenceSheetsViewState extends State<ReferenceSheetsView> {
     await _setGuideOverride(key: target.key, items: items);
   }
 
+  bool _handleInternalBackNavigation() {
+    if (_guideSearchQuery.isNotEmpty) {
+      _guideSearchController.clear();
+      _updateReferenceState(() {
+        _guideSearchQuery = '';
+      });
+      return true;
+    }
+
+    switch (_selectedSection) {
+      case 'Select':
+        return false;
+      case 'Line':
+        return _handleLineGuideBackNavigation();
+      case 'Dishroom':
+        if (_selectedDishroomCard != 'Select') {
+          _updateReferenceState(() {
+            _selectedDishroomCard = 'Select';
+          });
+          return true;
+        }
+        _onReferenceSectionSelected('Select');
+        return true;
+      case 'Kitchen':
+        if (_selectedKitchenCard != 'Select') {
+          _updateReferenceState(() {
+            _selectedKitchenCard = 'Select';
+          });
+          return true;
+        }
+        _onReferenceSectionSelected('Select');
+        return true;
+      case 'Night Custodial':
+        if (_selectedNightCustodialCard != 'Select') {
+          _updateReferenceState(() {
+            _selectedNightCustodialCard = 'Select';
+          });
+          return true;
+        }
+        _onReferenceSectionSelected('Select');
+        return true;
+      case 'Recipes':
+        if (_selectedRecipeCard != 'Select') {
+          _updateReferenceState(() {
+            _selectedRecipeCard = 'Select';
+          });
+          return true;
+        }
+        _onReferenceSectionSelected('Select');
+        return true;
+      case 'Safety':
+        if (_selectedSafetyCard != 'Select') {
+          _updateReferenceState(() {
+            _selectedSafetyCard = 'Select';
+          });
+          return true;
+        }
+        _onReferenceSectionSelected('Select');
+        return true;
+      case 'General Information':
+        if (_selectedGeneralInformationCard != 'Select') {
+          _updateReferenceState(() {
+            _selectedGeneralInformationCard = 'Select';
+          });
+          return true;
+        }
+        _onReferenceSectionSelected('Select');
+        return true;
+      case 'Find an Item':
+        if (_showLockerAddPanel) {
+          _lockerAddItemController.clear();
+          _updateReferenceState(() {
+            _showLockerAddPanel = false;
+          });
+          return true;
+        }
+        if (_showLockerDeleteMode) {
+          _updateReferenceState(() {
+            _showLockerDeleteMode = false;
+          });
+          return true;
+        }
+        if (_lockerSearchQuery.isNotEmpty) {
+          _lockerSearchController.clear();
+          _updateReferenceState(() {
+            _lockerSearchQuery = '';
+          });
+          return true;
+        }
+        if (_selectedLockerLocation != 'Select') {
+          _updateReferenceState(() {
+            _selectedLockerLocation = 'Select';
+          });
+          return true;
+        }
+        return false;
+      default:
+        return false;
+    }
+  }
+
+  bool _canHandleInternalBackNavigation() {
+    if (_guideSearchQuery.isNotEmpty) return true;
+    if (_selectedSection == 'Select') return false;
+
+    switch (_selectedSection) {
+      case 'Line':
+        return true;
+      case 'Dishroom':
+        return true;
+      case 'Kitchen':
+        return true;
+      case 'Night Custodial':
+        return true;
+      case 'Recipes':
+        return true;
+      case 'Safety':
+        return true;
+      case 'General Information':
+        return true;
+      case 'Find an Item':
+        return _showLockerAddPanel ||
+            _showLockerDeleteMode ||
+            _lockerSearchQuery.isNotEmpty ||
+            _selectedLockerLocation != 'Select';
+      default:
+        return false;
+    }
+  }
+
+  bool _handleLineGuideBackNavigation() {
+    if (_selectedLineGuideSection == 'Select') {
+      _onReferenceSectionSelected('Select');
+      return true;
+    }
+
+    switch (_selectedLineGuideSection) {
+      case 'Jobs':
+        if (_lineStep > 1) {
+          _updateReferenceState(() {
+            _lineStep = 1;
+            _selectedLineJobKey = null;
+          });
+          return true;
+        }
+        if (_lineStep == 1) {
+          _updateReferenceState(() {
+            _lineStep = 0;
+          });
+          return true;
+        }
+        _updateReferenceState(() {
+          _selectedLineGuideSection = 'Select';
+        });
+        return true;
+      case 'Condiments Rotation':
+        if (_condimentStep > 0) {
+          _updateReferenceState(() {
+            _condimentStep -= 1;
+          });
+          return true;
+        }
+        _updateReferenceState(() {
+          _selectedLineGuideSection = 'Select';
+        });
+        return true;
+      case 'Deep Cleaning Assignments':
+        if (_lineDeepCleanStep > 0) {
+          _updateReferenceState(() {
+            _lineDeepCleanStep -= 1;
+          });
+          return true;
+        }
+        _updateReferenceState(() {
+          _selectedLineGuideSection = 'Select';
+        });
+        return true;
+      case 'Secondary + Checkoff':
+        if (_lineSecondaryStep > 0) {
+          _updateReferenceState(() {
+            _lineSecondaryStep -= 1;
+          });
+          return true;
+        }
+        _updateReferenceState(() {
+          _selectedLineGuideSection = 'Select';
+        });
+        return true;
+      default:
+        _updateReferenceState(() {
+          _selectedLineGuideSection = 'Select';
+        });
+        return true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _referenceFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+    return PopScope(
+      canPop: !_canHandleInternalBackNavigation(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleInternalBackNavigation();
         }
-        final data = snapshot.data!;
-        final sections = _buildSections(data);
-        final lockedStandaloneSections = <String>{'Find an Item', 'Dining Map'};
-        final showGuideEditAction =
-            widget.useOuterCard &&
-            !widget.lockSection &&
-            _guideSearchQuery.isEmpty &&
-            widget.adminModeEnabled &&
-            _isEditableGuideSection(_selectedSection);
-        _selectedSection =
-            _selectedSection == 'Select' ||
-                sections.containsKey(_selectedSection) ||
-                (widget.lockSection &&
-                    lockedStandaloneSections.contains(_selectedSection))
-            ? _selectedSection
-            : 'Select';
+      },
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: _referenceFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final data = snapshot.data!;
+          final sections = _buildSections(data);
+          final lockedStandaloneSections = <String>{
+            'Find an Item',
+            'Dining Map',
+          };
+          final showGuideEditAction =
+              widget.useOuterCard &&
+              !widget.lockSection &&
+              _guideSearchQuery.isEmpty &&
+              widget.adminModeEnabled &&
+              _isEditableGuideSection(_selectedSection);
+          _selectedSection =
+              _selectedSection == 'Select' ||
+                  sections.containsKey(_selectedSection) ||
+                  (widget.lockSection &&
+                      lockedStandaloneSections.contains(_selectedSection))
+              ? _selectedSection
+              : 'Select';
 
-        final content = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!widget.lockSection && widget.useOuterCard) ...[
-              TextField(
-                controller: _guideSearchController,
-                decoration: InputDecoration(
-                  labelText: 'Search guides',
-                  hintText: 'Search instructions, lockers, soups, desserts...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _guideSearchQuery.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Clear search',
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _guideSearchController.clear();
-                            _updateReferenceState(() {
-                              _guideSearchQuery = '';
-                            });
-                          },
-                        ),
-                ),
-                onChanged: (value) {
-                  _updateReferenceState(() {
-                    _guideSearchQuery = value.trim();
-                  });
-                },
-              ),
-              const SizedBox(height: 14),
-            ],
-            if (!widget.lockSection) ...[
-              DropdownButtonFormField<String>(
-                key: ValueKey('reference-section-$_selectedSection'),
-                initialValue: _selectedSection,
-                decoration: const InputDecoration(labelText: 'Section'),
-                isExpanded: true,
-                items: [
-                  const DropdownMenuItem<String>(
-                    value: 'Select',
-                    child: Text('Select'),
-                  ),
-                  ...sections.keys.map(
-                    (name) => DropdownMenuItem<String>(
-                      value: name,
-                      child: Text(name),
+          final content = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!widget.lockSection) ...[
+                  TextField(
+                    controller: _guideSearchController,
+                    style: StitchText.bodyLg.copyWith(
+                      color: StitchColors.onSurface,
                     ),
+                    decoration: InputDecoration(
+                      hintText: 'Search guides',
+                      prefixIcon: const Icon(Icons.search),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 18,
+                      ),
+                      hintStyle: StitchText.bodyLg.copyWith(
+                        color: StitchColors.onSurfaceVariant,
+                      ),
+                    suffixIcon: _guideSearchQuery.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Clear search',
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              _guideSearchController.clear();
+                              _updateReferenceState(() {
+                                _guideSearchQuery = '';
+                              });
+                            },
+                          ),
                   ),
-                ],
-                onChanged: (value) {
-                  if (value == null) return;
-                  _onReferenceSectionSelected(value);
-                },
-              ),
-              const SizedBox(height: 14),
-            ],
-            _guideSearchQuery.isNotEmpty
-                ? _buildGuideSearchPanel(data)
-                : _buildSectionContent(context, data, sections),
-            if (showGuideEditAction) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
+                  onChanged: (value) {
+                    _updateReferenceState(() {
+                      _guideSearchQuery = value.trim();
+                    });
+                  },
+                ),
+                const SizedBox(height: 14),
+              ],
+              _guideSearchQuery.isNotEmpty
+                  ? _buildGuideSearchPanel(data)
+                  : _buildSectionContent(context, data, sections),
+              if (showGuideEditAction) ...[
+                const SizedBox(height: 12),
+                StitchSecondaryButton(
+                  label: 'Edit',
+                  icon: Icons.edit_outlined,
                   onPressed: () => _openGuideEditor(data),
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Edit'),
                 ),
-              ),
+              ],
             ],
-          ],
-        );
-
-        if (widget.lockSection && !widget.useOuterCard) {
-          return SingleChildScrollView(
-            padding: EdgeInsets.zero,
-            child: Padding(padding: const EdgeInsets.all(18), child: content),
           );
-        }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 860),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppUiTokens.shellSurface,
-                  borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-                  border: Border.all(color: AppUiTokens.shellBorder),
-                  boxShadow: AppUiTokens.shellShadowSoft,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: content,
-                ),
+          if (widget.lockSection && !widget.useOuterCard) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.zero,
+              child: Padding(padding: const EdgeInsets.all(18), child: content),
+            );
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: content,
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

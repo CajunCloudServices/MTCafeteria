@@ -2,90 +2,50 @@ part of '../dashboard_page.dart';
 
 extension _SupervisorSectionViews on _SupervisorSectionState {
   Widget _buildSupervisorInfoChip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEAF4FF),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFB6C9E4)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w700,
-          color: Color(0xFF1A4E8A),
-        ),
-      ),
-    );
+    return StitchChip(label: text, tone: StitchChipTone.secondary);
   }
 
   Widget _buildSupervisorAssignmentCard({
     required String title,
     required List<String> items,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFB6C9E4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.cleaning_services_outlined,
-                size: 18,
-                color: Color(0xFF1A4E8A),
-              ),
-              SizedBox(width: 8),
-            ],
-          ),
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF123A65),
-              fontSize: 18,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.cleaning_services_rounded,
+              size: 20,
+              color: StitchColors.primary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title, style: StitchText.titleMd)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...items.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  height: 6,
+                  width: 6,
+                  decoration: const BoxDecoration(
+                    color: StitchColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(child: Text(item, style: StitchText.bodyLg)),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          ...items.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    height: 7,
-                    width: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1A4E8A),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      item,
-                      style: const TextStyle(
-                        color: Color(0xFF244668),
-                        fontSize: 16,
-                        height: 1.35,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -94,56 +54,27 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     required List<SupervisorJobItem> completedJobs,
     required bool allSecondariesChecked,
   }) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 28),
-                SizedBox(width: 10),
-                Text(
-                  'Shift Complete',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF103760),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Jobs complete: ${completedJobs.length}/${supervisorBoard.jobs.length}',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF264D76),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Secondaries complete: ${allSecondariesChecked ? 'Yes' : 'No'} • Deep clean complete: ${widget.deepCleanChecked ? 'Yes' : 'No'}',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF264D76),
-              ),
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () async {
-                  await widget.onReturnToDashboardHub();
-                },
-                child: const Text('Back to Dashboard'),
-              ),
-            ),
-          ],
+    final jobsCompletion =
+        '${completedJobs.length}/${supervisorBoard.jobs.length}';
+    return StitchSuccessCard(
+      title: 'Shift Complete',
+      message:
+          'All supervisor duties logged. You are cleared to close the '
+          'line.',
+      stats: [
+        StitchSuccessStat(value: jobsCompletion, label: 'Jobs'),
+        StitchSuccessStat(
+          value: allSecondariesChecked && widget.deepCleanChecked
+              ? '100%'
+              : 'Review',
+          label: 'Secondaries',
         ),
-      ),
+      ],
+      primaryCtaLabel: 'Back to Dashboard',
+      primaryIcon: Icons.dashboard_rounded,
+      onPrimary: () async {
+        await widget.onReturnToDashboardHub();
+      },
     );
   }
 
@@ -164,61 +95,38 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const PanelTitle(
-                    icon: Icons.task_alt,
-                    title: 'Supervisor Checkoff',
-                  ),
-                  const SizedBox(height: 10),
-                  if (!_mealLoaded)
-                    _buildSupervisorMealStep(supervisorBoard)
-                  else
-                    _buildSupervisorLoadedContent(
-                      context: context,
-                      supervisorBoard: supervisorBoard,
-                      pendingJobs: pendingJobs,
-                      completedJobs: completedJobs,
-                      duringSecondaries: duringSecondaries,
-                      cleanupSecondaries: cleanupSecondaries,
-                    ),
-                ],
-              ),
-            ),
+        if (!_mealLoaded)
+          _buildSupervisorMealStep(supervisorBoard)
+        else
+          _buildSupervisorLoadedContent(
+            context: context,
+            supervisorBoard: supervisorBoard,
+            pendingJobs: pendingJobs,
+            completedJobs: completedJobs,
+            duringSecondaries: duringSecondaries,
+            cleanupSecondaries: cleanupSecondaries,
           ),
-        ),
         if (_mealLoaded && widget.selectedJobId == null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: StitchSpacing.lg),
           _buildSupervisorCompletionProgress(
             canMarkShiftFinished: canMarkShiftFinished,
             totalProgressUnits: totalProgressUnits,
             completedProgressUnits: completedProgressUnits,
           ),
           if (_shiftFinished) ...[
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEAF4FF),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: const Color(0xFF1F5E9C).withValues(alpha: 0.35),
+            const SizedBox(height: StitchSpacing.md),
+            Row(
+              children: [
+                const Icon(Icons.info_rounded, color: StitchColors.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Shift marked finished. You can still review jobs, '
+                    'secondaries, and deep clean.',
+                    style: StitchText.bodyStrong,
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Shift marked finished. You can still review jobs, secondaries, and deep clean.',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF113A67),
-                ),
-              ),
+              ],
             ),
           ],
         ],
@@ -227,30 +135,19 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
   }
 
   Widget _buildSupervisorMealStep(SupervisorBoard supervisorBoard) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: _selectedMeal,
-          decoration: const InputDecoration(labelText: 'Meal'),
-          isExpanded: true,
-          items: supervisorBoard.meals
-              .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-              .toList(),
-          onChanged: (value) {
-            if (value != null) {
+    return StitchSelectionScreen(
+      title: 'Select Meal',
+      options: [
+        for (final meal in supervisorBoard.meals)
+          StitchSelectionOption(
+            rowKey: ValueKey('supervisor-meal-$meal'),
+            label: meal,
+            icon: _iconForMeal(meal),
+            selected: _selectedMeal == meal,
+            onTap: () async {
               _updateSupervisorState(() {
-                _selectedMeal = value;
+                _selectedMeal = meal;
               });
-            }
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: () async {
-              final meal = _selectedMeal ?? supervisorBoard.selectedMeal;
               final previousMeal = supervisorBoard.selectedMeal;
               await widget.onSelectMeal(meal);
               if (meal != previousMeal) {
@@ -267,9 +164,7 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
               });
               widget.onPanelModeChanged('Jobs');
             },
-            child: const Text('Next'),
           ),
-        ),
       ],
     );
   }
@@ -285,15 +180,20 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Meal: ${supervisorBoard.selectedMeal}',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            StitchChip(
+              label: 'MEAL · ${supervisorBoard.selectedMeal.toUpperCase()}',
+              tone: StitchChipTone.secondary,
+            ),
+          ],
         ),
-        const SizedBox(height: 10),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedView,
-          isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Section'),
+        const SizedBox(height: StitchSpacing.md),
+        StitchDropdownField<String>(
+          value: _selectedView,
+          label: 'Section',
           items: const [
             DropdownMenuItem(value: 'Jobs', child: Text('Jobs')),
             DropdownMenuItem(value: 'Secondaries', child: Text('Secondaries')),
@@ -316,7 +216,7 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
             }
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: StitchSpacing.lg),
         if (_selectedView == 'Jobs')
           _buildSupervisorJobsView(
             context: context,
@@ -347,71 +247,31 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
   }) {
     if (widget.selectedJobId != null) {
       if (widget.jobTaskBoard == null) {
-        return const Text('Loading tasks...');
+        return Text('Loading tasks…', style: StitchText.body);
       }
       return _buildSupervisorJobDetail(context, supervisorBoard);
     }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Pending Jobs', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 6),
-        if (pendingJobs.isEmpty)
-          const Text('No remaining jobs.')
-        else
-          ...pendingJobs.map(
-            (job) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7FBFF),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFBFD0E3)),
-              ),
-              child: ListTile(
-                dense: false,
-                leading: const Icon(
-                  Icons.radio_button_unchecked,
-                  color: Color(0xFF6B7F96),
-                ),
-                title: Text(job.jobName),
-                subtitle: Text(
-                  '${job.checkedCount}/${job.totalCount} tasks checked',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => widget.onOpenJob(job.jobId),
-              ),
-            ),
-          ),
-        const SizedBox(height: 10),
-        Text('Completed Jobs', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 6),
-        if (completedJobs.isEmpty)
-          const Text('No completed jobs yet.')
-        else
-          ...completedJobs.map(
-            (job) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF7F1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFC7DCCB)),
-              ),
-              child: ListTile(
-                dense: false,
-                leading: const Icon(
-                  Icons.check_circle,
-                  color: Color(0xFF2E7D32),
-                ),
-                title: Text(job.jobName),
-                subtitle: Text(
-                  '${job.checkedCount}/${job.totalCount} tasks checked',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => widget.onOpenJob(job.jobId),
-              ),
-            ),
-          ),
+        _SupervisorJobsSection(
+          label: 'PENDING JOBS',
+          emptyText: 'No remaining jobs.',
+          jobs: pendingJobs,
+          onOpen: widget.onOpenJob,
+          leadingIcon: Icons.radio_button_unchecked_rounded,
+          accent: StitchColors.primary,
+        ),
+        const SizedBox(height: StitchSpacing.lg),
+        _SupervisorJobsSection(
+          label: 'COMPLETED JOBS',
+          emptyText: 'No completed jobs yet.',
+          jobs: completedJobs,
+          onOpen: widget.onOpenJob,
+          leadingIcon: Icons.check_circle_rounded,
+          accent: const Color(0xFF2E7D32),
+        ),
       ],
     );
   }
@@ -421,170 +281,170 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     SupervisorBoard supervisorBoard,
   ) {
     final board = widget.jobTaskBoard!;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FBFF),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFB7CAE4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            board.jobName,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF123A65),
-              height: 1.1,
-            ),
+    final completedCount = board.tasks.where((t) => t.checked).length;
+    final actionSurface = StitchColors.primaryFixed;
+    final actionForeground = StitchColors.onPrimaryFixed;
+    final actionBorder = StitchColors.primaryFixedDim;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(board.jobName, style: StitchText.titleLg),
+        const SizedBox(height: 4),
+        Text(
+          '$completedCount of ${board.tasks.length} tasks checked',
+          style: StitchText.bodyStrong.copyWith(
+            color: StitchColors.onSurfaceVariant,
           ),
-          const SizedBox(height: 10),
-          ...board.tasks.map(
-            (task) => CheckboxListTile(
-              dense: false,
-              controlAffinity: ListTileControlAffinity.leading,
-              value: task.checked,
-              title: Text(task.description),
-              onChanged: (value) {
-                if (value == null) return;
-                final activeJobId = widget.selectedJobId;
-                final remainingUnchecked = board.tasks
-                    .where((t) => !t.checked)
-                    .length;
-                final completesJobNow =
-                    value && !task.checked && remainingUnchecked == 1;
-                final request = widget.onToggleTask(task.taskId, value);
-                if (completesJobNow) {
-                  if (activeJobId != null) {
-                    _markJobOptimisticallyComplete(
-                      activeJobId,
-                      supervisorBoard.selectedMeal,
+        ),
+        const SizedBox(height: StitchSpacing.lg),
+        if (board.tasks.any((task) => !task.checked)) ...[
+          StitchSecondaryButton(
+            label: _markingAllJobTasks
+                ? 'Marking Complete...'
+                : 'Mark All as Complete',
+            icon: Icons.done_all_rounded,
+            background: StitchColors.primary,
+            foreground: StitchColors.onPrimary,
+            border: StitchColors.primaryContainer,
+            onPressed: _markingAllJobTasks
+                ? null
+                : () async {
+                    final remainingTaskIds = board.tasks
+                        .where((task) => !task.checked)
+                        .map((task) => task.taskId)
+                        .toList();
+                    if (remainingTaskIds.isEmpty) return;
+                    final activeJobId = widget.selectedJobId;
+                    final request = widget.onBulkToggleTasks(
+                      remainingTaskIds,
+                      true,
                     );
-                    unawaited(
-                      _syncOptimisticCompletion(
-                        jobId: activeJobId,
-                        request: request,
-                      ),
-                    );
-                  }
-                  _updateSupervisorState(() {
-                    _selectedView = 'Jobs';
-                  });
-                  widget.onPanelModeChanged('Jobs');
-                  widget.onBackToJobs();
-                } else {
-                  unawaited(request);
-                }
-              },
-            ),
+                    if (activeJobId != null) {
+                      _markJobOptimisticallyComplete(
+                        activeJobId,
+                        supervisorBoard.selectedMeal,
+                      );
+                      unawaited(
+                        _syncOptimisticCompletion(
+                          jobId: activeJobId,
+                          request: request,
+                        ),
+                      );
+                    } else {
+                      unawaited(request);
+                    }
+                    _updateSupervisorState(() {
+                      _selectedView = 'Jobs';
+                    });
+                    widget.onPanelModeChanged('Jobs');
+                    widget.onBackToJobs();
+                  },
           ),
-          if (board.tasks.any((task) => !task.checked)) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _markingAllJobTasks
-                    ? null
-                    : () async {
-                        final remainingTaskIds = board.tasks
-                            .where((task) => !task.checked)
-                            .map((task) => task.taskId)
-                            .toList();
-                        if (remainingTaskIds.isEmpty) return;
-                        final activeJobId = widget.selectedJobId;
-                        final request = widget.onBulkToggleTasks(
-                          remainingTaskIds,
-                          true,
-                        );
-                        if (activeJobId != null) {
-                          _markJobOptimisticallyComplete(
-                            activeJobId,
-                            supervisorBoard.selectedMeal,
-                          );
-                          unawaited(
-                            _syncOptimisticCompletion(
-                              jobId: activeJobId,
-                              request: request,
-                            ),
-                          );
-                        } else {
-                          unawaited(request);
-                        }
-                        _updateSupervisorState(() {
-                          _selectedView = 'Jobs';
-                        });
-                        widget.onPanelModeChanged('Jobs');
-                        widget.onBackToJobs();
-                      },
-                icon: const Icon(Icons.done_all_rounded),
-                label: Text(
-                  _markingAllJobTasks
-                      ? 'Marking Complete...'
-                      : 'Mark All as Complete',
-                ),
-              ),
-            ),
-          ],
-          if (board.tasks.every((task) => task.checked)) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _markingAllJobTasks
-                    ? null
-                    : () {
-                        final checkedTaskIds = board.tasks
-                            .where((task) => task.checked)
-                            .map((task) => task.taskId)
-                            .toList();
-                        if (checkedTaskIds.isEmpty) return;
-                        final activeJobId = widget.selectedJobId;
-                        if (activeJobId != null) {
-                          _updateSupervisorState(() {
-                            _optimisticallyCompletedJobIds.remove(activeJobId);
-                            if (_optimisticallyCompletedJobIds.isEmpty) {
-                              _optimisticCompletionMeal = null;
-                            }
-                          });
-                        }
-                        unawaited(
-                          widget.onBulkToggleTasks(checkedTaskIds, false),
-                        );
-                      },
-                icon: const Icon(Icons.undo_rounded),
-                label: const Text('Mark All as Incomplete'),
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => showJobQuickReferenceDialog(
-                context,
-                jobName: board.jobName,
-                lines: notesForJob(board.jobName),
-              ),
-              icon: const Icon(Icons.menu_book_rounded),
-              label: const Text('View Job Notes'),
-            ),
-          ),
-          if (board.jobName == 'Condiments Prep') ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => showCondimentsRotationDialog(context),
-                icon: const Icon(Icons.tune_rounded),
-                label: const Text('Condiment Rotation'),
-              ),
-            ),
-          ],
+          const SizedBox(height: StitchSpacing.lg),
         ],
-      ),
+        if (board.tasks.every((task) => task.checked)) ...[
+          StitchSecondaryButton(
+            label: 'Mark All as Incomplete',
+            icon: Icons.undo_rounded,
+            background: actionSurface,
+            foreground: actionForeground,
+            border: actionBorder,
+            onPressed: _markingAllJobTasks
+                ? null
+                : () {
+                    final checkedTaskIds = board.tasks
+                        .where((task) => task.checked)
+                        .map((task) => task.taskId)
+                        .toList();
+                    if (checkedTaskIds.isEmpty) return;
+                    final activeJobId = widget.selectedJobId;
+                    if (activeJobId != null) {
+                      _updateSupervisorState(() {
+                        _optimisticallyCompletedJobIds.remove(activeJobId);
+                        if (_optimisticallyCompletedJobIds.isEmpty) {
+                          _optimisticCompletionMeal = null;
+                        }
+                      });
+                    }
+                    unawaited(
+                      widget.onBulkToggleTasks(checkedTaskIds, false),
+                    );
+                  },
+          ),
+          const SizedBox(height: StitchSpacing.lg),
+        ],
+        StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.lg),
+          elevation: StitchCardElevation.card,
+          surface: StitchSurface.low,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final task in board.tasks) ...[
+                StitchChecklistTile(
+                  title: task.description,
+                  checked: task.checked,
+                  onChanged: (value) {
+                    final activeJobId = widget.selectedJobId;
+                    final remainingUnchecked = board.tasks
+                        .where((t) => !t.checked)
+                        .length;
+                    final completesJobNow =
+                        value && !task.checked && remainingUnchecked == 1;
+                    final request = widget.onToggleTask(task.taskId, value);
+                    if (completesJobNow) {
+                      if (activeJobId != null) {
+                        _markJobOptimisticallyComplete(
+                          activeJobId,
+                          supervisorBoard.selectedMeal,
+                        );
+                        unawaited(
+                          _syncOptimisticCompletion(
+                            jobId: activeJobId,
+                            request: request,
+                          ),
+                        );
+                      }
+                      _updateSupervisorState(() {
+                        _selectedView = 'Jobs';
+                      });
+                      widget.onPanelModeChanged('Jobs');
+                      widget.onBackToJobs();
+                    } else {
+                      unawaited(request);
+                    }
+                  },
+                ),
+                const SizedBox(height: StitchSpacing.md),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: StitchSpacing.md),
+        StitchSecondaryButton(
+          label: 'View Job Notes',
+          icon: Icons.menu_book_rounded,
+          background: actionSurface,
+          foreground: actionForeground,
+          border: actionBorder,
+          onPressed: () => showJobQuickReferenceDialog(
+            context,
+            jobName: board.jobName,
+            lines: notesForJob(board.jobName),
+          ),
+        ),
+        if (board.jobName == 'Condiments Prep') ...[
+          const SizedBox(height: StitchSpacing.md),
+          StitchSecondaryButton(
+            label: 'Condiment Rotation',
+            icon: Icons.tune_rounded,
+            background: actionSurface,
+            foreground: actionForeground,
+            border: actionBorder,
+            onPressed: () => showCondimentsRotationDialog(context),
+          ),
+        ],
+      ],
     );
   }
 
@@ -593,12 +453,13 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     required List<MapEntry<int, SecondaryJobItem>> cleanupSecondaries,
   }) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildSecondaryPhaseCard(
           title: 'During Shift',
           entries: duringSecondaries,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: StitchSpacing.lg),
         _buildSecondaryPhaseCard(title: 'Cleanup', entries: cleanupSecondaries),
       ],
     );
@@ -608,45 +469,42 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     required String title,
     required List<MapEntry<int, SecondaryJobItem>> entries,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFBFD0E3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF123A65),
+    final total = entries.length;
+    final done = entries.where((e) => e.value.checked).length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        StitchProgressCard(
+          title: title,
+          completed: done,
+          total: total,
+          leadingIcon: Icons.checklist_rounded,
+        ),
+        const SizedBox(height: StitchSpacing.md),
+        if (entries.isEmpty)
+          Text('No tasks in this section.', style: StitchText.body)
+        else
+          StitchCard(
+            padding: const EdgeInsets.all(StitchSpacing.lg),
+            elevation: StitchCardElevation.card,
+            surface: StitchSurface.low,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < entries.length; i++) ...[
+                  StitchChecklistTile(
+                    title: entries[i].value.name,
+                    checked: entries[i].value.checked,
+                    onChanged: (value) =>
+                        widget.onSecondaryToggle(entries[i].key, value),
+                  ),
+                  if (i < entries.length - 1)
+                    const SizedBox(height: StitchSpacing.md),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          if (entries.isEmpty)
-            const Text('No tasks in this section.')
-          else
-            ...entries.map(
-              (entry) => CheckboxListTile(
-                dense: false,
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                value: entry.value.checked,
-                title: Text(entry.value.name),
-                onChanged: (value) {
-                  if (value != null) {
-                    widget.onSecondaryToggle(entry.key, value);
-                  }
-                },
-              ),
-            ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -658,81 +516,60 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     );
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Deep Clean • ${supervisorBoard.selectedMeal}',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        const SizedBox(height: 6),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildSupervisorInfoChip(weekdayNameLabel(DateTime.now().weekday)),
-            _buildSupervisorInfoChip(supervisorBoard.selectedMeal),
+            _buildSupervisorInfoChip(
+              weekdayNameLabel(DateTime.now().weekday).toUpperCase(),
+            ),
+            _buildSupervisorInfoChip(
+              supervisorBoard.selectedMeal.toUpperCase(),
+            ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: StitchSpacing.md),
         _buildSupervisorAssignmentCard(
-          title: 'Today\'s Assignment',
+          title: "Today's Assignment",
           items: [
             assignment ??
                 'No deep cleaning assignment found for this day and meal.',
           ],
         ),
-        CheckboxListTile(
-          dense: false,
-          controlAffinity: ListTileControlAffinity.leading,
-          value: widget.deepCleanChecked,
-          title: const Text('Deep Clean Completed'),
-          onChanged: (value) {
-            if (value != null) {
-              widget.onDeepCleanToggle(value);
-            }
-          },
+        const SizedBox(height: StitchSpacing.md),
+        StitchChecklistTile(
+          title: 'Deep Clean Completed',
+          checked: widget.deepCleanChecked,
+          onChanged: (value) => widget.onDeepCleanToggle(value),
         ),
       ],
     );
   }
 
   Widget _buildSupervisorEndOfShiftView() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FBFF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF9FB6D3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Supervisor End-of-Shift Checkoff',
-            style: TextStyle(fontWeight: FontWeight.w700),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Supervisor End-of-Shift Checkoff', style: StitchText.titleMd),
+        const SizedBox(height: StitchSpacing.md),
+        for (final item in supervisorEndShiftCheckoffItems) ...[
+          StitchChecklistTile(
+            title: item,
+            checked: _supervisorEndShiftChecks[item] ?? false,
+            onChanged: (value) {
+              _updateSupervisorState(() {
+                _supervisorEndShiftChecks = {
+                  ..._supervisorEndShiftChecks,
+                  item: value,
+                };
+              });
+            },
           ),
-          const SizedBox(height: 6),
-          ...supervisorEndShiftCheckoffItems.map(
-            (item) => CheckboxListTile(
-              dense: false,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 6),
-              controlAffinity: ListTileControlAffinity.leading,
-              value: _supervisorEndShiftChecks[item] ?? false,
-              title: Text(item),
-              onChanged: (value) {
-                if (value == null) return;
-                _updateSupervisorState(() {
-                  _supervisorEndShiftChecks = {
-                    ..._supervisorEndShiftChecks,
-                    item: value,
-                  };
-                });
-              },
-            ),
-          ),
+          const SizedBox(height: StitchSpacing.md),
         ],
-      ),
+      ],
     );
   }
 
@@ -747,19 +584,16 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
   }
 
   Widget _buildMarkShiftFinishedButton({required bool canMarkShiftFinished}) {
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton(
-        onPressed: canMarkShiftFinished
-            ? () async {
-                if (!mounted) return;
-                _updateSupervisorState(() {
-                  _shiftFinished = true;
-                });
-              }
-            : null,
-        child: const Text('Mark Shift Finished'),
-      ),
+    return StitchPrimaryButton(
+      label: 'Mark Shift Finished',
+      icon: Icons.flag_rounded,
+      onPressed: canMarkShiftFinished
+          ? () {
+              _updateSupervisorState(() {
+                _shiftFinished = true;
+              });
+            }
+          : null,
     );
   }
 
@@ -773,76 +607,87 @@ extension _SupervisorSectionViews on _SupervisorSectionState {
     final progress = clampedCompleted / safeTotal;
     final percent = (progress * 100).round();
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FBFF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFB6C9E4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Shift Progress',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF123A65),
-                    fontSize: 17,
-                  ),
-                ),
-              ),
-              Text(
-                '$percent%',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF123A65),
-                  fontSize: 18,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 12,
-              backgroundColor: const Color(0xFFD9E6F3),
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFF1A4E8A),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$clampedCompleted of $safeTotal items complete',
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF4E6786),
-            ),
-          ),
-          if (canMarkShiftFinished) ...[
-            const SizedBox(height: 12),
-            _buildMarkShiftFinishedButton(
-              canMarkShiftFinished: canMarkShiftFinished,
-            ),
-          ] else ...[
-            const SizedBox(height: 8),
-            const Text(
-              'Complete everything above to finish the shift.',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF264D76),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text('Shift Progress', style: StitchText.titleMd)),
+            Text(
+              '$percent%',
+              style: StitchText.metricSm.copyWith(fontSize: 22),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(StitchRadii.pill),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 12,
+            backgroundColor: StitchColors.surfaceContainer,
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              StitchColors.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          '$clampedCompleted of $safeTotal items complete',
+          style: StitchText.body,
+        ),
+        if (canMarkShiftFinished) ...[
+          const SizedBox(height: StitchSpacing.lg),
+          _buildMarkShiftFinishedButton(
+            canMarkShiftFinished: canMarkShiftFinished,
+          ),
         ],
-      ),
+      ],
+    );
+  }
+}
+
+class _SupervisorJobsSection extends StatelessWidget {
+  const _SupervisorJobsSection({
+    required this.label,
+    required this.emptyText,
+    required this.jobs,
+    required this.onOpen,
+    required this.leadingIcon,
+    required this.accent,
+  });
+
+  final String label;
+  final String emptyText;
+  final List<SupervisorJobItem> jobs;
+  final void Function(int jobId) onOpen;
+  final IconData leadingIcon;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label, style: StitchText.eyebrow),
+        ),
+        if (jobs.isEmpty)
+          Text(emptyText, style: StitchText.body)
+        else
+          for (final job in jobs) ...[
+            StitchListRow(
+              title: job.jobName,
+              subtitle: '${job.checkedCount}/${job.totalCount} tasks checked',
+              leadingIcon: leadingIcon,
+              leadingBackground: accent.withValues(alpha: 0.12),
+              leadingForeground: accent,
+              onTap: () => onOpen(job.jobId),
+            ),
+            const SizedBox(height: StitchSpacing.md),
+          ],
+      ],
     );
   }
 }

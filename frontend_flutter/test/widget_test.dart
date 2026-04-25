@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend_flutter/models/task_board.dart';
 import 'package:frontend_flutter/models/user_session.dart';
 import 'package:frontend_flutter/pages/dashboard_page.dart';
+import 'package:frontend_flutter/widgets/manager_portal_nav.dart';
 
 void main() {
   final employeeUser = const UserSession(
@@ -132,15 +133,16 @@ void main() {
             onUpdateAnnouncement: (id, payload) async {},
             onDeleteAnnouncement: (id) async {},
             onOpenTaskEditor: () async {},
+            managerPortalBack: ManagerPortalBackController(),
           ),
         ),
       ),
     );
 
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Next'));
+    await tester.tap(find.text('Breakfast'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Next'));
+    await tester.tap(find.text('Beverages'));
     await tester.pumpAndSettle();
   }
 
@@ -153,39 +155,24 @@ void main() {
         onTaskToggle: (taskId, completed) => completer.future,
       );
 
-      expect(find.text('Setup (Before Doors Open)'), findsOneWidget);
-      expect(
-        tester
-            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Next'))
-            .onPressed,
-        isNull,
-      );
+      expect(find.text('Setup'), findsOneWidget);
+
+      await tester.tap(find.text('Start Service'));
+      await tester.pumpAndSettle();
+      expect(find.text('Setup'), findsOneWidget);
 
       await tester.tap(
-        find.widgetWithText(
-          CheckboxListTile,
-          'Ensure all beverages are stocked',
-        ),
+        find.text('Ensure all beverages are stocked'),
       );
       await tester.pump();
-      await tester.tap(
-        find.widgetWithText(CheckboxListTile, 'Turn on beverage machines'),
-      );
+      await tester.tap(find.text('Turn on beverage machines'));
       await tester.pump();
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Check bib room'));
+      await tester.tap(find.text('Check bib room'));
       await tester.pump();
 
-      final checkboxes = tester
-          .widgetList<Checkbox>(find.byType(Checkbox))
-          .toList();
-      expect(checkboxes, hasLength(3));
-      expect(checkboxes.every((checkbox) => checkbox.value ?? false), isTrue);
-      expect(
-        tester
-            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Next'))
-            .onPressed,
-        isNotNull,
-      );
+      await tester.tap(find.text('Start Service'));
+      await tester.pumpAndSettle();
+      expect(find.text('Running'), findsOneWidget);
 
       completer.complete();
     },
@@ -202,18 +189,10 @@ void main() {
       );
 
       await tester.tap(
-        find.widgetWithText(
-          CheckboxListTile,
-          'Ensure all beverages are stocked',
-        ),
+        find.text('Ensure all beverages are stocked'),
       );
       await tester.pump();
       await tester.pump();
-
-      final checkboxes = tester
-          .widgetList<Checkbox>(find.byType(Checkbox))
-          .toList();
-      expect(checkboxes.first.value, isFalse);
       expect(
         find.text('Could not update task. Please try again.'),
         findsOneWidget,

@@ -1,92 +1,86 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_ui_tokens.dart';
+import 'ui/stitch_selection_screen.dart';
 
-/// First dashboard step for choosing the worker's operating area.
+IconData _iconForTrack(String track) {
+  switch (track) {
+    case 'Line':
+      return Icons.lunch_dining_rounded;
+    case 'Dishroom':
+      return Icons.water_drop_rounded;
+    case 'Kitchen Jobs':
+      return Icons.kitchen_rounded;
+    case 'Night Custodial':
+      return Icons.cleaning_services_rounded;
+    default:
+      return Icons.work_outline_rounded;
+  }
+}
+
+IconData _iconForMode(String mode) {
+  switch (mode) {
+    case 'Supervisor':
+      return Icons.badge_outlined;
+    case 'Lead Trainer':
+    case 'Dishroom Lead Trainer':
+      return Icons.school_outlined;
+    case 'Employee':
+    case 'Dishroom Worker':
+      return Icons.person_outline_rounded;
+    default:
+      return Icons.work_outline_rounded;
+  }
+}
+
+String _labelForMode(String mode) => mode == 'Employee' ? 'Line Worker' : mode;
+
+int _modePriority(String mode) {
+  switch (mode) {
+    case 'Employee':
+    case 'Dishroom Worker':
+      return 0;
+    case 'Lead Trainer':
+    case 'Dishroom Lead Trainer':
+      return 1;
+    case 'Supervisor':
+      return 2;
+    default:
+      return 3;
+  }
+}
+
+/// Step 1 of the shift flow: pick the operating area.
 class ShiftTrackSelectionCard extends StatelessWidget {
   const ShiftTrackSelectionCard({
     super.key,
     required this.availableTracks,
     required this.selectedTrack,
     required this.onTrackChanged,
-    required this.onContinue,
   });
 
   final List<String> availableTracks;
   final String selectedTrack;
   final ValueChanged<String> onTrackChanged;
-  final VoidCallback onContinue;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Align(
-      alignment: Alignment.center,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-            border: Border.all(color: AppUiTokens.shellBorder),
-            boxShadow: AppUiTokens.shellShadowSoft,
+    return StitchSelectionScreen(
+      title: 'Select Area',
+      options: [
+        for (final track in availableTracks)
+          StitchSelectionOption(
+            rowKey: ValueKey('shift-area-row-$track'),
+            label: track,
+            icon: _iconForTrack(track),
+            selected: selectedTrack == track,
+            onTap: () => onTrackChanged(track),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Select Area',
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF123A65),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                DropdownButtonFormField<String>(
-                  key: const ValueKey('shift-area-dropdown'),
-                  initialValue: selectedTrack,
-                  decoration: const InputDecoration(labelText: 'Shift Area'),
-                  isExpanded: true,
-                  items: availableTracks
-                      .map(
-                        (track) => DropdownMenuItem<String>(
-                          value: track,
-                          child: Text(track),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      onTrackChanged(value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    key: const ValueKey('shift-area-continue-button'),
-                    onPressed: onContinue,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Continue'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 }
 
-/// Second dashboard step for choosing the worker's role within the selected
-/// area.
+/// Step 2 of the shift flow: pick the role within the chosen area.
 class ShiftRoleSelectionCard extends StatelessWidget {
   const ShiftRoleSelectionCard({
     super.key,
@@ -94,81 +88,34 @@ class ShiftRoleSelectionCard extends StatelessWidget {
     required this.availableModes,
     required this.selectedMode,
     required this.onModeChanged,
-    required this.onContinue,
   });
 
   final String title;
   final List<String> availableModes;
   final String selectedMode;
   final ValueChanged<String> onModeChanged;
-  final VoidCallback onContinue;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Align(
-      alignment: Alignment.center,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-            border: Border.all(color: AppUiTokens.shellBorder),
-            boxShadow: AppUiTokens.shellShadowSoft,
+    final orderedModes = [...availableModes]
+      ..sort((a, b) {
+        final priorityCompare = _modePriority(a).compareTo(_modePriority(b));
+        if (priorityCompare != 0) return priorityCompare;
+        return _labelForMode(a).compareTo(_labelForMode(b));
+      });
+
+    return StitchSelectionScreen(
+      title: title,
+      options: [
+        for (final mode in orderedModes)
+          StitchSelectionOption(
+            rowKey: ValueKey('shift-role-row-$mode'),
+            label: _labelForMode(mode),
+            icon: _iconForMode(mode),
+            selected: selectedMode == mode,
+            onTap: () => onModeChanged(mode),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF123A65),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                DropdownButtonFormField<String>(
-                  key: const ValueKey('shift-role-dropdown'),
-                  initialValue: selectedMode,
-                  decoration: const InputDecoration(labelText: 'Role'),
-                  isExpanded: true,
-                  items: availableModes
-                      .map(
-                        (mode) => DropdownMenuItem<String>(
-                          value: mode,
-                          child: Text(
-                            mode == 'Employee' ? 'Line Worker' : mode,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      onModeChanged(value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    key: const ValueKey('shift-area-continue-button'),
-                    onPressed: onContinue,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Continue'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 }

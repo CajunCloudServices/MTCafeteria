@@ -25,6 +25,7 @@ class _StudentManagerPortalSection extends StatefulWidget {
     required this.onUpdateAnnouncement,
     required this.onDeleteAnnouncement,
     required this.onOpenTaskEditor,
+    required this.backController,
   });
 
   final UserSession user;
@@ -57,6 +58,7 @@ class _StudentManagerPortalSection extends StatefulWidget {
   onUpdateAnnouncement;
   final Future<void> Function(int id) onDeleteAnnouncement;
   final Future<void> Function() onOpenTaskEditor;
+  final ManagerPortalBackController backController;
 
   @override
   State<_StudentManagerPortalSection> createState() =>
@@ -65,20 +67,35 @@ class _StudentManagerPortalSection extends StatefulWidget {
 
 class _StudentManagerPortalSectionState
     extends State<_StudentManagerPortalSection> {
-  _StudentManagerPortalPane _selectedPane =
-      _StudentManagerPortalPane.announcements;
+  _StudentManagerPortalPane? _selectedPane;
 
-  String _paneLabel(_StudentManagerPortalPane pane) {
-    switch (pane) {
-      case _StudentManagerPortalPane.announcements:
-        return 'Edit Announcements';
-      case _StudentManagerPortalPane.points:
-        return 'Assign Points';
-      case _StudentManagerPortalPane.reports:
-        return 'Daily Shift Reports';
-      case _StudentManagerPortalPane.tasks:
-        return 'Edit Jobs & Tasks';
+  @override
+  void initState() {
+    super.initState();
+    widget.backController.attach(_handleBack);
+  }
+
+  @override
+  void didUpdateWidget(covariant _StudentManagerPortalSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.backController, widget.backController)) {
+      oldWidget.backController.detach(_handleBack);
+      widget.backController.attach(_handleBack);
     }
+  }
+
+  @override
+  void dispose() {
+    widget.backController.detach(_handleBack);
+    super.dispose();
+  }
+
+  /// Returns true when the header back button was consumed by closing an
+  /// open sub-pane. Returning false lets the shell pop out of the portal.
+  bool _handleBack() {
+    if (_selectedPane == null) return false;
+    setState(() => _selectedPane = null);
+    return true;
   }
 
   Future<void> _selectPane(_StudentManagerPortalPane pane) async {
@@ -98,78 +115,206 @@ class _StudentManagerPortalSectionState
 
   @override
   Widget build(BuildContext context) {
+    final pane = _selectedPane;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Student Manager Portal',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<_StudentManagerPortalPane>(
-                  initialValue: _selectedPane,
-                  decoration: const InputDecoration(labelText: 'Manager tool'),
-                  items: _StudentManagerPortalPane.values
-                      .map(
-                        (pane) => DropdownMenuItem<_StudentManagerPortalPane>(
-                          value: pane,
-                          child: Text(_paneLabel(pane)),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: (pane) {
-                    if (pane == null) return;
-                    _selectPane(pane);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (_selectedPane == _StudentManagerPortalPane.announcements)
-          SizedBox(
-            height: 720,
-            child: LandingPage(
-              items: widget.landingItems,
-              canManage: true,
-              onCreate: widget.onCreateAnnouncement,
-              onUpdate: widget.onUpdateAnnouncement,
-              onDelete: widget.onDeleteAnnouncement,
-            ),
-          )
-        else if (_selectedPane == _StudentManagerPortalPane.points)
-          ReportingPage(
-            user: widget.user,
-            pendingAssignments: widget.pendingAssignments,
-            onAcceptAssignment: widget.onAcceptPointAssignment,
-            onRefresh: widget.onRefreshPointCenter,
-            canSubmitPointRequests: widget.user.canSubmitPointRequests,
-            canApprovePointRequests: widget.user.canManagePoints,
-            pointSentAssignments: widget.pointSentAssignments,
-            pointApprovalAssignments: widget.pointApprovalAssignments,
-            pointAssignableUsers: widget.pointAssignableUsers,
-            pointInboxError: widget.pointInboxError,
-            pointSentError: widget.pointSentError,
-            pointAssignableUsersError: widget.pointAssignableUsersError,
-            pointApprovalQueueError: widget.pointApprovalQueueError,
-            onAssignPoints: widget.onAssignPoints,
-            onApprovePointAssignment: widget.onApprovePointAssignment,
-            onRefreshPointCenter: widget.onRefreshPointCenter,
-          )
+        if (pane == null)
+          _PortalToolsGrid(onSelect: _selectPane)
         else
-          DailyShiftReportsView(
-            reports: widget.dailyShiftReports,
-            error: widget.dailyShiftReportsError,
-            onRefresh: widget.onRefreshDailyShiftReports,
+          _PortalPaneBody(
+            pane: pane,
+            widgetState: this,
           ),
       ],
     );
+  }
+}
+
+class _PortalToolsGrid extends StatelessWidget {
+  const _PortalToolsGrid({required this.onSelect});
+
+  final Future<void> Function(_StudentManagerPortalPane) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 720;
+        final tiles = [
+          _PortalTile(
+            icon: Icons.campaign_rounded,
+            title: 'Edit Announcements',
+            description:
+                'Draft, schedule, and publish global messages to the team.',
+            onTap: () => onSelect(_StudentManagerPortalPane.announcements),
+          ),
+          _PortalTile(
+            icon: Icons.stars_rounded,
+            title: 'Assign Points',
+            description:
+                'Award achievement points and track staff progression.',
+            onTap: () => onSelect(_StudentManagerPortalPane.points),
+          ),
+          _PortalTile(
+            icon: Icons.analytics_rounded,
+            title: 'View Reports',
+            description:
+                'Generate and export operational data summaries.',
+            onTap: () => onSelect(_StudentManagerPortalPane.reports),
+          ),
+          _PortalTile(
+            icon: Icons.work_rounded,
+            title: 'Edit Jobs & Tasks',
+            description:
+                'Manage job listings, shift roles, and task definitions.',
+            onTap: () => onSelect(_StudentManagerPortalPane.tasks),
+          ),
+        ];
+
+        if (!isWide) {
+          return Column(
+            children: [
+              for (var i = 0; i < tiles.length; i++) ...[
+                if (i > 0) const SizedBox(height: StitchSpacing.md),
+                tiles[i],
+              ],
+            ],
+          );
+        }
+
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(child: tiles[0]),
+                const SizedBox(width: StitchSpacing.md),
+                Expanded(child: tiles[1]),
+              ],
+            ),
+            const SizedBox(height: StitchSpacing.md),
+            Row(
+              children: [
+                Expanded(child: tiles[2]),
+                const SizedBox(width: StitchSpacing.md),
+                Expanded(child: tiles[3]),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PortalTile extends StatelessWidget {
+  const _PortalTile({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.xl2),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: StitchColors.surfaceContainer,
+              borderRadius: BorderRadius.circular(StitchRadii.md),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, color: StitchColors.primary, size: 24),
+          ),
+          const SizedBox(height: StitchSpacing.xl),
+          Text(title, style: StitchText.titleLg),
+          const SizedBox(height: 6),
+          Text(description, style: StitchText.body),
+          const SizedBox(height: StitchSpacing.md),
+          Row(
+            children: [
+              Text(
+                'Access Tool',
+                style: StitchText.bodyStrong.copyWith(
+                  color: StitchColors.primary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 16,
+                color: StitchColors.primary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PortalPaneBody extends StatelessWidget {
+  const _PortalPaneBody({required this.pane, required this.widgetState});
+
+  final _StudentManagerPortalPane pane;
+  final _StudentManagerPortalSectionState widgetState;
+
+  @override
+  Widget build(BuildContext context) {
+    final w = widgetState.widget;
+    switch (pane) {
+      case _StudentManagerPortalPane.announcements:
+        return SizedBox(
+          height: 720,
+          child: LandingPage(
+            items: w.landingItems,
+            canManage: true,
+            onCreate: w.onCreateAnnouncement,
+            onUpdate: w.onUpdateAnnouncement,
+            onDelete: w.onDeleteAnnouncement,
+          ),
+        );
+      case _StudentManagerPortalPane.points:
+        return ReportingPage(
+          user: w.user,
+          pendingAssignments: w.pendingAssignments,
+          onAcceptAssignment: w.onAcceptPointAssignment,
+          onRefresh: w.onRefreshPointCenter,
+          canSubmitPointRequests: w.user.canSubmitPointRequests,
+          canApprovePointRequests: w.user.canManagePoints,
+          pointSentAssignments: w.pointSentAssignments,
+          pointApprovalAssignments: w.pointApprovalAssignments,
+          pointAssignableUsers: w.pointAssignableUsers,
+          pointInboxError: w.pointInboxError,
+          pointSentError: w.pointSentError,
+          pointAssignableUsersError: w.pointAssignableUsersError,
+          pointApprovalQueueError: w.pointApprovalQueueError,
+          onAssignPoints: w.onAssignPoints,
+          onApprovePointAssignment: w.onApprovePointAssignment,
+          onRefreshPointCenter: w.onRefreshPointCenter,
+        );
+      case _StudentManagerPortalPane.reports:
+        return DailyShiftReportsView(
+          reports: w.dailyShiftReports,
+          error: w.dailyShiftReportsError,
+          onRefresh: w.onRefreshDailyShiftReports,
+        );
+      case _StudentManagerPortalPane.tasks:
+        return const SizedBox.shrink();
+    }
   }
 }

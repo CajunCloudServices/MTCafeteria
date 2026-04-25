@@ -44,14 +44,14 @@ class _LeadTrainerTaskSection extends StatefulWidget {
 }
 
 class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
-  static const int _finalStep = 5;
-
   int _step = 0;
   String? _selectedMeal;
   int? _selectedCount;
   Map<int, bool> _traineeCheckedOff = {};
   Map<String, bool> _leadTrainerEndShiftChecks = {};
   bool _shiftFinished = false;
+  bool _hasPromptedForCurrentCompletion = false;
+  bool _finishPromptOpen = false;
 
   int _lastResetSignal = 0;
   int _lastBackSignal = 0;
@@ -76,11 +76,12 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
     if (widget.resetSignal != _lastResetSignal) {
       _lastResetSignal = widget.resetSignal;
       setState(() {
-        // Reset should discard trainee selections and completion state.
         _step = 0;
         _shiftFinished = false;
         _traineeCheckedOff = {};
         _leadTrainerEndShiftChecks = {};
+        _hasPromptedForCurrentCompletion = false;
+        _finishPromptOpen = false;
       });
     }
     if (widget.backSignal != _lastBackSignal) {
@@ -88,6 +89,7 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
       if (_shiftFinished) {
         setState(() {
           _shiftFinished = false;
+          _hasPromptedForCurrentCompletion = false;
         });
       } else if (_step > 0) {
         setState(() {
@@ -103,25 +105,24 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
   Widget build(BuildContext context) {
     final trainerBoard = widget.trainerBoard;
     if (trainerBoard == null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Loading trainer board...'),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: widget.onReloadBoard,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+      return StitchCard(
+        padding: const EdgeInsets.all(StitchSpacing.xl2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Loading trainer board…', style: StitchText.titleMd),
+            const SizedBox(height: 12),
+            StitchSecondaryButton(
+              label: 'Retry',
+              icon: Icons.refresh_rounded,
+              onPressed: widget.onReloadBoard,
+              expand: false,
+            ),
+          ],
         ),
       );
     }
 
-    _selectedMeal ??= trainerBoard.selectedMeal;
     _selectedCount ??= widget.traineeCount;
 
     final selectedSlot = widget.selectedTraineeSlot;
@@ -152,413 +153,410 @@ class _LeadTrainerTaskSectionState extends State<_LeadTrainerTaskSection> {
       (slot) => widget.traineeJobBySlot[slot] != null,
     ).every((assigned) => assigned);
 
-    if (_shiftFinished) {
-      return _buildLeadTrainerCompletionCard(checkedOffCount);
+    void maybePromptForShiftFinish() {
+      final ready =
+          _step == 4 &&
+          allTraineesCheckedOff &&
+          leadTrainerChecklistDone &&
+          !_shiftFinished;
+      if (!ready) {
+        _hasPromptedForCurrentCompletion = false;
+        return;
+      }
+      if (_hasPromptedForCurrentCompletion || _finishPromptOpen) return;
+      _hasPromptedForCurrentCompletion = true;
+      _finishPromptOpen = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final shouldFinish = await _showShiftFinishPrompt(context);
+        _finishPromptOpen = false;
+        if (!mounted || !shouldFinish || _step != 4) return;
+        setState(() {
+          _shiftFinished = true;
+        });
+      });
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const PanelTitle(
-                    icon: Icons.groups,
-                    title: 'Trainee Support Board',
-                  ),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(
-                    value: (_step + 1) / _finalStep,
-                    minHeight: 6,
-                    borderRadius: BorderRadius.circular(4),
-                    backgroundColor: const Color(0xFFE2ECF8),
-                    color: const Color(0xFF1F5E9C),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_step == 0) ...[
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedMeal,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Meal'),
-                      items: trainerBoard.meals
-                          .map(
-                            (m) => DropdownMenuItem(value: m, child: Text(m)),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _selectedMeal = value);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () async {
-                          final meal =
-                              _selectedMeal ?? trainerBoard.selectedMeal;
-                          await widget.onSelectMeal(meal);
-                          if (!mounted) return;
-                          setState(() {
-                            _step = 1;
-                            _shiftFinished = false;
-                            _traineeCheckedOff = {
-                              for (var i = 0; i < widget.traineeCount; i += 1)
-                                i: false,
-                            };
-                          });
-                        },
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else if (_step == 1) ...[
-                    DropdownButtonFormField<int>(
-                      initialValue: _selectedCount,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Trainee Count',
-                      ),
-                      items: List.generate(12, (index) => index + 1)
-                          .map(
-                            (count) => DropdownMenuItem<int>(
-                              value: count,
-                              child: Text('$count'),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _selectedCount = value);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          final count = _selectedCount ?? widget.traineeCount;
-                          widget.onSetTraineeCount(count);
-                          setState(() {
-                            _step = 2;
-                            _shiftFinished = false;
-                            _traineeCheckedOff = {
-                              for (var i = 0; i < count; i += 1) i: false,
-                            };
-                          });
-                        },
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else if (_step == 2) ...[
-                    const SizedBox(height: 8),
-                    ...List.generate(widget.traineeCount, (slot) {
-                      final jobId = widget.traineeJobBySlot[slot];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF9FB6D3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Trainee ${slot + 1}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<int>(
-                              initialValue: jobId,
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Job',
-                              ),
-                              items: trainerBoard.jobs
-                                  .map(
-                                    (job) => DropdownMenuItem<int>(
-                                      value: job.id,
-                                      child: Text(job.name),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) {
-                                widget.onAssignTraineeJob(slot, value);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: allAssigned
-                            ? () {
-                                widget.onSelectTraineeSlot(0);
-                                setState(() {
-                                  _step = 3;
-                                });
-                              }
-                            : null,
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else ...[
-                    if (_step == 3) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FBFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF9FB6D3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Trainee Selection',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<int>(
-                              initialValue: selectedSlot,
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Trainee',
-                              ),
-                              items: List.generate(widget.traineeCount, (slot) {
-                                return DropdownMenuItem<int>(
-                                  value: slot,
-                                  child: Text(
-                                    'Trainee ${slot + 1}: ${_jobLabelForSlot(trainerBoard, slot)}',
-                                  ),
-                                );
-                              }),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  widget.onSelectTraineeSlot(value);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (_jobLabelForSlot(trainerBoard, selectedSlot) !=
-                          'Unassigned') ...[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: () => showJobQuickReferenceDialog(
-                                  context,
-                                  jobName: _jobLabelForSlot(
-                                    trainerBoard,
-                                    selectedSlot,
-                                  ),
-                                  lines: notesForJob(
-                                    _jobLabelForSlot(
-                                      trainerBoard,
-                                      selectedSlot,
-                                    ),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.menu_book_rounded),
-                                label: const Text('View Job Notes'),
-                              ),
-                            ),
-                            if (_jobLabelForSlot(trainerBoard, selectedSlot) ==
-                                'Condiments Prep')
-                              const SizedBox(height: 10),
-                            if (_jobLabelForSlot(trainerBoard, selectedSlot) ==
-                                'Condiments Prep')
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: () =>
-                                      showCondimentsRotationDialog(context),
-                                  icon: const Icon(Icons.tune_rounded),
-                                  label: const Text('Condiment Rotation'),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                      const Divider(height: 1, thickness: 1),
-                      const SizedBox(height: 10),
-                      _TrainerPhaseChecklist(
-                        phase: 'Setup (Before Doors Open)',
-                        tasks: selectedTasks
-                            .where((t) => t.phase == 'Setup')
-                            .toList(),
-                        slot: selectedSlot,
-                        onToggle: widget.onTaskToggle,
-                      ),
-                      _TrainerPhaseChecklist(
-                        phase: 'During Shift (Doors Open)',
-                        tasks: selectedTasks
-                            .where((t) => t.phase == 'During Shift')
-                            .toList(),
-                        slot: selectedSlot,
-                        onToggle: widget.onTaskToggle,
-                      ),
-                      _TrainerPhaseChecklist(
-                        phase: 'Cleanup (After Doors Close)',
-                        tasks: selectedTasks
-                            .where((t) => t.phase == 'Cleanup')
-                            .toList(),
-                        slot: selectedSlot,
-                        onToggle: widget.onTaskToggle,
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FBFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF9FB6D3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Checkoff',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Progress: $checkedOffCount/${widget.traineeCount} checked off',
-                              style: const TextStyle(
-                                color: Color(0xFF32567F),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                onPressed:
-                                    selectedTraineeCompleted &&
-                                        !selectedTraineeCheckedOff
-                                    ? () {
-                                        setState(() {
-                                          _traineeCheckedOff = {
-                                            ..._traineeCheckedOff,
-                                            selectedSlot: true,
-                                          };
-                                        });
-                                      }
-                                    : null,
-                                child: Text(
-                                  selectedTraineeCheckedOff
-                                      ? 'Checked Off'
-                                      : 'Check Off Trainee',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (allTraineesCheckedOff) ...[
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: () {
-                              setState(() {
-                                _step = 4;
-                              });
-                            },
-                            child: const Text('Next'),
-                          ),
-                        ),
-                      ],
-                    ] else ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FBFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF9FB6D3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Lead Trainer End-of-Shift Checkoff',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 6),
-                            ...leadTrainerEndShiftCheckoffItems.map(
-                              (item) => CheckboxListTile(
-                                dense: false,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                ),
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                value:
-                                    _leadTrainerEndShiftChecks[item] ?? false,
-                                title: Text(item),
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() {
-                                    _leadTrainerEndShiftChecks = {
-                                      ..._leadTrainerEndShiftChecks,
-                                      item: value,
-                                    };
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ],
+    maybePromptForShiftFinish();
+
+    Widget centeredSetupStep(Widget child) {
+      final media = MediaQuery.of(context);
+      final minHeight =
+          (media.size.height -
+                  media.padding.vertical -
+                  appHeaderToolbarHeight(context) -
+                  kBottomNavigationBarHeight -
+                  36)
+              .clamp(0.0, media.size.height);
+      return Align(
+        alignment: Alignment.topCenter,
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: StitchSpacing.md),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: child,
+                ),
               ),
             ),
           ),
         ),
-        if (_step == 4 &&
-            allTraineesCheckedOff &&
-            leadTrainerChecklistDone &&
-            !_shiftFinished) ...[
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
+      );
+    }
+
+    if (_shiftFinished) {
+      return _buildLeadTrainerCompletionCard(checkedOffCount);
+    }
+
+    if (_step == 0) {
+      return StitchSelectionScreen(
+        title: 'Select Meal',
+        options: [
+          for (final meal in trainerBoard.meals)
+            StitchSelectionOption(
+              rowKey: ValueKey('lead-trainer-meal-$meal'),
+              label: meal,
+              icon: _iconForMeal(meal),
+              selected: _selectedMeal == meal,
+              onTap: () async {
+                setState(() => _selectedMeal = meal);
+                await widget.onSelectMeal(meal);
+                if (!mounted) return;
+                setState(() {
+                  _step = 1;
+                  _shiftFinished = false;
+                  _traineeCheckedOff = {
+                    for (var i = 0; i < widget.traineeCount; i += 1) i: false,
+                  };
+                });
+              },
+            ),
+        ],
+      );
+    }
+
+    if (_step == 1) {
+      final count = (_selectedCount ?? widget.traineeCount).clamp(1, 12);
+      return centeredSetupStep(
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Trainee Count',
+              style: StitchText.bodyStrong.copyWith(
+                color: StitchColors.onSurface,
+              ),
+            ),
+            const SizedBox(height: StitchSpacing.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: StitchSpacing.md,
+                vertical: StitchSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: StitchColors.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(StitchRadii.md),
+                border: Border.all(color: StitchColors.outlineVariant),
+              ),
+              child: Row(
+                children: [
+                  _LeadTrainerCountButton(
+                    tooltip: 'Decrease trainee count',
+                    icon: Icons.remove_rounded,
+                    onPressed: count > 1
+                        ? () => setState(() => _selectedCount = count - 1)
+                        : null,
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$count',
+                          style: StitchText.titleLg.copyWith(
+                            color: StitchColors.onSurface,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          count == 1 ? 'trainee' : 'trainees',
+                          style: StitchText.body.copyWith(
+                            color: StitchColors.onSurface,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  _LeadTrainerCountButton(
+                    tooltip: 'Increase trainee count',
+                    icon: Icons.add_rounded,
+                    onPressed: count < 12
+                        ? () => setState(() => _selectedCount = count + 1)
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: StitchSpacing.lg),
+            StitchPrimaryButton(
+              label: 'Continue',
+              trailingIcon: Icons.arrow_forward_rounded,
+              onPressed: () {
+                widget.onSetTraineeCount(count);
+                setState(() {
+                  _step = 2;
+                  _shiftFinished = false;
+                  _traineeCheckedOff = {
+                    for (var i = 0; i < count; i += 1) i: false,
+                  };
+                });
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_step == 2) {
+      return centeredSetupStep(
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var slot = 0; slot < widget.traineeCount; slot++) ...[
+              Text(
+                'Trainee ${slot + 1}',
+                style: StitchText.bodyStrong.copyWith(
+                  color: StitchColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              StitchDropdownField<int>(
+                value: widget.traineeJobBySlot[slot],
+                items: trainerBoard.jobs
+                    .map(
+                      (job) => DropdownMenuItem<int>(
+                        value: job.id,
+                        child: Text(job.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  widget.onAssignTraineeJob(slot, value);
+                },
+              ),
+              if (slot < widget.traineeCount - 1)
+                const SizedBox(height: StitchSpacing.lg),
+            ],
+            const SizedBox(height: StitchSpacing.lg),
+            StitchPrimaryButton(
+              label: 'Continue',
+              trailingIcon: Icons.arrow_forward_rounded,
+              onPressed: allAssigned
+                  ? () {
+                      widget.onSelectTraineeSlot(0);
+                      setState(() {
+                        _step = 3;
+                      });
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: StitchSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_step == 3) ...[
+          StitchDropdownField<int>(
+            value: selectedSlot,
+            label: 'Trainee',
+            items: List.generate(widget.traineeCount, (slot) {
+              return DropdownMenuItem<int>(
+                value: slot,
+                child: Text(
+                  'Trainee ${slot + 1}: ${_jobLabelForSlot(trainerBoard, slot)}',
+                ),
+              );
+            }),
+            onChanged: (value) {
+              if (value != null) {
+                widget.onSelectTraineeSlot(value);
+              }
+            },
+          ),
+          const SizedBox(height: StitchSpacing.md),
+          if (_jobLabelForSlot(trainerBoard, selectedSlot) != 'Unassigned') ...[
+            Row(
+              children: [
+                Expanded(
+                  child: StitchSecondaryButton(
+                    label: 'View Job Notes',
+                    icon: Icons.menu_book_rounded,
+                    onPressed: () => showJobQuickReferenceDialog(
+                      context,
+                      jobName: _jobLabelForSlot(trainerBoard, selectedSlot),
+                      lines: notesForJob(
+                        _jobLabelForSlot(trainerBoard, selectedSlot),
+                      ),
+                    ),
+                  ),
+                ),
+                if (_jobLabelForSlot(trainerBoard, selectedSlot) ==
+                    'Condiments Prep') ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: StitchSecondaryButton(
+                      label: 'Rotation',
+                      icon: Icons.tune_rounded,
+                      onPressed: () => showCondimentsRotationDialog(context),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: StitchSpacing.md),
+          ],
+          _TrainerPhaseChecklist(
+            phase: 'Setup (Before Doors Open)',
+            tasks: selectedTasks.where((t) => t.phase == 'Setup').toList(),
+            slot: selectedSlot,
+            onToggle: widget.onTaskToggle,
+          ),
+          _TrainerPhaseChecklist(
+            phase: 'During Shift (Doors Open)',
+            tasks: selectedTasks
+                .where((t) => t.phase == 'During Shift')
+                .toList(),
+            slot: selectedSlot,
+            onToggle: widget.onTaskToggle,
+          ),
+          _TrainerPhaseChecklist(
+            phase: 'Cleanup (After Doors Close)',
+            tasks: selectedTasks.where((t) => t.phase == 'Cleanup').toList(),
+            slot: selectedSlot,
+            onToggle: widget.onTaskToggle,
+          ),
+          const SizedBox(height: StitchSpacing.md),
+          StitchProgressCard(
+            title: 'Checkoff Progress',
+            completed: checkedOffCount,
+            total: widget.traineeCount,
+            leadingIcon: Icons.verified_rounded,
+          ),
+          const SizedBox(height: StitchSpacing.md),
+          StitchPrimaryButton(
+            label: selectedTraineeCheckedOff
+                ? 'Checked Off'
+                : 'Check Off Trainee',
+            icon: selectedTraineeCheckedOff
+                ? Icons.check_circle_rounded
+                : Icons.how_to_reg_rounded,
+            onPressed: selectedTraineeCompleted && !selectedTraineeCheckedOff
+                ? () {
+                    setState(() {
+                      _traineeCheckedOff = {
+                        ..._traineeCheckedOff,
+                        selectedSlot: true,
+                      };
+                    });
+                  }
+                : null,
+          ),
+          if (allTraineesCheckedOff) ...[
+            const SizedBox(height: StitchSpacing.md),
+            StitchPrimaryButton(
+              label: 'Continue',
+              trailingIcon: Icons.arrow_forward_rounded,
+              onPressed: () {
+                setState(() {
+                  _step = 4;
+                });
+              },
+            ),
+          ],
+          ] else ...[
+          Text(
+            'Lead Trainer End-of-Shift Checkoff',
+            style: StitchText.titleMd,
+          ),
+          const SizedBox(height: StitchSpacing.md),
+          for (final item in leadTrainerEndShiftCheckoffItems) ...[
+            StitchChecklistTile(
+              title: item,
+              checked: _leadTrainerEndShiftChecks[item] ?? false,
+              onChanged: (value) {
+                setState(() {
+                  _leadTrainerEndShiftChecks = {
+                    ..._leadTrainerEndShiftChecks,
+                    item: value,
+                  };
+                });
+              },
+            ),
+            const SizedBox(height: StitchSpacing.md),
+          ],
+          ],
+          if (_step == 4 &&
+              allTraineesCheckedOff &&
+              leadTrainerChecklistDone &&
+              !_shiftFinished) ...[
+            const SizedBox(height: StitchSpacing.lg),
+            StitchPrimaryButton(
+              label: 'Finish Shift',
+              icon: Icons.flag_rounded,
+              height: StitchLayout.ctaHeightLg,
               onPressed: () {
                 setState(() {
                   _shiftFinished = true;
                 });
               },
-              child: const Text('Finish'),
             ),
-          ),
+          ],
         ],
-      ],
+      ),
+    );
+  }
+}
+
+class _LeadTrainerCountButton extends StatelessWidget {
+  const _LeadTrainerCountButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: onPressed == null
+          ? StitchColors.surfaceContainer
+          : StitchColors.primaryFixed,
+      borderRadius: BorderRadius.circular(StitchRadii.sm),
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        icon: Icon(
+          icon,
+          color: onPressed == null
+              ? StitchColors.onSurfaceVariant
+              : StitchColors.onPrimaryFixed,
+        ),
+      ),
     );
   }
 }

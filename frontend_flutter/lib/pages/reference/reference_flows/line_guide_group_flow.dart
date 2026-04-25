@@ -21,10 +21,27 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
         ? _selectedLineGuideSection
         : 'Select';
 
+    if (selected == 'Select') {
+      return _buildGuideSelectionList(
+        title: 'Line Guides',
+        options: [
+          for (final option in options)
+            (
+              label: option,
+              subtitle: null,
+              icon: Icons.menu_book_outlined,
+              onTap: () {
+                _updateReferenceState(() {
+                  _selectedLineGuideSection = option;
+                });
+              },
+            ),
+        ],
+      );
+    }
+
     Widget child;
     switch (selected) {
-      case 'Select':
-        child = const SizedBox.shrink();
       case 'Jobs':
         child = _buildLineJobsFlow(data);
       case 'Aloha + Choices':
@@ -53,75 +70,38 @@ extension _LineGuideGroupFlow on _ReferenceSheetsViewState {
           ],
         );
       case 'Fruit Prep (Grapes/Kiwi)':
-        child = Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7FAFF),
-            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-            border: Border.all(color: const Color(0xFFB6C9E4)),
-          ),
+        child = StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.lg),
+          elevation: StitchCardElevation.subtle,
+          ring: true,
           child: _buildReadableLines(_extractFoodPrep(data)),
         );
       case 'Meal Door Times':
-        child = Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7FAFF),
-            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-            border: Border.all(color: const Color(0xFFB6C9E4)),
-          ),
+        child = StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.lg),
+          elevation: StitchCardElevation.subtle,
+          ring: true,
           child: _buildReadableLines(_extractMealTimes(data)),
         );
       case 'Food Safety':
-        child = Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7FAFF),
-            borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-            border: Border.all(color: const Color(0xFFB6C9E4)),
-          ),
+        child = StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.lg),
+          elevation: StitchCardElevation.subtle,
+          ring: true,
           child: _buildReadableLines(_extractSafety(data)),
         );
       default:
         child = const SizedBox.shrink();
     }
 
-    return _buildReferencePanel(
-      title: '',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DropdownButtonFormField<String>(
-            key: ValueKey('line-guide-$selected'),
-            initialValue: selected,
-            decoration: const InputDecoration(labelText: 'Line section'),
-            isExpanded: true,
-            items: [
-              const DropdownMenuItem<String>(
-                value: 'Select',
-                child: Text('Select'),
-              ),
-              ...options.map(
-                (option) => DropdownMenuItem<String>(
-                  value: option,
-                  child: Text(option),
-                ),
-              ),
-            ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() {
-                _selectedLineGuideSection = value;
-              });
-            },
-          ),
-          const SizedBox(height: 14),
-          child,
-        ],
-      ),
+    return _buildGuideContentScreen(
+      backLabel: 'Back to Line Guides',
+      onBack: () {
+        _updateReferenceState(() {
+          _selectedLineGuideSection = 'Select';
+        });
+      },
+      child: child,
     );
   }
 }

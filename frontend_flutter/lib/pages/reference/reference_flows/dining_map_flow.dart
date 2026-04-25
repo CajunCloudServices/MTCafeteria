@@ -11,21 +11,19 @@ extension _DiningMapReferenceFlow on _ReferenceSheetsViewState {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Pinch to zoom and drag to move.',
-                  style: TextStyle(
-                    color: Color(0xFF355678),
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: StitchText.body,
                 ),
               ),
               const SizedBox(width: 12),
-              OutlinedButton.icon(
+              StitchSecondaryButton(
+                label: 'Reset View',
+                icon: Icons.center_focus_strong_rounded,
                 onPressed: () =>
                     _mapTransformationController.value = Matrix4.identity(),
-                icon: const Icon(Icons.center_focus_strong, size: 18),
-                label: const Text('Reset View'),
+                expand: false,
               ),
             ],
           ),

@@ -24,7 +24,18 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
     final lines = sections[_selectedSection] ?? const <String>[];
 
     if (_selectedSection == 'Select') {
-      return const SizedBox.shrink();
+      return _buildGuideSelectionList(
+        title: '',
+        options: [
+          for (final section in sections.keys)
+            (
+              label: section,
+              subtitle: null,
+              icon: _guideSectionIcon(section),
+              onTap: () => _onReferenceSectionSelected(section),
+            ),
+        ],
+      );
     }
     if (_selectedSection == 'Find an Item') {
       return _buildLockerFlow(data);
@@ -34,6 +45,9 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
     }
     if (_selectedSection == 'Line') {
       return _buildLineGuideGroupPanel(data);
+    }
+    if (_selectedSection == 'Condiments Rotation') {
+      return _buildCondimentsRotationFlow(data);
     }
     if (_selectedSection == 'Dishroom') {
       return _buildDishroomGuideGroupPanel(
@@ -80,14 +94,10 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
       );
     }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7FAFF),
-        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-        border: Border.all(color: const Color(0xFFB6C9E4)),
-      ),
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.lg),
+      elevation: StitchCardElevation.subtle,
+      ring: true,
       child: _buildReadableLines(lines),
     );
   }
@@ -112,13 +122,17 @@ extension _ReferenceSectionRegistry on _ReferenceSheetsViewState {
         _selectedGeneralInformationCard = 'Select';
       case 'Condiments Rotation':
         _condimentStep = 0;
+      case 'Find an Item':
+        _selectedLockerLocation = 'Select';
+        _lockerSearchQuery = '';
+        _showLockerAddPanel = false;
+        _showLockerDeleteMode = false;
     }
   }
 
   void _onReferenceSectionSelected(String value) {
     _updateReferenceState(() {
       _selectedSection = value;
-      _showLockerBrowsePanel = false;
       _showLockerAddPanel = false;
       _showLockerDeleteMode = false;
       _resetGuideSelectionStateForSection(value);

@@ -75,6 +75,8 @@ class _SupervisorSectionState extends State<_SupervisorSection> {
   int _lastBackSignal = 0;
   final Set<int> _optimisticallyCompletedJobIds = <int>{};
   String? _optimisticCompletionMeal;
+  bool _hasPromptedForCurrentCompletion = false;
+  bool _finishPromptOpen = false;
 
   void _updateSupervisorState(VoidCallback action) {
     if (!mounted) return;
@@ -172,6 +174,8 @@ class _SupervisorSectionState extends State<_SupervisorSection> {
         _lastOpenJobWasComplete = false;
         _optimisticallyCompletedJobIds.clear();
         _optimisticCompletionMeal = null;
+        _hasPromptedForCurrentCompletion = false;
+        _finishPromptOpen = false;
       });
       defer(() {
         widget.onPanelModeChanged('Jobs');
@@ -183,6 +187,7 @@ class _SupervisorSectionState extends State<_SupervisorSection> {
       if (_shiftFinished) {
         setState(() {
           _shiftFinished = false;
+          _hasPromptedForCurrentCompletion = false;
         });
         return;
       }
@@ -234,8 +239,6 @@ class _SupervisorSectionState extends State<_SupervisorSection> {
         ),
       );
     }
-
-    _selectedMeal ??= supervisorBoard.selectedMeal;
 
     final secondarySource = widget.secondaries.isNotEmpty
         ? widget.secondaries
@@ -352,6 +355,28 @@ class _SupervisorSectionState extends State<_SupervisorSection> {
       supervisorChecklistDone: supervisorChecklistDone,
       reportSubmitted: reportSubmitted,
     );
+
+    void maybePromptForShiftFinish() {
+      final ready = canMarkShiftFinished && !_shiftFinished;
+      if (!ready) {
+        _hasPromptedForCurrentCompletion = false;
+        return;
+      }
+      if (_hasPromptedForCurrentCompletion || _finishPromptOpen) return;
+      _hasPromptedForCurrentCompletion = true;
+      _finishPromptOpen = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final shouldFinish = await _showShiftFinishPrompt(context);
+        _finishPromptOpen = false;
+        if (!mounted || !shouldFinish || _shiftFinished) return;
+        _updateSupervisorState(() {
+          _shiftFinished = true;
+        });
+      });
+    }
+
+    maybePromptForShiftFinish();
 
     if (_shiftFinished) {
       return _buildSupervisorCompletionCard(

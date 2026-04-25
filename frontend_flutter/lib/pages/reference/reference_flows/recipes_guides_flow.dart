@@ -44,48 +44,36 @@ extension _RecipeGuidesFlow on _ReferenceSheetsViewState {
             (sections?.values ?? const []).expand((items) => items).toList(),
           );
 
-    return _buildReferencePanel(
-      title: '',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DropdownButtonFormField<String?>(
-            key: ValueKey<String>('recipe-guide-$_selectedRecipeCard'),
-            initialValue: _selectedRecipeCard == 'Select'
-                ? null
-                : _selectedRecipeCard,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Recipe'),
-            items: <DropdownMenuItem<String?>>[
-              const DropdownMenuItem<String?>(
-                value: null,
-                child: Text('Select'),
-              ),
-              ..._recipeGuideCards.keys.map(
-                (recipe) => DropdownMenuItem<String?>(
-                  value: recipe,
-                  child: Text(recipe),
-                ),
-              ),
-            ],
-            onChanged: (value) {
-              _updateReferenceState(() {
-                _selectedRecipeCard = value ?? 'Select';
-              });
-            },
-          ),
-          if (sections != null) ...[
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _buildReferenceTaskCard(
-                title: _selectedRecipeCard,
-                items: overrideItems ?? const [],
-                icon: Icons.restaurant_menu,
-              ),
+    if (_selectedRecipeCard == 'Select') {
+      return _buildGuideSelectionList(
+        title: 'Recipes',
+        options: [
+          for (final recipe in _recipeGuideCards.keys)
+            (
+              label: recipe,
+              subtitle: null,
+              icon: Icons.restaurant_menu,
+              onTap: () {
+                _updateReferenceState(() {
+                  _selectedRecipeCard = recipe;
+                });
+              },
             ),
-          ],
         ],
+      );
+    }
+
+    return _buildGuideContentScreen(
+      backLabel: 'Back to Recipes',
+      onBack: () {
+        _updateReferenceState(() {
+          _selectedRecipeCard = 'Select';
+        });
+      },
+      child: _buildReferenceTaskCard(
+        title: _selectedRecipeCard,
+        items: overrideItems ?? const [],
+        icon: Icons.restaurant_menu,
       ),
     );
   }

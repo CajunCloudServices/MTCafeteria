@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/daily_shift_report.dart';
-import '../theme/app_ui_tokens.dart';
+import '../theme/stitch_tokens.dart';
+import 'ui/stitch_card.dart';
 
 /// Leadership view of submitted daily shift reports.
 class DailyShiftReportsView extends StatelessWidget {
@@ -22,95 +23,124 @@ class DailyShiftReportsView extends StatelessWidget {
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 860),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
+        child: StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.xl2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
                       'Daily Shift Reports',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: StitchText.titleLg,
                     ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: onRefresh,
-                      tooltip: 'Refresh',
-                      icon: const Icon(Icons.refresh),
-                    ),
-                  ],
-                ),
-                if (error != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    error!,
-                    style: const TextStyle(
-                      color: Color(0xFF9A2A2A),
-                      fontWeight: FontWeight.w700,
+                  ),
+                  Material(
+                    color: StitchColors.surfaceContainer,
+                    borderRadius: BorderRadius.circular(StitchRadii.pill),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onRefresh,
+                      child: const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Icon(
+                          Icons.refresh_rounded,
+                          color: StitchColors.primary,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
                 ],
-                const SizedBox(height: 8),
-                if (reports.isEmpty)
-                  const Text('No submitted reports yet.')
-                else
-                  ...reports.map((report) {
-                    final payload = report.payload;
-                    // Surface the fields leadership scans most often so the
-                    // list stays compact.
-                    final summaries = payload['summaries']?.trim() ?? '';
-                    final maintenance =
-                        payload['maintenanceConcerns']?.trim() ?? '';
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppUiTokens.panelSurface,
-                        borderRadius: BorderRadius.circular(
-                          AppUiTokens.cardRadius,
-                        ),
-                        border: Border.all(color: const Color(0xFFB7CAE4)),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(StitchSpacing.md),
+                  decoration: BoxDecoration(
+                    color: StitchColors.errorContainer,
+                    borderRadius: BorderRadius.circular(StitchRadii.md),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: StitchColors.onErrorContainer,
+                        size: 18,
                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          error!,
+                          style: StitchText.bodyStrong.copyWith(
+                            color: StitchColors.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: StitchSpacing.md),
+              if (reports.isEmpty)
+                Text('No submitted reports yet.', style: StitchText.body)
+              else
+                ...reports.map((report) {
+                  final payload = report.payload;
+                  final summaries = payload['summaries']?.trim() ?? '';
+                  final maintenance =
+                      payload['maintenanceConcerns']?.trim() ?? '';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: StitchCard(
+                      padding: const EdgeInsets.all(StitchSpacing.lg),
+                      elevation: StitchCardElevation.subtle,
+                      ring: true,
+                      accentBarColor: StitchColors.primary,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${report.reportDate} • ${report.mealType}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF113A67),
-                              fontSize: 17,
+                            '${report.mealType}  •  ${report.reportDate}',
+                            style: StitchText.bodyStrong.copyWith(
+                              color: StitchColors.primary,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 10),
                           Text(
                             'Submitted by ${report.submittedByEmail ?? 'Unknown'}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF335678),
+                            style: StitchText.bodyLg.copyWith(
+                              color: StitchColors.onSurfaceVariant,
                             ),
                           ),
                           if (maintenance.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Text('Maintenance: $maintenance'),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Maintenance',
+                              style: StitchText.titleSm,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(maintenance, style: StitchText.bodyLg),
                           ],
                           if (summaries.isNotEmpty) ...[
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 12),
+                            Text('Summary', style: StitchText.titleSm),
+                            const SizedBox(height: 4),
                             Text(
-                              'Summaries: $summaries',
+                              summaries,
+                              style: StitchText.bodyLg,
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ],
                       ),
-                    );
-                  }),
-              ],
-            ),
+                    ),
+                  );
+                }),
+            ],
           ),
         ),
       ),

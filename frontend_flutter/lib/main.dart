@@ -12,13 +12,16 @@ import 'config/runtime_config.dart';
 import 'models/user_session.dart';
 import 'services/api_client.dart';
 import 'state/app_state.dart';
-import 'theme/app_ui_tokens.dart';
+import 'theme/stitch_theme.dart';
+import 'theme/stitch_tokens.dart';
 import 'widgets/app_bottom_nav.dart';
+import 'theme/app_bar_title_override.dart';
 import 'widgets/app_header.dart';
 import 'widgets/admin_password_dialog.dart';
 import 'widgets/daily_shift_reports_view.dart';
 import 'widgets/dashboard_hub_card.dart';
 import 'widgets/global_chat_widget.dart';
+import 'widgets/manager_portal_nav.dart';
 import 'widgets/shift_selection_cards.dart';
 
 part 'app/main_shell.dart';
@@ -59,7 +62,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   late final ApiClient _chatApiClient = ApiClient(
     runtimeConfig: _runtimeConfig,
   );
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
 
   @override
   void initState() {
@@ -67,14 +70,20 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     _state.initialize();
   }
 
-  String _dashboardTrack = 'Line';
+  String _dashboardTrack = '';
   bool _dashboardTrackConfirmed = false;
-  String _dashboardMode = 'Employee';
+  String _dashboardMode = '';
   bool _dashboardRoleConfirmed = false;
   int _dashboardResetSignal = 0;
   int _dashboardBackSignal = 0;
   _DashboardView _dashboardView = _DashboardView.hub;
   bool _adminModeEnabled = false;
+  final ManagerPortalBackController _managerPortalBack =
+      ManagerPortalBackController();
+  final ReferenceSheetsBackController _referenceBack =
+      ReferenceSheetsBackController();
+  final ReferenceSheetsBackController _findItemBack =
+      ReferenceSheetsBackController();
 
   static final DateTime _mealRotationAnchor = DateTime(2026, 3, 16);
   static const List<String> _mealWeekOrder = [
@@ -158,14 +167,11 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   void _resetDashboardSelectorsForRole(String role) {
     // Returning to the dashboard hub should clear any partial workflow state so
     // users never land mid-flow after changing tabs.
-    final tracks = _availableTracksForRole(role);
-    _dashboardTrack = tracks.first;
+    _dashboardTrack = '';
     _dashboardTrackConfirmed = false;
     _dashboardView = _DashboardView.hub;
-
-    final modes = _modesForSelection(role, _dashboardTrack);
-    _dashboardMode = modes.isEmpty ? _dashboardTrack : modes.first;
-    _dashboardRoleConfirmed = modes.length <= 1;
+    _dashboardMode = '';
+    _dashboardRoleConfirmed = false;
   }
 
   Future<void> _resetActiveDashboardFlowState() async {
@@ -198,6 +204,26 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
   }
 
   void _handleDashboardBack({required _DashboardView effectiveDashboardView}) {
+    // Manager Portal owns an inner stack (tool grid ↔ sub-pane). Let it pop
+    // one level first; only leave the portal entirely on the next press.
+    if (effectiveDashboardView == _DashboardView.managerPortal) {
+      if (_managerPortalBack.tryPop()) return;
+      _dashboardView = _DashboardView.hub;
+      return;
+    }
+
+    if (effectiveDashboardView == _DashboardView.reference) {
+      if (_referenceBack.tryPop()) return;
+      _dashboardView = _DashboardView.hub;
+      return;
+    }
+
+    if (effectiveDashboardView == _DashboardView.findItem) {
+      if (_findItemBack.tryPop()) return;
+      _dashboardView = _DashboardView.hub;
+      return;
+    }
+
     // Non-workflow dashboard surfaces always return to the hub in one press.
     if (effectiveDashboardView != _DashboardView.workflow) {
       _dashboardView = _DashboardView.hub;
@@ -225,22 +251,28 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
       return;
     }
 
-    setState(() {
-      if (index == 1) {
-        _selectedIndex = 1;
-        _returnToDashboardHubAndReset(role);
-        return;
-      }
-      _selectedIndex = index;
-    });
+    // Every bottom-nav tap — including re-taps of the current tab — returns
+    // the user to the root of that tab. This makes the footer behave
+    // predictably no matter how deep you are in a sub-view.
+    _managerPortalBack.tryPop();
+    setState(() => _selectedIndex = index);
+    _returnToDashboardHubAndReset(role);
   }
 
   void _applyTrackSelection(String role, String track) {
     final modes = _modesForSelection(role, track);
     _dashboardTrack = track;
     _dashboardTrackConfirmed = true;
-    _dashboardMode = modes.isEmpty ? track : modes.first;
-    _dashboardRoleConfirmed = modes.length <= 1;
+    if (modes.length == 1) {
+      _dashboardMode = modes.first;
+      _dashboardRoleConfirmed = true;
+    } else if (modes.isEmpty) {
+      _dashboardMode = '';
+      _dashboardRoleConfirmed = true;
+    } else {
+      _dashboardMode = '';
+      _dashboardRoleConfirmed = false;
+    }
 
     // Opening supervisor mode needs the latest board data immediately because
     // finish gating depends on the selected meal's current state.
@@ -284,7 +316,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
       _selectedIndex = 0;
       _dashboardTrack = 'Line';
       _dashboardTrackConfirmed = false;
-      _dashboardMode = 'Employee';
+      _dashboardMode = '';
       _dashboardRoleConfirmed = false;
       _dashboardView = _DashboardView.hub;
     });
@@ -295,6 +327,7 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
     String initialSection = 'Select',
     bool lockSection = false,
   }) async {
+    final backController = ReferenceSheetsBackController();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -311,9 +344,18 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                 padding: const EdgeInsets.fromLTRB(18, 14, 12, 6),
                 child: Row(
                   children: [
+                    IconButton(
+                      tooltip: 'Back',
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      onPressed: () {
+                        if (!backController.tryPop()) {
+                          Navigator.of(sheetContext).pop();
+                        }
+                      },
+                    ),
                     Expanded(
                       child: Text(
-                        lockSection ? initialSection : 'Search Guides',
+                        lockSection ? initialSection : 'Guides',
                         style: Theme.of(sheetContext).textTheme.headlineSmall,
                       ),
                     ),
@@ -328,10 +370,14 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
               const Divider(height: 1),
               Expanded(
                 child: ReferenceSheetsView(
+                  key: ValueKey(
+                    'reference-overlay-$initialSection-${lockSection ? 'locked' : 'free'}',
+                  ),
                   initialSection: initialSection,
                   lockSection: lockSection,
                   useOuterCard: false,
                   adminModeEnabled: _adminModeEnabled,
+                  backController: backController,
                 ),
               ),
             ],
@@ -413,20 +459,9 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF1A4E8A);
-    const bg = Color(0xFFE1EAF7);
-    const text = Color(0xFF0D2A4A);
+    const bg = StitchColors.surface;
 
-    final scheme = ColorScheme.fromSeed(
-      seedColor: primary,
-      primary: primary,
-      secondary: const Color(0xFF3E79B8),
-      surface: Colors.white,
-      onSurface: text,
-      brightness: Brightness.light,
-    );
-
-    final baseText = ThemeData.light().textTheme;
+    final stitchTheme = buildStitchTheme();
 
     return AnimatedBuilder(
       animation: _state,
@@ -504,8 +539,9 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
             _selectedIndex == 1 &&
             effectiveDashboardView != _DashboardView.hub;
 
-        // Back-header labels reflect the current subview so mobile layouts can
-        // drop the full brand lockup and still stay orienting.
+        // Every screen in the app uses the same header style: the page name on
+        // the left (with an optional back button) and the menu button on the
+        // right. No brand lockup. This keeps typography identical everywhere.
         String backHeaderTitle = 'Dashboard';
         if (effectiveDashboardView == _DashboardView.reference) {
           backHeaderTitle = 'Guides';
@@ -518,153 +554,56 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
         } else if (effectiveDashboardView == _DashboardView.points) {
           backHeaderTitle = 'Assign Points';
         } else if (effectiveDashboardView == _DashboardView.managerPortal) {
-          backHeaderTitle = 'Manager Portal';
+          backHeaderTitle = 'Student Manager Portal';
         } else if (effectiveDashboardView == _DashboardView.workflow) {
           if (!_dashboardTrackConfirmed) {
-            backHeaderTitle = 'Shift Area';
+            backHeaderTitle = 'Select Area';
           } else if (!_dashboardRoleConfirmed && availableModes.length > 1) {
-            backHeaderTitle = 'Role';
+            backHeaderTitle = 'Select Role';
           } else if (_dashboardTrack == 'Line') {
-            backHeaderTitle = _dashboardMode == 'Employee'
-                ? 'Line Worker'
-                : _dashboardMode;
+            if (_dashboardMode == 'Supervisor') {
+              backHeaderTitle = 'Supervisor Checkoff';
+            } else if (_dashboardMode == 'Lead Trainer') {
+              backHeaderTitle = 'Lead Trainer';
+            } else {
+              backHeaderTitle = 'Line Worker';
+            }
           } else {
             backHeaderTitle = _dashboardTrack;
           }
         }
 
+        String rootHeaderTitle;
+        if (!isLoggedIn) {
+          rootHeaderTitle = 'Sign In';
+        } else if (_selectedIndex == 0) {
+          rootHeaderTitle = 'Announcements';
+        } else if (_selectedIndex == 2) {
+          rootHeaderTitle = 'Profile';
+        } else {
+          rootHeaderTitle = 'Dashboard';
+        }
+
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'MTC Dining',
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: scheme,
-            scaffoldBackgroundColor: bg,
-            fontFamily: 'Noto Sans',
-            textTheme: baseText.copyWith(
-              headlineSmall: baseText.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.2,
-                color: text,
-              ),
-              titleMedium: baseText.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: text,
-              ),
-              bodyLarge: baseText.bodyLarge?.copyWith(
-                color: const Color(0xFF1F3A5A),
-                fontSize: 17,
-                height: 1.38,
-              ),
-              bodyMedium: baseText.bodyMedium?.copyWith(
-                color: const Color(0xFF274564),
-                fontSize: 16,
-                height: 1.38,
-              ),
-            ),
-            appBarTheme: const AppBarTheme(
-              elevation: 0,
-              centerTitle: false,
-              backgroundColor: Color(0xFFF8FBFF),
-              foregroundColor: text,
-              surfaceTintColor: Colors.transparent,
-            ),
-            cardTheme: CardThemeData(
-              elevation: 2,
-              shadowColor: const Color(0xFF0A2F53).withValues(alpha: 0.12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-                side: BorderSide(color: primary.withValues(alpha: 0.32)),
-              ),
-              margin: EdgeInsets.zero,
-              surfaceTintColor: Colors.transparent,
-              color: const Color(0xFFFBFDFF),
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: const Color(0xFFFDFEFF),
-              labelStyle: const TextStyle(color: Color(0xFF48607D)),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppUiTokens.inputRadius),
-                borderSide: BorderSide(color: primary.withValues(alpha: 0.22)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppUiTokens.inputRadius),
-                borderSide: BorderSide(color: primary.withValues(alpha: 0.22)),
-              ),
-              focusedBorder: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(AppUiTokens.inputRadius),
-                ),
-                borderSide: BorderSide(color: primary, width: 2),
-              ),
-            ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: FilledButton.styleFrom(
-                backgroundColor: primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppUiTokens.buttonRadius),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 12,
-                ),
-                minimumSize: const Size(0, 54),
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 17,
-                ),
-              ),
-            ),
-            outlinedButtonTheme: OutlinedButtonThemeData(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1F5E9C),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppUiTokens.buttonRadius),
-                ),
-                side: BorderSide(color: primary.withValues(alpha: 0.25)),
-                minimumSize: const Size(0, 54),
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            navigationBarTheme: NavigationBarThemeData(
-              height: 64,
-              backgroundColor: const Color(0xFFF8FBFF),
-              surfaceTintColor: Colors.transparent,
-              indicatorColor: const Color(0xFFD7E8FC),
-              labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((
-                states,
-              ) {
-                final selected = states.contains(WidgetState.selected);
-                return TextStyle(
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? primary : const Color(0xFF5A7090),
-                );
-              }),
-            ),
-          ),
+          theme: stitchTheme,
           home: LayoutBuilder(
             builder: (context, constraints) {
               final isMobile = constraints.maxWidth < 760;
               final textScaler = isMobile
-                  ? const TextScaler.linear(1.12)
+                  ? const TextScaler.linear(1.2)
                   : MediaQuery.of(context).textScaler;
 
-              final mobileLogoSize = showDashboardBack ? 60.0 : 72.0;
-              final mobileTitleSize = showDashboardBack ? 26.0 : 32.0;
+              final headerTitle = showDashboardBack
+                  ? backHeaderTitle
+                  : rootHeaderTitle;
 
               return Scaffold(
                 appBar: AppBar(
                   toolbarHeight: appHeaderToolbarHeight(context),
-                  centerTitle: showDashboardBack,
+                  centerTitle: true,
+                  titleSpacing: 0,
                   leading: showDashboardBack
                       ? IconButton(
                           key: const ValueKey('dashboard-back-button'),
@@ -679,41 +618,16 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                           },
                         )
                       : null,
-                  title: showDashboardBack
-                      ? buildAppHeaderTitle(context, backHeaderTitle)
-                      : Row(
-                          children: [
-                            Image.asset(
-                              'assets/branding/mtc_logo_clean.jpg',
-                              height: isMobile ? mobileLogoSize : 64,
-                              width: isMobile ? mobileLogoSize : 64,
-                              fit: BoxFit.contain,
-                              alignment: Alignment.center,
-                              errorBuilder: (_, _, _) =>
-                                  const Icon(Icons.grid_view_rounded),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'MTC Dining',
-                                    style: TextStyle(
-                                      fontSize: isMobile ? mobileTitleSize : 30,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.2,
-                                      color: text,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                  automaticallyImplyLeading: false,
+                  title: ValueListenableBuilder<String?>(
+                    valueListenable: appBarTitleOverride,
+                    builder: (context, override, _) {
+                      return buildAppHeaderTitle(
+                        context,
+                        override ?? headerTitle,
+                      );
+                    },
+                  ),
                   actions: [
                     if (isLoggedIn)
                       AppHeaderMenuButton(
@@ -890,28 +804,26 @@ class _MtcCafeteriaAppState extends State<MtcCafeteriaApp> {
                 ),
                 body: Stack(
                   children: [
-                    DecoratedBox(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFF9FCFF), Color(0xFFE7EEF9)],
-                        ),
-                      ),
+                    ColoredBox(
+                      color: bg,
                       child: Align(
-                        alignment: isLoggedIn && _selectedIndex == 1
-                            ? Alignment.center
-                            : Alignment.topCenter,
+                        alignment: Alignment.topCenter,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxWidth: isMobile ? 640 : 1240,
+                            maxWidth: isMobile
+                                ? StitchLayout.mobileMaxWidth
+                                : StitchLayout.desktopMaxWidth,
                           ),
                           child: Padding(
                             padding: EdgeInsets.fromLTRB(
+                              isMobile
+                                  ? StitchLayout.pagePaddingHMobile
+                                  : StitchLayout.pagePaddingH,
                               isMobile ? 16 : 20,
-                              isMobile ? 14 : 14,
-                              isMobile ? 16 : 20,
-                              isMobile ? 16 : 18,
+                              isMobile
+                                  ? StitchLayout.pagePaddingHMobile
+                                  : StitchLayout.pagePaddingH,
+                              isMobile ? 20 : 28,
                             ),
                             child: MediaQuery(
                               data: MediaQuery.of(

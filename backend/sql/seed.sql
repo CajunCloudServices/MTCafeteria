@@ -49,26 +49,34 @@ DELETE FROM announcements;
 INSERT INTO announcements (type, title, content, start_date, end_date, created_by)
 VALUES
 (
+  'Announcement',
+  'Table Direction Changes',
+  'Everyone: Management is working on changing table directions to improve customer seating. Please keep the table direction changes in place. - Dusty Lybbert',
+  DATE '2026-04-09',
+  CURRENT_DATE + INTERVAL '180 day',
+  (SELECT id FROM users WHERE email = 'manager@mtc.local')
+),
+(
   'Reminder',
-  'Shift Readiness Reminder',
-  'Arrive on time, clean shaven, and dressed in missionary-appropriate work attire.',
-  CURRENT_DATE,
+  'Sack Room Boiled Eggs',
+  'Line: At breakfast in sack room, please put 18 boiled eggs in the warmer next to the oatmeal.',
+  DATE '2026-04-04',
   CURRENT_DATE + INTERVAL '180 day',
   (SELECT id FROM users WHERE email = 'manager@mtc.local')
 ),
 (
   'Announcement',
-  'Seasonal Shift Sign-Up',
-  'Complete your spring and summer shift sign-up, even if you expect to be away, so staffing can be planned correctly.',
-  CURRENT_DATE,
+  'Leave Silver Hangers on Stand',
+  'Everyone: We are not recycling the silver metal hangers in the custodial closet. Please leave them on the hanger stand.',
+  DATE '2026-04-04',
   CURRENT_DATE + INTERVAL '180 day',
   (SELECT id FROM users WHERE email = 'manager@mtc.local')
 ),
 (
-  'Special Event',
-  'VIP Event Volunteer Sign-Up',
-  'Volunteer sign-up is open for next Tuesday''s VIP event. Add your name if you are available to help.',
-  CURRENT_DATE + INTERVAL '1 day',
+  'Reminder',
+  'Keep Fork Containers Stocked',
+  'Line: Even with the lack of metal forks, we need to make sure we are putting 2-3 containers of forks in each of the silverware stands, even if you have to put plastic in.',
+  DATE '2026-04-04',
   CURRENT_DATE + INTERVAL '180 day',
   (SELECT id FROM users WHERE email = 'manager@mtc.local')
 );

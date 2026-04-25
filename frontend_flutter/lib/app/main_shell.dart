@@ -24,7 +24,7 @@ extension _MainShell on _MtcCafeteriaAppState {
           await _state.login(email, password);
           if (_state.isAuthenticated && mounted) {
             _updateUi(() {
-              _selectedIndex = 0;
+              _selectedIndex = 1;
               _resetDashboardSelectorsForRole(_state.user!.role);
             });
           }
@@ -144,13 +144,17 @@ extension _MainShell on _MtcCafeteriaAppState {
     }
 
     if (effectiveDashboardView == _DashboardView.reference) {
-      return ReferenceSheetsView(adminModeEnabled: _adminModeEnabled);
+      return ReferenceSheetsView(
+        adminModeEnabled: _adminModeEnabled,
+        backController: _referenceBack,
+      );
     }
     if (effectiveDashboardView == _DashboardView.findItem) {
       return ReferenceSheetsView(
         initialSection: 'Find an Item',
         lockSection: true,
         adminModeEnabled: _adminModeEnabled,
+        backController: _findItemBack,
       );
     }
     if (effectiveDashboardView == _DashboardView.diningMap) {
@@ -173,11 +177,11 @@ extension _MainShell on _MtcCafeteriaAppState {
       return ShiftTrackSelectionCard(
         availableTracks: availableTracks,
         selectedTrack: _dashboardTrack,
-        onTrackChanged: (track) => _updateUi(() => _dashboardTrack = track),
-        onContinue: () {
+        onTrackChanged: (track) {
           if (user == null) return;
           _updateUi(() {
-            _applyTrackSelection(user.role, _dashboardTrack);
+            _dashboardTrack = track;
+            _applyTrackSelection(user.role, track);
           });
         },
       );
@@ -191,17 +195,17 @@ extension _MainShell on _MtcCafeteriaAppState {
             : 'Select Role',
         availableModes: availableModes,
         selectedMode: _dashboardMode,
-        onModeChanged: (mode) => _updateUi(() => _dashboardMode = mode),
-        onContinue: () async {
+        onModeChanged: (mode) async {
           _updateUi(() {
+            _dashboardMode = mode;
             _dashboardRoleConfirmed = true;
           });
           if (_dashboardTrack == 'Line') {
-            if (_dashboardMode == 'Supervisor') {
+            if (mode == 'Supervisor') {
               _state.refreshSupervisorBoard();
-            } else if (_dashboardMode == 'Lead Trainer') {
+            } else if (mode == 'Lead Trainer') {
               _state.refreshTrainerBoard();
-            } else if (_dashboardMode == 'Employee') {
+            } else if (mode == 'Employee') {
               _state.refreshTaskBoard();
             }
           }
@@ -335,6 +339,7 @@ extension _MainShell on _MtcCafeteriaAppState {
           _state.updateLandingItem(id, payload),
       onDeleteAnnouncement: (id) => _state.deleteLandingItem(id),
       onOpenTaskEditor: () => _openTaskEditor(context),
+      managerPortalBack: _managerPortalBack,
     );
   }
 

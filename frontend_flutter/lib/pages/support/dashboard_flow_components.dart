@@ -1,31 +1,32 @@
 part of '../dashboard_support_sections.dart';
 
+/// Instruction/reference box used above support-track checklists.
 class InstructionCard extends StatelessWidget {
-  const InstructionCard({super.key, required this.lines});
+  const InstructionCard({
+    super.key,
+    required this.lines,
+    this.textStyle,
+  });
 
   final List<String> lines;
+  final TextStyle? textStyle;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F9FF),
-        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-        border: Border.all(
-          color: const Color(0xFF1F5E9C).withValues(alpha: 0.28),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final line in lines) ...[
-            Text(line, style: const TextStyle(height: 1.4)),
-            const SizedBox(height: 6),
-          ],
+    if (lines.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < lines.length; i++) ...[
+          if (i > 0) const SizedBox(height: 6),
+          Text(
+            lines[i],
+            style:
+                textStyle ??
+                StitchText.bodyLg.copyWith(color: StitchColors.onSurface),
+          ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -47,41 +48,58 @@ class LocalPhaseChecklist extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-        border: Border.all(
-          color: const Color(0xFF9AB3CF).withValues(alpha: 0.7),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 6),
-          ...tasks.map(
-            (task) => task.requiresCheckoff
-                ? CheckboxListTile(
-                    dense: false,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: checks[task.id] ?? false,
-                    title: Text(task.description),
-                    onChanged: (value) => onToggle(task.id, value ?? false),
-                  )
-                : ListTile(
-                    dense: false,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 6),
-                    leading: const Icon(Icons.remove, size: 18),
-                    title: Text(task.description),
-                    subtitle: const Text(
-                      'Continuous during-shift responsibility',
-                    ),
-                  ),
+    final checkoffTotal = tasks.where((t) => t.requiresCheckoff).length;
+    final checkoffDone = tasks
+        .where((t) => t.requiresCheckoff && (checks[t.id] ?? false))
+        .length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.md),
+          elevation: StitchCardElevation.subtle,
+          surface: StitchSurface.low,
+          ring: true,
+          child: StitchProgressCard(
+            title: title,
+            completed: checkoffDone,
+            total: checkoffTotal,
+            leadingIcon: Icons.checklist_rounded,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: StitchSpacing.lg),
+        StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.md),
+          elevation: StitchCardElevation.subtle,
+          surface: StitchSurface.low,
+          ring: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var index = 0; index < tasks.length; index++) ...[
+                Builder(
+                  builder: (context) {
+                    final task = tasks[index];
+                    if (task.requiresCheckoff) {
+                      return StitchChecklistTile(
+                        title: task.description,
+                        checked: checks[task.id] ?? false,
+                        onChanged: (value) => onToggle(task.id, value),
+                      );
+                    }
+                    return StitchChecklistTile(
+                      title: task.description,
+                      readOnly: true,
+                    );
+                  },
+                ),
+                if (index < tasks.length - 1)
+                  const SizedBox(height: StitchSpacing.md),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -92,49 +110,22 @@ class SimpleFinishCard extends StatelessWidget {
     super.key,
     required this.title,
     required this.message,
+    this.onReturn,
   });
 
   final String title;
   final String message;
+  final VoidCallback? onReturn;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: Color(0xFF2E7D32),
-                  size: 28,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF103760),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              message,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF264D76),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return StitchSuccessCard(
+      title: title,
+      message: message,
+      stats: const [],
+      primaryCtaLabel: 'Back to Dashboard',
+      primaryIcon: Icons.dashboard_rounded,
+      onPrimary: onReturn ?? () {},
     );
   }
 }
@@ -148,13 +139,19 @@ class PanelTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w800,
-        color: Color(0xFF123A64),
-      ),
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: StitchColors.primary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: StitchText.titleLg,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

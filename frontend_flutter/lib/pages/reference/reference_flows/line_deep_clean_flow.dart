@@ -24,86 +24,114 @@ extension _LineDeepCleanReferenceFlow on _ReferenceSheetsViewState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_lineDeepCleanStep == 0) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _selectedLineDeepCleanDay,
-            decoration: const InputDecoration(labelText: 'Day'),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(value: 'monday', child: Text('Monday')),
-              DropdownMenuItem(value: 'tuesday', child: Text('Tuesday')),
-              DropdownMenuItem(value: 'wednesday', child: Text('Wednesday')),
-              DropdownMenuItem(value: 'thursday', child: Text('Thursday')),
-              DropdownMenuItem(value: 'friday', child: Text('Friday')),
-              DropdownMenuItem(value: 'saturday', child: Text('Saturday')),
-              DropdownMenuItem(value: 'sunday', child: Text('Sunday')),
+        if (_lineDeepCleanStep == 0)
+          _buildGuideSelectionList(
+            title: 'Select Day',
+            options: [
+              for (final day in const [
+                'monday',
+                'tuesday',
+                'wednesday',
+                'thursday',
+                'friday',
+                'saturday',
+                'sunday',
+              ])
+                (
+                  label: _toDayTitle(day),
+                  subtitle: null,
+                  icon: Icons.calendar_today_outlined,
+                  onTap: () {
+                    _updateReferenceState(() {
+                      _selectedLineDeepCleanDay = day;
+                      _lineDeepCleanStep = 1;
+                    });
+                  },
+                ),
             ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() => _selectedLineDeepCleanDay = value);
+            backLabel: 'Back to Line Guides',
+            onBack: () {
+              _updateReferenceState(() {
+                _selectedLineGuideSection = 'Select';
+                _lineDeepCleanStep = 0;
+              });
             },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () =>
-                  _updateReferenceState(() => _lineDeepCleanStep = 1),
-              child: const Text('Next'),
-            ),
-          ),
-        ] else if (_lineDeepCleanStep == 1) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _selectedLineDeepCleanMeal,
-            decoration: const InputDecoration(labelText: 'Meal'),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(value: 'Breakfast', child: Text('Breakfast')),
-              DropdownMenuItem(value: 'Lunch', child: Text('Lunch')),
-              DropdownMenuItem(value: 'Dinner', child: Text('Dinner')),
+          )
+        else if (_lineDeepCleanStep == 1)
+          _buildGuideSelectionList(
+            title: 'Select Meal',
+            options: [
+              (
+                label: 'Breakfast',
+                subtitle: null,
+                icon: Icons.bakery_dining_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _selectedLineDeepCleanMeal = 'Breakfast';
+                    _lineDeepCleanStep = 2;
+                  });
+                },
+              ),
+              (
+                label: 'Lunch',
+                subtitle: null,
+                icon: Icons.lunch_dining_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _selectedLineDeepCleanMeal = 'Lunch';
+                    _lineDeepCleanStep = 2;
+                  });
+                },
+              ),
+              (
+                label: 'Dinner',
+                subtitle: null,
+                icon: Icons.restaurant_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _selectedLineDeepCleanMeal = 'Dinner';
+                    _lineDeepCleanStep = 2;
+                  });
+                },
+              ),
             ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() => _selectedLineDeepCleanMeal = value);
+            backLabel: 'Back to Day',
+            onBack: () {
+              _updateReferenceState(() {
+                _lineDeepCleanStep = 0;
+              });
             },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () =>
-                  _updateReferenceState(() => _lineDeepCleanStep = 2),
-              child: const Text('Next'),
+          )
+        else
+          _buildGuideContentScreen(
+            backLabel: 'Back to Meal',
+            onBack: () {
+              _updateReferenceState(() {
+                _lineDeepCleanStep = 1;
+              });
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildReferenceSummaryChip(
+                      _toDayTitle(_selectedLineDeepCleanDay),
+                    ),
+                    _buildReferenceSummaryChip(_selectedLineDeepCleanMeal),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _buildReferenceTaskCard(
+                  title: 'Line Deep Cleaning',
+                  items: assignmentItems,
+                  icon: Icons.cleaning_services_outlined,
+                ),
+              ],
             ),
           ),
-        ] else ...[
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildReferenceSummaryChip(
-                _toDayTitle(_selectedLineDeepCleanDay),
-              ),
-              _buildReferenceSummaryChip(_selectedLineDeepCleanMeal),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _buildReferenceTaskCard(
-            title: 'Line Deep Cleaning',
-            items: assignmentItems,
-            icon: Icons.cleaning_services_outlined,
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => _updateReferenceState(
-                () => _lineDeepCleanStep = (_lineDeepCleanStep - 1).clamp(0, 2),
-              ),
-              child: const Text('Back'),
-            ),
-          ),
-        ],
       ],
     );
   }

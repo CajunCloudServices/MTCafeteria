@@ -15,8 +15,6 @@ extension _CondimentsRotationReferenceFlow on _ReferenceSheetsViewState {
   }
 
   Widget _buildCondimentsRotationFlow(Map<String, dynamic> data) {
-    // This is reference-only. The stepped flow narrows the visible condiment
-    // list without implying that workers are "completing" anything.
     final condiments = _currentCondimentItems(data);
     final overrideKey = _guideOverrideKey(
       topSection: 'Line',
@@ -37,107 +35,137 @@ extension _CondimentsRotationReferenceFlow on _ReferenceSheetsViewState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_condimentStep == 0) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _selectedCondimentColor,
-            decoration: const InputDecoration(labelText: 'Week Color'),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(value: 'green', child: Text('Green')),
-              DropdownMenuItem(value: 'blue', child: Text('Blue')),
-              DropdownMenuItem(value: 'yellow', child: Text('Yellow')),
-              DropdownMenuItem(value: 'pink', child: Text('Pink')),
+        if (_condimentStep == 0)
+          _buildGuideSelectionList(
+            title: 'Select Week Color',
+            options: [
+              for (final color in const ['green', 'blue', 'yellow', 'pink'])
+                (
+                  label: _toTitle(color),
+                  subtitle: null,
+                  icon: Icons.palette_outlined,
+                  onTap: () {
+                    _updateReferenceState(() {
+                      _selectedCondimentColor = color;
+                      _condimentStep = 1;
+                    });
+                  },
+                ),
             ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() => _selectedCondimentColor = value);
+            backLabel: 'Back to Line Guides',
+            onBack: () {
+              _updateReferenceState(() {
+                _selectedLineGuideSection = 'Select';
+                _condimentStep = 0;
+              });
             },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => _updateReferenceState(() => _condimentStep = 1),
-              child: const Text('Next'),
-            ),
-          ),
-        ] else if (_condimentStep == 1) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _selectedCondimentDay,
-            decoration: const InputDecoration(labelText: 'Day'),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(value: 'monday', child: Text('Monday')),
-              DropdownMenuItem(value: 'tuesday', child: Text('Tuesday')),
-              DropdownMenuItem(value: 'wednesday', child: Text('Wednesday')),
-              DropdownMenuItem(value: 'thursday', child: Text('Thursday')),
-              DropdownMenuItem(value: 'friday', child: Text('Friday')),
-              DropdownMenuItem(value: 'saturday', child: Text('Saturday')),
-              DropdownMenuItem(value: 'sunday', child: Text('Sunday')),
+          )
+        else if (_condimentStep == 1)
+          _buildGuideSelectionList(
+            title: 'Select Day',
+            options: [
+              for (final day in const [
+                'monday',
+                'tuesday',
+                'wednesday',
+                'thursday',
+                'friday',
+                'saturday',
+                'sunday',
+              ])
+                (
+                  label: _toDayTitle(day),
+                  subtitle: null,
+                  icon: Icons.calendar_today_outlined,
+                  onTap: () {
+                    _updateReferenceState(() {
+                      _selectedCondimentDay = day;
+                      _condimentStep = 2;
+                    });
+                  },
+                ),
             ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() => _selectedCondimentDay = value);
+            backLabel: 'Back to Color',
+            onBack: () {
+              _updateReferenceState(() {
+                _condimentStep = 0;
+              });
             },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => _updateReferenceState(() => _condimentStep = 2),
-              child: const Text('Next'),
-            ),
-          ),
-        ] else if (_condimentStep == 2) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _selectedCondimentMeal,
-            decoration: const InputDecoration(labelText: 'Meal'),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(value: 'Breakfast', child: Text('Breakfast')),
-              DropdownMenuItem(value: 'Lunch', child: Text('Lunch')),
-              DropdownMenuItem(value: 'Dinner', child: Text('Dinner')),
-            ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() => _selectedCondimentMeal = value);
-            },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => _updateReferenceState(() => _condimentStep = 3),
-              child: const Text('Next'),
-            ),
-          ),
-        ] else ...[
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildReferenceSummaryChip(_toTitle(_selectedCondimentColor)),
-              _buildReferenceSummaryChip(_toDayTitle(_selectedCondimentDay)),
-              _buildReferenceSummaryChip(_selectedCondimentMeal),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _buildReferenceTaskCard(
-            title: condiments.isEmpty ? 'No Extra Condiments' : 'Put Out',
-            items: effectiveItems,
-            icon: Icons.kitchen_outlined,
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => _updateReferenceState(
-                () => _condimentStep = (_condimentStep - 1).clamp(0, 3),
+          )
+        else if (_condimentStep == 2)
+          _buildGuideSelectionList(
+            title: 'Select Meal',
+            options: [
+              (
+                label: 'Breakfast',
+                subtitle: null,
+                icon: Icons.bakery_dining_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _selectedCondimentMeal = 'Breakfast';
+                    _condimentStep = 3;
+                  });
+                },
               ),
-              child: const Text('Back'),
+              (
+                label: 'Lunch',
+                subtitle: null,
+                icon: Icons.lunch_dining_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _selectedCondimentMeal = 'Lunch';
+                    _condimentStep = 3;
+                  });
+                },
+              ),
+              (
+                label: 'Dinner',
+                subtitle: null,
+                icon: Icons.restaurant_rounded,
+                onTap: () {
+                  _updateReferenceState(() {
+                    _selectedCondimentMeal = 'Dinner';
+                    _condimentStep = 3;
+                  });
+                },
+              ),
+            ],
+            backLabel: 'Back to Day',
+            onBack: () {
+              _updateReferenceState(() {
+                _condimentStep = 1;
+              });
+            },
+          )
+        else
+          _buildGuideContentScreen(
+            backLabel: 'Back to Meal',
+            onBack: () {
+              _updateReferenceState(() {
+                _condimentStep = 2;
+              });
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildReferenceSummaryChip(_toTitle(_selectedCondimentColor)),
+                    _buildReferenceSummaryChip(_toDayTitle(_selectedCondimentDay)),
+                    _buildReferenceSummaryChip(_selectedCondimentMeal),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _buildReferenceTaskCard(
+                  title: condiments.isEmpty ? 'No Extra Condiments' : 'Put Out',
+                  items: effectiveItems,
+                  icon: Icons.kitchen_outlined,
+                ),
+              ],
             ),
           ),
-        ],
       ],
     );
   }

@@ -3,13 +3,26 @@ import 'package:flutter/material.dart';
 import '../config/runtime_config.dart';
 import '../models/admin_task_board.dart';
 import '../services/api_client.dart';
+import '../theme/stitch_tokens.dart';
+import '../widgets/app_header.dart';
+import '../widgets/ui/stitch_buttons.dart';
+import '../widgets/ui/stitch_card.dart';
+import '../widgets/ui/stitch_chip.dart';
+import '../widgets/ui/stitch_selection_screen.dart';
 
-/// Admin-only page for managing the canonical list of jobs and their tasks.
-///
-/// Access is gated by a dedicated password that the caller must have already
-/// collected via [promptForTaskEditorPassword]. The password is sent on every
-/// backend request. If the backend ever rejects it, the page prompts the
-/// caller to cancel and re-unlock instead of silently failing.
+IconData _iconForMeal(String meal) {
+  switch (meal.toLowerCase()) {
+    case 'breakfast':
+      return Icons.bakery_dining_rounded;
+    case 'lunch':
+      return Icons.lunch_dining_rounded;
+    case 'dinner':
+      return Icons.restaurant_rounded;
+    default:
+      return Icons.schedule_rounded;
+  }
+}
+
 class TaskEditorPage extends StatefulWidget {
   const TaskEditorPage({super.key, required this.authToken, this.apiClient});
 
@@ -28,8 +41,6 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
   AdminTaskBoard? _board;
   bool _loading = false;
   String? _error;
-  String _mealFilter = 'All';
-  final Set<int> _expandedJobIds = <int>{};
 
   @override
   void initState() {
@@ -37,15 +48,18 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     _refresh();
   }
 
-  List<String> get _mealOptions {
-    return const ['All', 'Breakfast', 'Lunch', 'Dinner'];
-  }
-
-  List<AdminJob> get _visibleJobs {
+  List<String> get _jobNamesSorted {
     final board = _board;
     if (board == null) return const [];
-    if (_mealFilter == 'All') return board.jobs;
-    return board.jobs.where((job) => job.mealType == _mealFilter).toList();
+    final names = board.jobs.map((j) => j.name).toSet().toList();
+    names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return names;
+  }
+
+  List<AdminJob> _jobsForName(String name) {
+    final board = _board;
+    if (board == null) return <AdminJob>[];
+    return board.jobs.where((job) => job.name == name).toList();
   }
 
   Future<void> _refresh() async {
@@ -98,12 +112,37 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     );
     if (result == null) return;
     try {
-      await _api.createAdminJob(
-        widget.authToken,
-        name: result.name,
-        shiftId: result.shiftId,
-      );
-      _toast('Job created');
+      final existingShiftIds = board.jobs
+          .where((job) => job.name.toLowerCase() == result.name.toLowerCase())
+          .map((job) => job.shiftId)
+          .toSet();
+      final shiftIdsToCreate = result.shiftIds
+          .where((shiftId) => !existingShiftIds.contains(shiftId))
+          .toList();
+
+      if (shiftIdsToCreate.isEmpty) {
+        _toast('That job already exists for the selected meals.');
+        return;
+      }
+
+      for (final shiftId in shiftIdsToCreate) {
+        await _api.createAdminJob(
+          widget.authToken,
+          name: result.name,
+          shiftId: shiftId,
+        );
+      }
+
+      final skippedCount = result.shiftIds.length - shiftIdsToCreate.length;
+      if (shiftIdsToCreate.length == 1 && skippedCount == 0) {
+        _toast('Job created');
+      } else if (skippedCount == 0) {
+        _toast('${shiftIdsToCreate.length} jobs created');
+      } else {
+        _toast(
+          '${shiftIdsToCreate.length} jobs created, $skippedCount already existed',
+        );
+      }
       await _refresh();
     } on ApiClientException catch (e) {
       _toast(e.message);
@@ -222,6 +261,60 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     }
   }
 
+  Future<void> _handleSelectJobMeal(String name) async {
+    final board = _board;
+    if (board == null) return;
+    final options = _jobsForName(name);
+    if (options.isEmpty) return;
+
+    // Show the canonical meal list but mark unavailable meals as disabled.
+    const allMeals = ['Breakfast', 'Lunch', 'Dinner'];
+    final mealSet = <String>{};
+    for (final j in options) {
+      final mt = (j.mealType ?? '').trim();
+      if (mt.isNotEmpty) mealSet.add(mt);
+    }
+
+    final selectedMeal = await Navigator.of(context).push<String?>(
+      MaterialPageRoute(
+        builder: (ctx) =>
+            _JobMealSelectionPage(meals: allMeals, enabledMeals: mealSet),
+      ),
+    );
+    if (!mounted) return;
+    if (mealSet.isEmpty) {
+      _toast('No meal variants available for "$name".');
+      return;
+    }
+    if (selectedMeal == null) return;
+
+    final selectedJob = options.firstWhere(
+      (j) => (j.mealType ?? '') == selectedMeal,
+      orElse: () => options.first,
+    );
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) {
+          return _JobEditScreen(
+            jobName: name,
+            getJob: () => _jobsForName(name).firstWhere(
+              (j) => (j.mealType ?? '') == selectedMeal,
+              orElse: () => selectedJob,
+            ),
+            onRename: (job) async => await _handleRenameJob(job),
+            onDelete: (job) async => await _handleDeleteJob(job),
+            onAddTask: (job, phase) async =>
+                await _handleCreateTask(job, phase),
+            onEditTask: (job, task) async => await _handleEditTask(job, task),
+            onDeleteTask: (job, task) async =>
+                await _handleDeleteTask(job, task),
+          );
+        },
+      ),
+    );
+  }
+
   Future<bool> _confirm({
     required String title,
     required String message,
@@ -238,7 +331,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: FilledButton.styleFrom(backgroundColor: StitchColors.error),
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(destructiveLabel),
           ),
@@ -252,7 +345,9 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task & Job Editor'),
+        toolbarHeight: appHeaderToolbarHeight(context),
+        title: buildAppHeaderTitle(context, 'Task & Job Editor'),
+        centerTitle: true,
         actions: [
           IconButton(
             tooltip: 'Refresh',
@@ -260,11 +355,6 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
             onPressed: _loading ? null : _refresh,
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _board == null ? null : _handleCreateJob,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Job'),
       ),
       body: _buildBody(),
     );
@@ -277,108 +367,186 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     if (_board == null) {
       return const Center(child: CircularProgressIndicator());
     }
+
     return Column(
       children: [
-        _buildFilterBar(),
         if (_loading) const LinearProgressIndicator(minHeight: 2),
-        if (_error != null)
-          Container(
-            width: double.infinity,
-            color: Colors.red.shade50,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(_error!, style: TextStyle(color: Colors.red.shade800)),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 920),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildAddJobButton(),
+                    if (_error != null) ...[
+                      const SizedBox(height: 12),
+                      _InlineErrorBanner(message: _error!),
+                    ],
+                    const SizedBox(height: 14),
+                    _buildJobsList(),
+                  ],
+                ),
+              ),
+            ),
           ),
-        Expanded(child: _buildJobsList()),
+        ),
       ],
     );
   }
 
-  Widget _buildFilterBar() {
-    final options = _mealOptions;
-    final totalJobs = _board?.jobs.length ?? 0;
-    final totalTasks =
-        _board?.jobs.fold<int>(0, (a, j) => a + j.totalTaskCount) ?? 0;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      color: Theme.of(context).colorScheme.surface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$totalJobs jobs · $totalTasks tasks',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 260,
-            child: DropdownButtonFormField<String>(
-              initialValue: _mealFilter,
-              decoration: const InputDecoration(labelText: 'Line jobs'),
-              items: options
-                  .map(
-                    (meal) => DropdownMenuItem<String>(
-                      value: meal,
-                      child: Text(meal),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() => _mealFilter = value);
-              },
+  Widget _buildAddJobButton() {
+    return StitchPrimaryButton(
+      label: 'Add Job',
+      icon: Icons.add_rounded,
+      height: StitchLayout.ctaHeightLg,
+      onPressed: _handleCreateJob,
+    );
+  }
+
+  Widget _buildJobsList() {
+    final names = _jobNamesSorted;
+    if (names.isEmpty) {
+      return StitchCard(
+        padding: const EdgeInsets.all(StitchSpacing.xl2),
+        elevation: StitchCardElevation.subtle,
+        ring: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.work_outline_rounded,
+              size: 28,
+              color: StitchColors.onSurfaceVariant,
             ),
+            const SizedBox(height: 10),
+            Text('No jobs available.', style: StitchText.titleMd),
+            const SizedBox(height: 6),
+            Text(
+              'Add a new job to get started.',
+              style: StitchText.body,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+          for (var index = 0; index < names.length; index++) ...[
+            if (index > 0) const SizedBox(height: 12),
+            _JobNameCard(
+              name: names[index],
+              onTap: () => _handleSelectJobMeal(names[index]),
+            ),
+          ],
+        ],
+      );
+  }
+}
+
+class _JobNameCard extends StatelessWidget {
+  const _JobNameCard({
+    required this.name,
+    required this.onTap,
+  });
+
+  final String name;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+      return StitchCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: StitchSpacing.lg,
+          vertical: StitchSpacing.xl,
+        ),
+        onTap: onTap,
+        child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: StitchText.titleMd.copyWith(
+                    color: StitchColors.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: StitchColors.onSurfaceVariant,
+            size: 24,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildJobsList() {
-    final jobs = _visibleJobs;
-    if (jobs.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'No jobs match this filter. Add one with the button below.',
-          ),
+class _JobMealSelectionPage extends StatefulWidget {
+  const _JobMealSelectionPage({
+    required this.meals,
+    required this.enabledMeals,
+  });
+
+  final List<String> meals;
+  final Set<String> enabledMeals;
+
+  @override
+  State<_JobMealSelectionPage> createState() => _JobMealSelectionPageState();
+}
+
+class _JobMealSelectionPageState extends State<_JobMealSelectionPage> {
+  String? _selectedMeal;
+
+  List<String> get _availableMeals =>
+      widget.meals.where(widget.enabledMeals.contains).toList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: appHeaderToolbarHeight(context),
+        title: buildAppHeaderTitle(context, 'Select Meal'),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(StitchSpacing.lg),
+        child: StitchSelectionScreen(
+          title: 'Select Meal',
+          options: [
+            for (final meal in _availableMeals)
+              StitchSelectionOption(
+                rowKey: ValueKey('meal-row-$meal'),
+                label: meal,
+                icon: _iconForMeal(meal),
+                selected: _selectedMeal == meal,
+                onTap: () {
+                  setState(() => _selectedMeal = meal);
+                  Navigator.of(context).pop(meal);
+                },
+              ),
+          ],
         ),
-      );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-      itemCount: jobs.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final job = jobs[index];
-        return _JobCard(
-          job: job,
-          phases: _board?.phases ?? const ['Setup', 'During Shift', 'Cleanup'],
-          expanded: _expandedJobIds.contains(job.id),
-          onToggleExpanded: () {
-            setState(() {
-              if (!_expandedJobIds.add(job.id)) {
-                _expandedJobIds.remove(job.id);
-              }
-            });
-          },
-          onRename: () => _handleRenameJob(job),
-          onDelete: () => _handleDeleteJob(job),
-          onAddTask: (phase) => _handleCreateTask(job, phase),
-          onEditTask: (task) => _handleEditTask(job, task),
-          onDeleteTask: (task) => _handleDeleteTask(job, task),
-        );
-      },
+      ),
     );
   }
 }
 
-class _JobCard extends StatelessWidget {
-  const _JobCard({
-    required this.job,
-    required this.phases,
-    required this.expanded,
-    required this.onToggleExpanded,
+class _JobEditScreen extends StatefulWidget {
+  const _JobEditScreen({
+    required this.jobName,
+    required this.getJob,
     required this.onRename,
     required this.onDelete,
     required this.onAddTask,
@@ -386,109 +554,121 @@ class _JobCard extends StatelessWidget {
     required this.onDeleteTask,
   });
 
-  final AdminJob job;
-  final List<String> phases;
-  final bool expanded;
-  final VoidCallback onToggleExpanded;
-  final VoidCallback onRename;
-  final VoidCallback onDelete;
-  final void Function(String phase) onAddTask;
-  final void Function(AdminTask task) onEditTask;
-  final void Function(AdminTask task) onDeleteTask;
+  final String jobName;
+  final AdminJob Function() getJob;
+  final Future<void> Function(AdminJob job) onRename;
+  final Future<void> Function(AdminJob job) onDelete;
+  final Future<void> Function(AdminJob job, String phase) onAddTask;
+  final Future<void> Function(AdminJob job, AdminTask task) onEditTask;
+  final Future<void> Function(AdminJob job, AdminTask task) onDeleteTask;
+
+  @override
+  State<_JobEditScreen> createState() => _JobEditScreenState();
+}
+
+class _JobEditScreenState extends State<_JobEditScreen> {
+  late AdminJob _job;
+
+  @override
+  void initState() {
+    super.initState();
+    _job = widget.getJob();
+  }
+
+  Future<void> _refreshJob() async {
+    final latest = widget.getJob();
+    if (!mounted) return;
+    setState(() {
+      _job = latest;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InkWell(
-            onTap: onToggleExpanded,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                job.name,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            if ((job.mealType ?? '').isNotEmpty)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primaryContainer,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  job.mealType!,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${job.totalTaskCount} tasks · ${job.shiftName ?? '—'}',
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: appHeaderToolbarHeight(context),
+        title: buildAppHeaderTitle(context, 'Edit ${widget.jobName}'),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 920),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _JobEditorHeader(
+                  onRename: () async {
+                    await widget.onRename(_job);
+                    await _refreshJob();
+                  },
+                  onDelete: () async {
+                    await widget.onDelete(_job);
+                    if (!context.mounted) return;
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: StitchSpacing.md),
+                for (final phase in _job.tasksByPhase.keys) ...[
+                  _PhaseSection(
+                    phase: phase,
+                    tasks: _job.tasksByPhase[phase] ?? const [],
+                    onAddTask: () async {
+                      await widget.onAddTask(_job, phase);
+                      await _refreshJob();
+                    },
+                    onEditTask: (task) async {
+                      await widget.onEditTask(_job, task);
+                      await _refreshJob();
+                    },
+                    onDeleteTask: (task) async {
+                      await widget.onDeleteTask(_job, task);
+                      await _refreshJob();
+                    },
                   ),
-                  IconButton(
-                    tooltip: 'Rename',
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: onRename,
-                  ),
-                  IconButton(
-                    tooltip: 'Delete',
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: onDelete,
-                  ),
-                  Icon(expanded ? Icons.expand_less : Icons.expand_more),
+                  const SizedBox(height: StitchSpacing.sm),
                 ],
-              ),
+              ],
             ),
           ),
-          if (expanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final phase in phases) ...[
-                    const Divider(height: 1),
-                    _PhaseSection(
-                      phase: phase,
-                      tasks: job.tasksByPhase[phase] ?? const [],
-                      onAddTask: () => onAddTask(phase),
-                      onEditTask: onEditTask,
-                      onDeleteTask: onDeleteTask,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _JobEditorHeader extends StatelessWidget {
+  const _JobEditorHeader({required this.onRename, required this.onDelete});
+
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: StitchSecondaryButton(
+            label: 'Edit Job',
+            icon: Icons.edit_outlined,
+            onPressed: onRename,
+          ),
+        ),
+        const SizedBox(width: StitchSpacing.md),
+        Expanded(
+          child: StitchSecondaryButton(
+            label: 'Delete Job',
+            icon: Icons.delete_outline,
+            background: StitchColors.errorContainer,
+            foreground: StitchColors.onErrorContainer,
+            border: StitchColors.error.withValues(alpha: 0.18),
+            onPressed: onDelete,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -510,83 +690,122 @@ class _PhaseSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.lg),
+      elevation: StitchCardElevation.none,
+      surface: StitchSurface.low,
+      ring: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  phase,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final stacked = constraints.maxWidth < 520;
+              final summary = Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  StitchChip(
+                    label: phase,
+                    tone: StitchChipTone.primary,
+                    uppercase: false,
+                    filled: false,
                   ),
-                ),
-              ),
-              TextButton.icon(
+                ],
+              );
+              final addTask = StitchSecondaryButton(
+                label: 'Add Task',
+                icon: Icons.add_rounded,
+                expand: stacked,
                 onPressed: onAddTask,
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add task'),
-              ),
-            ],
+              );
+
+              if (stacked) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [summary, const SizedBox(height: 12), addTask],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: summary),
+                  const SizedBox(width: 12),
+                  SizedBox(width: 148, child: addTask),
+                ],
+              );
+            },
           ),
+          const SizedBox(height: 12),
           if (tasks.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 4, top: 2, bottom: 4),
-              child: Text(
-                'No tasks yet.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.disabledColor,
-                ),
-              ),
-            )
+            Text('No tasks yet.', style: StitchText.body)
           else
             ...tasks.map(
               (task) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 10, right: 8),
-                      child: Icon(Icons.circle, size: 6),
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: StitchColors.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(StitchRadii.md),
+                    border: Border.all(
+                      color: StitchColors.outlineVariant.withValues(alpha: 0.4),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Text(
-                          task.description,
-                          style: theme.textTheme.bodyMedium,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.only(top: 6),
+                        decoration: const BoxDecoration(
+                          color: StitchColors.primary,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                    ),
-                    if (!task.requiresCheckoff)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Tooltip(
-                          message: 'Does not require checkoff',
-                          child: Icon(
-                            Icons.flag_outlined,
-                            size: 16,
-                            color: theme.disabledColor,
-                          ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              task.description,
+                              style: StitchText.bodyStrong.copyWith(
+                                height: 1.45,
+                              ),
+                            ),
+                            if (!task.requiresCheckoff) ...[
+                              const SizedBox(height: 8),
+                              const StitchChip(
+                                label: 'Optional',
+                                tone: StitchChipTone.neutral,
+                                uppercase: false,
+                                dense: true,
+                                icon: Icons.flag_outlined,
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                    IconButton(
-                      tooltip: 'Edit',
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      onPressed: () => onEditTask(task),
-                    ),
-                    IconButton(
-                      tooltip: 'Delete',
-                      icon: const Icon(Icons.delete_outline, size: 18),
-                      onPressed: () => onDeleteTask(task),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      _ActionIconButton(
+                        tooltip: 'Edit',
+                        icon: Icons.edit_outlined,
+                        onPressed: () => onEditTask(task),
+                      ),
+                      const SizedBox(width: 8),
+                      _ActionIconButton(
+                        tooltip: 'Delete',
+                        icon: Icons.delete_outline,
+                        tone: StitchChipTone.error,
+                        onPressed: () => onDeleteTask(task),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -596,10 +815,50 @@ class _PhaseSection extends StatelessWidget {
   }
 }
 
+class _ActionIconButton extends StatelessWidget {
+  const _ActionIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+    this.tone = StitchChipTone.neutral,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final StitchChipTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = tone == StitchChipTone.error
+        ? StitchColors.error
+        : StitchColors.primary;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: StitchColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(StitchRadii.sm),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(StitchRadii.sm),
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Icon(icon, size: 18, color: color),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _JobFormResult {
-  const _JobFormResult({required this.name, required this.shiftId});
+  const _JobFormResult({required this.name, required this.shiftIds});
+
   final String name;
-  final int shiftId;
+  final List<int> shiftIds;
+
+  int get shiftId => shiftIds.first;
 }
 
 class _JobFormDialog extends StatefulWidget {
@@ -625,7 +884,69 @@ class _JobFormDialogState extends State<_JobFormDialog> {
   late final TextEditingController _nameController = TextEditingController(
     text: widget.initialName,
   );
-  late int _shiftId = widget.initialShiftId;
+  late int _sectionShiftId = widget.initialShiftId;
+  late Set<String> _selectedMeals = <String>{
+    _mealLabelForShift(
+      widget.shifts.firstWhere(
+        (shift) => shift.id == widget.initialShiftId,
+        orElse: () => widget.shifts.first,
+      ),
+    ),
+  };
+
+  List<AdminShift> get _sectionShifts {
+    final section = _sectionLabelForShiftId(_sectionShiftId);
+    return widget.shifts
+        .where((shift) => _sectionLabelForShift(shift) == section)
+        .toList()
+      ..sort(
+        (a, b) => _mealSortOrder(
+          _mealLabelForShift(a),
+        ).compareTo(_mealSortOrder(_mealLabelForShift(b))),
+      );
+  }
+
+  List<String> get _sectionLabels {
+    final labels = widget.shifts.map(_sectionLabelForShift).toSet().toList();
+    labels.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return labels;
+  }
+
+  String _sectionLabelForShift(AdminShift shift) {
+    final raw = shift.shiftType.trim();
+    if (raw.isEmpty) return 'Section';
+    final lower = raw.toLowerCase();
+    if (lower.endsWith(' shift')) {
+      return raw.substring(0, raw.length - 6).trim();
+    }
+    return raw;
+  }
+
+  String _sectionLabelForShiftId(int shiftId) {
+    final shift = widget.shifts.firstWhere(
+      (entry) => entry.id == shiftId,
+      orElse: () => widget.shifts.first,
+    );
+    return _sectionLabelForShift(shift);
+  }
+
+  String _mealLabelForShift(AdminShift shift) {
+    final meal = shift.mealType.trim();
+    return meal.isEmpty ? 'Shift ${shift.id}' : meal;
+  }
+
+  int _mealSortOrder(String meal) {
+    switch (meal.toLowerCase()) {
+      case 'breakfast':
+        return 0;
+      case 'lunch':
+        return 1;
+      case 'dinner':
+        return 2;
+      default:
+        return 99;
+    }
+  }
 
   @override
   void dispose() {
@@ -636,11 +957,27 @@ class _JobFormDialogState extends State<_JobFormDialog> {
   void _submit() {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
-    Navigator.of(context).pop(_JobFormResult(name: name, shiftId: _shiftId));
+    if (widget.lockShift) {
+      Navigator.of(
+        context,
+      ).pop(_JobFormResult(name: name, shiftIds: <int>[widget.initialShiftId]));
+      return;
+    }
+
+    final shiftIds = _sectionShifts
+        .where((shift) => _selectedMeals.contains(_mealLabelForShift(shift)))
+        .map((shift) => shift.id)
+        .toList();
+    if (shiftIds.isEmpty) return;
+    Navigator.of(context).pop(_JobFormResult(name: name, shiftIds: shiftIds));
   }
 
   @override
   Widget build(BuildContext context) {
+    final sectionShifts = _sectionShifts;
+    final canSave = _nameController.text.trim().isNotEmpty &&
+        (widget.lockShift || _selectedMeals.isNotEmpty);
+
     return AlertDialog(
       title: Text(widget.title),
       content: SizedBox(
@@ -651,39 +988,89 @@ class _JobFormDialogState extends State<_JobFormDialog> {
             TextField(
               controller: _nameController,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Job name',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Job name'),
+              onChanged: (_) => setState(() {}),
               onSubmitted: (_) => _submit(),
             ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<int>(
-              initialValue: _shiftId,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Shift',
-                border: OutlineInputBorder(),
+            if (!widget.lockShift) ...[
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                initialValue: _sectionLabelForShiftId(_sectionShiftId),
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Section'),
+                items: _sectionLabels
+                    .map(
+                      (label) => DropdownMenuItem<String>(
+                        value: label,
+                        child: Text(label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  final nextShift = widget.shifts.firstWhere(
+                    (shift) => _sectionLabelForShift(shift) == value,
+                    orElse: () => widget.shifts.first,
+                  );
+                  setState(() {
+                    _sectionShiftId = nextShift.id;
+                    _selectedMeals = sectionShifts.isEmpty
+                        ? <String>{}
+                        : <String>{_mealLabelForShift(nextShift)};
+                  });
+                },
               ),
-              items: widget.shifts
-                  .map(
-                    (shift) => DropdownMenuItem<int>(
-                      value: shift.id,
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Meals', style: StitchText.fieldLabel),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: sectionShifts.map((shift) {
+                  final meal = _mealLabelForShift(shift);
+                  final selected = _selectedMeals.contains(meal);
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(StitchRadii.sm),
+                    onTap: () {
+                      setState(() {
+                        if (!selected) {
+                          _selectedMeals.add(meal);
+                        } else {
+                          _selectedMeals.remove(meal);
+                        }
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 2,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: selected
+                                ? StitchColors.primary
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
                       child: Text(
-                        shift.name.isNotEmpty
-                            ? shift.name
-                            : 'Shift #${shift.id}',
+                        meal,
+                        style: StitchText.bodyStrong.copyWith(
+                          color: selected
+                              ? StitchColors.primary
+                              : StitchColors.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                  )
-                  .toList(),
-              onChanged: widget.lockShift
-                  ? null
-                  : (value) {
-                      if (value == null) return;
-                      setState(() => _shiftId = value);
-                    },
-            ),
+                  );
+                }).toList(),
+              ),
+            ],
           ],
         ),
       ),
@@ -692,7 +1079,10 @@ class _JobFormDialogState extends State<_JobFormDialog> {
           onPressed: () => Navigator.of(context).pop(null),
           child: const Text('Cancel'),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Save')),
+        FilledButton(
+          onPressed: canSave ? _submit : null,
+          child: const Text('Save'),
+        ),
       ],
     );
   }
@@ -768,18 +1158,12 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
               autofocus: true,
               minLines: 2,
               maxLines: 6,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Description'),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _phase,
-              decoration: const InputDecoration(
-                labelText: 'Phase',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Phase'),
               items: widget.phases
                   .map(
                     (phase) => DropdownMenuItem<String>(
@@ -803,9 +1187,6 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
               value: _requiresCheckoff,
               onChanged: (value) => setState(() => _requiresCheckoff = value),
               title: const Text('Requires check-off'),
-              subtitle: const Text(
-                'When on, employees and supervisors have to mark this task complete.',
-              ),
               contentPadding: EdgeInsets.zero,
             ),
           ],
@@ -830,16 +1211,76 @@ class _ErrorPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.xl2),
+          elevation: StitchCardElevation.subtle,
+          ring: true,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 40,
+                color: StitchColors.error,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Could not load the task board.',
+                style: StitchText.titleMd,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                style: StitchText.body,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              StitchPrimaryButton(
+                label: 'Retry',
+                icon: Icons.refresh_rounded,
+                onPressed: onRetry,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InlineErrorBanner extends StatelessWidget {
+  const _InlineErrorBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.lg),
+      elevation: StitchCardElevation.none,
+      ring: true,
+      ringColor: StitchColors.error.withValues(alpha: 0.22),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
-          const SizedBox(height: 12),
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          FilledButton(onPressed: onRetry, child: const Text('Retry')),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 20,
+            color: StitchColors.error,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: StitchText.bodyStrong.copyWith(
+                color: StitchColors.onErrorContainer,
+              ),
+            ),
+          ),
         ],
       ),
     );

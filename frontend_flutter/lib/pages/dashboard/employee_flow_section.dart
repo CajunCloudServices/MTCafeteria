@@ -37,6 +37,8 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
   Map<int, bool> _taskCompletionOverrides = const {};
   int _lastResetSignal = 0;
   int _lastBackSignal = 0;
+  bool _hasPromptedForCurrentCompletion = false;
+  bool _finishPromptOpen = false;
 
   @override
   void initState() {
@@ -58,9 +60,10 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
     if (widget.resetSignal != _lastResetSignal) {
       _lastResetSignal = widget.resetSignal;
       setState(() {
-        // Parent resets should return the employee flow to the first step.
         _step = 0;
         _isTransitioning = false;
+        _hasPromptedForCurrentCompletion = false;
+        _finishPromptOpen = false;
       });
     }
     if (widget.backSignal != _lastBackSignal) {
@@ -152,36 +155,50 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
     }
   }
 
+  void _maybePromptForShiftFinish({required bool ready}) {
+    if (!ready || _step != 4 || _step >= _finalStep) {
+      _hasPromptedForCurrentCompletion = false;
+      return;
+    }
+    if (_hasPromptedForCurrentCompletion || _finishPromptOpen) return;
+    _hasPromptedForCurrentCompletion = true;
+    _finishPromptOpen = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final shouldFinish = await _showShiftFinishPrompt(context);
+      _finishPromptOpen = false;
+      if (!mounted || !shouldFinish || _step != 4) return;
+      setState(() {
+        _step = _finalStep;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final taskBoard = widget.taskBoard;
     if (taskBoard == null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Loading task board...'),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: widget.onReloadBoard,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+      return StitchCard(
+        padding: const EdgeInsets.all(StitchSpacing.xl2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Loading task board…', style: StitchText.titleMd),
+            const SizedBox(height: 12),
+            StitchSecondaryButton(
+              label: 'Retry',
+              icon: Icons.refresh_rounded,
+              onPressed: widget.onReloadBoard,
+              expand: false,
+            ),
+          ],
         ),
       );
     }
 
-    _selectedMeal ??= taskBoard.selectedMeal;
-    _selectedJobId ??= taskBoard.selectedJobId;
-
-    // Preserve the chosen job across meal changes when the same job still
-    // exists in the new meal.
     final selectedJobId = taskBoard.jobs.any((j) => j.id == _selectedJobId)
         ? _selectedJobId
-        : (taskBoard.jobs.isNotEmpty ? taskBoard.jobs.first.id : null);
+        : null;
     String? selectedJobName;
     if (selectedJobId != null) {
       for (final job in taskBoard.jobs) {
@@ -209,316 +226,233 @@ class _EmployeeTaskSectionState extends State<_EmployeeTaskSection> {
 
     final setupComplete = _allCheckoffComplete(setupTasks);
     final cleanupComplete = _allCheckoffComplete(cleanupTasks);
+    _maybePromptForShiftFinish(
+      ready: cleanupComplete && !_isTransitioning,
+    );
 
     if (_step >= _finalStep) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 28),
-                  SizedBox(width: 10),
-                  Text(
-                    'Shift Complete',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF103760),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () async {
-                    await widget.onReturnToDashboardHub();
-                  },
-                  child: const Text('Back to Dashboard'),
-                ),
-              ),
-            ],
-          ),
-        ),
+      final totalDone = taskBoard.tasks
+          .where((t) => t.requiresCheckoff && t.completed)
+          .length;
+      final totalCheckoff = taskBoard.tasks
+          .where((t) => t.requiresCheckoff)
+          .length;
+      final compliance = totalCheckoff == 0
+          ? 100
+          : ((totalDone / totalCheckoff) * 100).round();
+      return StitchSuccessCard(
+        title: 'Shift Complete',
+        message: '',
+        stats: [
+          StitchSuccessStat(value: '$totalDone', label: 'Tasks Done'),
+          StitchSuccessStat(value: '$compliance%', label: 'Compliance'),
+        ],
+        primaryCtaLabel: 'Back to Dashboard',
+        primaryIcon: Icons.dashboard_rounded,
+        onPrimary: () async {
+          await widget.onReturnToDashboardHub();
+        },
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const PanelTitle(
-                    icon: Icons.format_list_bulleted,
-                    title: 'Shift Tasks',
-                  ),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(
-                    value: (_step + 1) / _finalStep,
-                    minHeight: 6,
-                    borderRadius: BorderRadius.circular(4),
-                    backgroundColor: const Color(0xFFE2ECF8),
-                    color: const Color(0xFF1F5E9C),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_step == 0) ...[
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedMeal,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Meal'),
-                      items: taskBoard.meals
-                          .map(
-                            (m) => DropdownMenuItem(value: m, child: Text(m)),
-                          )
-                          .toList(),
-                      onChanged: _isTransitioning
-                          ? null
-                          : (value) {
-                              if (value != null) {
-                                setState(() => _selectedMeal = value);
-                              }
-                            },
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _isTransitioning
-                            ? null
-                            : () async {
-                                final meal =
-                                    _selectedMeal ?? taskBoard.selectedMeal;
-                                setState(() => _isTransitioning = true);
-                                await widget.onSelectMeal(meal);
-                                if (!mounted) return;
-                                setState(() {
-                                  _selectedJobId =
-                                      widget.taskBoard?.selectedJobId;
-                                  _step = 1;
-                                  _isTransitioning = false;
-                                });
-                              },
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else if (_step == 1) ...[
-                    DropdownButtonFormField<int>(
-                      initialValue: selectedJobId,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Job'),
-                      items: taskBoard.jobs
-                          .map(
-                            (j) => DropdownMenuItem<int>(
-                              value: j.id,
-                              child: Text(j.name),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: _isTransitioning
-                          ? null
-                          : (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedJobId = value;
-                                });
-                              }
-                            },
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _isTransitioning || selectedJobId == null
-                            ? null
-                            : () async {
-                                setState(() => _isTransitioning = true);
-                                await widget.onSelectJob(selectedJobId);
-                                if (!mounted) return;
-                                setState(() {
-                                  _step = 2;
-                                  _isTransitioning = false;
-                                });
-                              },
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else if (_step == 2) ...[
-                    const SizedBox(height: 8),
-                    if (showAnyInlineReferenceButton) ...[
-                      const SizedBox(height: 4),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () => showJobQuickReferenceDialog(
-                                context,
-                                jobName: selectedJobName!,
-                                lines: selectedJobReference,
-                              ),
-                              icon: const Icon(Icons.menu_book_rounded),
-                              label: const Text('View Notes'),
-                            ),
-                          ),
-                          if (showCondimentsRotation)
-                            const SizedBox(height: 10),
-                          if (showCondimentsRotation)
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: () =>
-                                    showCondimentsRotationDialog(context),
-                                icon: const Icon(Icons.tune_rounded),
-                                label: const Text('Condiment Rotation'),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    _PhaseChecklist(
-                      phase: 'Setup (Before Doors Open)',
-                      tasks: setupTasks,
-                      onTaskToggle: _handleTaskToggle,
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: setupComplete
-                            ? () {
-                                setState(() {
-                                  _step = 3;
-                                });
-                              }
-                            : null,
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else if (_step == 3) ...[
-                    if (showAnyInlineReferenceButton) ...[
-                      const SizedBox(height: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () => showJobQuickReferenceDialog(
-                                context,
-                                jobName: selectedJobName!,
-                                lines: selectedJobReference,
-                              ),
-                              icon: const Icon(Icons.menu_book_rounded),
-                              label: const Text('View Notes'),
-                            ),
-                          ),
-                          if (showCondimentsRotation)
-                            const SizedBox(height: 10),
-                          if (showCondimentsRotation)
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: () =>
-                                    showCondimentsRotationDialog(context),
-                                icon: const Icon(Icons.tune_rounded),
-                                label: const Text('Condiment Rotation'),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    _PhaseChecklist(
-                      phase: 'During Shift (Doors Open)',
-                      tasks: duringTasks,
-                      onTaskToggle: _handleTaskToggle,
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
+        if (_step == 0)
+          StitchSelectionScreen(
+            title: 'Select Meal',
+            isBusy: _isTransitioning,
+            options: [
+              for (final meal in taskBoard.meals)
+                StitchSelectionOption(
+                  rowKey: ValueKey('meal-row-$meal'),
+                  label: meal,
+                  icon: _iconForMeal(meal),
+                  selected: _selectedMeal == meal,
+                  onTap: _isTransitioning
+                      ? null
+                      : () async {
                           setState(() {
-                            _step = 4;
+                            _selectedMeal = meal;
+                            _isTransitioning = true;
+                          });
+                          await widget.onSelectMeal(meal);
+                          if (!mounted) return;
+                          setState(() {
+                            _selectedJobId = null;
+                            _step = 1;
+                            _isTransitioning = false;
                           });
                         },
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else if (_step == 4) ...[
-                    const SizedBox(height: 8),
-                    if (showAnyInlineReferenceButton) ...[
-                      const SizedBox(height: 4),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () => showJobQuickReferenceDialog(
-                                context,
-                                jobName: selectedJobName!,
-                                lines: selectedJobReference,
-                              ),
-                              icon: const Icon(Icons.menu_book_rounded),
-                              label: const Text('View Notes'),
-                            ),
-                          ),
-                          if (showCondimentsRotation)
-                            const SizedBox(height: 10),
-                          if (showCondimentsRotation)
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: () =>
-                                    showCondimentsRotationDialog(context),
-                                icon: const Icon(Icons.tune_rounded),
-                                label: const Text('Condiment Rotation'),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    _PhaseChecklist(
-                      phase: 'Cleanup (After Doors Close)',
-                      tasks: cleanupTasks,
-                      onTaskToggle: _handleTaskToggle,
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: cleanupComplete && !_isTransitioning
-                            ? () {
-                                setState(() {
-                                  _step = _finalStep;
-                                });
-                              }
-                            : null,
-                        child: const Text('Next'),
-                      ),
-                    ),
-                  ] else ...[
-                    const SizedBox.shrink(),
-                  ],
-                ],
-              ),
+                ),
+            ],
+          )
+        else if (_step == 1)
+          StitchSelectionScreen(
+            title: 'Select Station',
+            isBusy: _isTransitioning,
+            options: [
+              for (final job in taskBoard.jobs)
+                StitchSelectionOption(
+                  rowKey: ValueKey('station-row-${job.id}'),
+                  label: job.name,
+                  icon: Icons.work_outline_rounded,
+                  selected: selectedJobId == job.id,
+                  onTap: _isTransitioning
+                      ? null
+                      : () async {
+                          setState(() {
+                            _isTransitioning = true;
+                          });
+                          await widget.onSelectJob(job.id);
+                          if (!mounted) return;
+                          setState(() {
+                            _selectedJobId = job.id;
+                            _step = 2;
+                            _isTransitioning = false;
+                          });
+                        },
+                ),
+            ],
+          )
+        else if (_step == 2)
+          _PhaseStep(
+            title: 'Setup',
+            showReferenceActions: showAnyInlineReferenceButton,
+            selectedJobName: selectedJobName,
+            selectedJobReference: selectedJobReference,
+            showCondimentsRotation: showCondimentsRotation,
+            checklist: _PhaseChecklist(
+              phase: 'Station Readiness',
+              tasks: setupTasks,
+              onTaskToggle: _handleTaskToggle,
             ),
+            continueLabel: 'Start Service',
+            continueIcon: Icons.play_arrow_rounded,
+            onContinue: setupComplete
+                ? () => setState(() => _step = 3)
+                : null,
+          )
+        else if (_step == 3)
+          _PhaseStep(
+            title: 'Running',
+            showReferenceActions: showAnyInlineReferenceButton,
+            selectedJobName: selectedJobName,
+            selectedJobReference: selectedJobReference,
+            showCondimentsRotation: showCondimentsRotation,
+            checklist: _PhaseChecklist(
+              phase: 'During Shift',
+              tasks: duringTasks,
+              onTaskToggle: _handleTaskToggle,
+            ),
+            continueLabel: 'Begin Cleanup',
+            continueIcon: Icons.cleaning_services_rounded,
+            onContinue: () => setState(() => _step = 4),
+          )
+        else if (_step == 4)
+          _PhaseStep(
+            title: 'Cleanup',
+            showReferenceActions: showAnyInlineReferenceButton,
+            selectedJobName: selectedJobName,
+            selectedJobReference: selectedJobReference,
+            showCondimentsRotation: showCondimentsRotation,
+            checklist: _PhaseChecklist(
+              phase: 'Cleanup',
+              tasks: cleanupTasks,
+              onTaskToggle: _handleTaskToggle,
+            ),
+            continueLabel: 'Finish Shift',
+            continueIcon: Icons.flag_rounded,
+            onContinue: cleanupComplete && !_isTransitioning
+                ? () => setState(() => _step = _finalStep)
+                : null,
+          )
+        else
+          const SizedBox.shrink(),
+      ],
+    );
+  }
+}
+
+IconData _iconForMeal(String meal) {
+  switch (meal.toLowerCase()) {
+    case 'breakfast':
+      return Icons.bakery_dining_rounded;
+    case 'lunch':
+      return Icons.lunch_dining_rounded;
+    case 'dinner':
+      return Icons.restaurant_rounded;
+    default:
+      return Icons.schedule_rounded;
+  }
+}
+
+/// Steps 2/3/4 — phase checklist shells sharing a consistent editorial header.
+class _PhaseStep extends StatelessWidget {
+  const _PhaseStep({
+    required this.title,
+    required this.checklist,
+    required this.continueLabel,
+    required this.continueIcon,
+    required this.onContinue,
+    required this.showReferenceActions,
+    required this.selectedJobName,
+    required this.selectedJobReference,
+    required this.showCondimentsRotation,
+  });
+
+  final String title;
+  final Widget checklist;
+  final String continueLabel;
+  final IconData continueIcon;
+  final VoidCallback? onContinue;
+  final bool showReferenceActions;
+  final String? selectedJobName;
+  final List<String> selectedJobReference;
+  final bool showCondimentsRotation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        buildAppHeaderTitle(context, title),
+        if (showReferenceActions && selectedJobName != null) ...[
+          const SizedBox(height: StitchSpacing.lg),
+          Row(
+            children: [
+              Expanded(
+                child: StitchSecondaryButton(
+                  label: 'Notes',
+                  icon: Icons.menu_book_rounded,
+                  onPressed: () => showJobQuickReferenceDialog(
+                    context,
+                    jobName: selectedJobName!,
+                    lines: selectedJobReference,
+                  ),
+                ),
+              ),
+              if (showCondimentsRotation) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: StitchSecondaryButton(
+                    label: 'Rotation',
+                    icon: Icons.tune_rounded,
+                    onPressed: () => showCondimentsRotationDialog(context),
+                  ),
+                ),
+              ],
+            ],
           ),
+        ],
+        const SizedBox(height: StitchSpacing.xl),
+        checklist,
+        const SizedBox(height: StitchSpacing.xl),
+        StitchPrimaryButton(
+          label: continueLabel,
+          icon: continueIcon,
+          onPressed: onContinue,
+          height: StitchLayout.ctaHeightLg,
         ),
       ],
     );

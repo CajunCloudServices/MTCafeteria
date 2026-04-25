@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend_flutter/pages/task_editor_page.dart';
 import 'package:frontend_flutter/services/api_client.dart';
+import 'package:frontend_flutter/widgets/ui/stitch_buttons.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
@@ -70,7 +71,7 @@ void main() {
     expect(capturedRequest.headers['authorization'], 'Bearer jwt-token-123');
     expect(capturedRequest.headers.containsKey('x-task-editor-password'), isFalse);
     expect(find.text('Beverages'), findsOneWidget);
-    expect(find.textContaining('1 jobs'), findsOneWidget);
+    expect(find.widgetWithText(StitchPrimaryButton, 'Add Job'), findsOneWidget);
   });
 
   testWidgets('task editor shows backend auth failures instead of blank state', (
@@ -100,6 +101,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text('Authentication required.'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Retry'), findsOneWidget);
+    expect(find.widgetWithText(StitchPrimaryButton, 'Retry'), findsOneWidget);
   });
 }

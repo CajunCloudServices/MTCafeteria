@@ -27,31 +27,41 @@ const users = [
 const announcements = [
   {
     id: 1,
-    type: 'Reminder',
-    title: 'Shift Readiness Reminder',
+    type: 'Announcement',
+    title: 'Table Direction Changes',
     content:
-      'Arrive on time, clean shaven, and dressed in missionary-appropriate work attire.',
-    startDate: today,
+      'Everyone: Management is working on changing table directions to improve customer seating. Please keep the table direction changes in place. - Dusty Lybbert',
+    startDate: '2026-04-09',
     endDate: longFuture,
     createdBy: 4,
   },
   {
     id: 2,
-    type: 'Announcement',
-    title: 'Seasonal Shift Sign-Up',
+    type: 'Reminder',
+    title: 'Sack Room Boiled Eggs',
     content:
-      'Complete your spring and summer shift sign-up, even if you expect to be away, so staffing can be planned correctly.',
-    startDate: today,
+      'Line: At breakfast in sack room, please put 18 boiled eggs in the warmer next to the oatmeal.',
+    startDate: '2026-04-04',
     endDate: longFuture,
     createdBy: 4,
   },
   {
     id: 3,
-    type: 'Special Event',
-    title: 'VIP Event Volunteer Sign-Up',
+    type: 'Announcement',
+    title: 'Leave Silver Hangers on Stand',
     content:
-      'Volunteer sign-up is open for next Tuesday’s VIP event. Add your name if you are available to help.',
-    startDate: tomorrow,
+      'Everyone: We are not recycling the silver metal hangers in the custodial closet. Please leave them on the hanger stand.',
+    startDate: '2026-04-04',
+    endDate: longFuture,
+    createdBy: 4,
+  },
+  {
+    id: 4,
+    type: 'Reminder',
+    title: 'Keep Fork Containers Stocked',
+    content:
+      'Line: Even with the lack of metal forks, we need to make sure we are putting 2-3 containers of forks in each of the silverware stands, even if you have to put plastic in.',
+    startDate: '2026-04-04',
     endDate: longFuture,
     createdBy: 4,
   },

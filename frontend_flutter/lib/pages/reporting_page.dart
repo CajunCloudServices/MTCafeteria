@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/point_assignment.dart';
-import '../theme/app_ui_tokens.dart';
 import '../models/user_session.dart';
+import '../theme/stitch_tokens.dart';
+import '../widgets/ui/stitch_buttons.dart';
+import '../widgets/ui/stitch_card.dart';
+import '../widgets/ui/stitch_chip.dart';
 
 /// Reporting screen for point notifications, assignments, and approvals.
 class ReportingPage extends StatelessWidget {
@@ -56,81 +59,66 @@ class ReportingPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
+        StitchCard(
           key: const ValueKey('point-notifications-card'),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Point Notifications',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Review and acknowledge each assignment with your initials.',
-                ),
-                const SizedBox(height: 10),
-                if (pointInboxError != null)
-                  _SectionErrorBanner(message: pointInboxError!),
-                if (pendingAssignments.isEmpty)
-                  const Text('No pending point notifications.')
-                else
-                  ...pendingAssignments.map(
-                    (assignment) => Container(
-                      key: ValueKey('pending-point-${assignment.id}'),
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEAF4FF),
-                        borderRadius: BorderRadius.circular(
-                          AppUiTokens.cardRadius,
-                        ),
-                        border: Border.all(
-                          color: const Color(
-                            0xFF1F5E9C,
-                          ).withValues(alpha: 0.28),
-                        ),
-                      ),
+          padding: const EdgeInsets.all(StitchSpacing.xl2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Point Notifications', style: StitchText.titleLg),
+              const SizedBox(height: StitchSpacing.md),
+              if (pointInboxError != null)
+                _SectionErrorBanner(message: pointInboxError!),
+              if (pendingAssignments.isEmpty)
+                Text('No pending point notifications.', style: StitchText.body)
+              else
+                ...pendingAssignments.map(
+                  (assignment) => Padding(
+                    key: ValueKey('pending-point-${assignment.id}'),
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: StitchCard(
+                      padding: const EdgeInsets.all(StitchSpacing.lg),
+                      elevation: StitchCardElevation.subtle,
+                      ring: true,
+                      accentBarColor: StitchColors.primary,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '+${assignment.pointsDelta} point(s) - ${_formatDate(assignment.assignmentDate)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF163A63),
-                            ),
+                          Row(
+                            children: [
+                              StitchChip(
+                                label: '+${assignment.pointsDelta} pt',
+                                tone: StitchChipTone.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _formatDate(assignment.assignmentDate),
+                                style: StitchText.eyebrowSmall,
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(assignment.reason),
+                          const SizedBox(height: 8),
+                          Text(assignment.reason, style: StitchText.titleSm),
                           const SizedBox(height: 4),
                           Text(
-                            'Assigned by: ${assignment.assignedByEmail}',
-                            style: const TextStyle(
-                              color: Color(0xFF476385),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            'Assigned by ${assignment.assignedByEmail}',
+                            style: StitchText.caption,
                           ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: () =>
-                                  _promptAccept(context, assignment),
-                              child: const Text('Acknowledge with Initials'),
-                            ),
+                          const SizedBox(height: 12),
+                          StitchPrimaryButton(
+                            label: 'Acknowledge with Initials',
+                            icon: Icons.how_to_reg_rounded,
+                            onPressed: () => _promptAccept(context, assignment),
                           ),
                         ],
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: StitchSpacing.lg),
         _PointCenterSection(
           canSubmitPointRequests: canSubmitPointRequests,
           canApprovePointRequests: canApprovePointRequests,
@@ -154,7 +142,6 @@ class ReportingPage extends StatelessWidget {
   ) async {
     String initialsInput = '';
 
-    // Wait to mutate app state until the employee explicitly confirms.
     final initials = await showDialog<String>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -165,9 +152,12 @@ class ReportingPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('+${assignment.pointsDelta} point(s)'),
+                Text(
+                  '+${assignment.pointsDelta} point(s)',
+                  style: StitchText.titleMd,
+                ),
                 const SizedBox(height: 6),
-                Text(assignment.reason),
+                Text(assignment.reason, style: StitchText.body),
                 const SizedBox(height: 10),
                 TextField(
                   textCapitalization: TextCapitalization.characters,
@@ -223,7 +213,6 @@ class ReportingPage extends StatelessWidget {
   }
 }
 
-/// Assignment and approval tools shown below the employee inbox.
 class _PointCenterSection extends StatefulWidget {
   const _PointCenterSection({
     required this.canSubmitPointRequests,
@@ -263,8 +252,6 @@ class _PointCenterSection extends StatefulWidget {
 }
 
 class _PointCenterSectionState extends State<_PointCenterSection> {
-  /// These presets mirror the cafeteria point policy and drive both label and
-  /// default point-value selection.
   static const List<_ReasonOption> _reasonOptions = [
     _ReasonOption('Late < 30 minutes', 1),
     _ReasonOption('Late > 30 minutes', 2),
@@ -298,216 +285,230 @@ class _PointCenterSectionState extends State<_PointCenterSection> {
     final reason = _reasonOptions.firstWhere((r) => r.label == _selectedReason);
     final isCustom = reason.basePoints == null;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.xl2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text('Point Center', style: StitchText.titleLg)),
+              Material(
+                color: StitchColors.surfaceContainer,
+                borderRadius: BorderRadius.circular(StitchRadii.pill),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: widget.onRefreshPointCenter,
+                  child: const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Icon(
+                      Icons.refresh_rounded,
+                      size: 20,
+                      color: StitchColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (widget.canSubmitPointRequests) ...[
+            const SizedBox(height: StitchSpacing.md),
+            DropdownButtonFormField<int>(
+              key: const ValueKey('assignable-user-dropdown'),
+              // ignore: deprecated_member_use
+              value: _selectedUserId,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Assign To'),
+              items: users
+                  .map(
+                    (u) => DropdownMenuItem<int>(
+                      value: u.id,
+                      child: Text('${u.email} (${u.role})'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: hasUsers
+                  ? (v) => setState(() => _selectedUserId = v)
+                  : null,
+            ),
+            if (!hasUsers) ...[
+              const SizedBox(height: 8),
+              _SectionErrorBanner(
+                message:
+                    widget.pointAssignableUsersError ??
+                    'No employees loaded. Tap refresh to reload users.',
+              ),
+            ],
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              key: const ValueKey('point-reason-dropdown'),
+              // ignore: deprecated_member_use
+              value: _selectedReason,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Reason'),
+              items: _reasonOptions
+                  .map(
+                    (opt) => DropdownMenuItem<String>(
+                      value: opt.label,
+                      child: Text(opt.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _selectedReason = value);
+              },
+            ),
+            if (isCustom) ...[
+              const SizedBox(height: 10),
+              TextField(
+                controller: _customPointsController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Custom points'),
+              ),
+            ],
+            const SizedBox(height: 10),
+            TextField(
+              controller: _descriptionController,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'Description'),
+            ),
+            const SizedBox(height: 10),
             Row(
               children: [
-                Text(
-                  'Point Center',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: StitchSecondaryButton(
+                    label: _fmtDate(_selectedDate),
+                    icon: Icons.calendar_today_rounded,
+                    onPressed: () => _pickDate(context),
+                  ),
                 ),
-                const Spacer(),
-                IconButton(
-                  onPressed: widget.onRefreshPointCenter,
-                  icon: const Icon(Icons.refresh_rounded),
-                  tooltip: 'Refresh',
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CheckboxListTile(
+                    value: _isWeekend,
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: Text('Weekend x2', style: StitchText.bodyStrong),
+                    onChanged: (value) =>
+                        setState(() => _isWeekend = value ?? false),
+                  ),
                 ),
               ],
             ),
-            if (widget.canSubmitPointRequests) ...[
-              const SizedBox(height: 8),
-              DropdownButtonFormField<int>(
-                key: const ValueKey('assignable-user-dropdown'),
-                // ignore: deprecated_member_use
-                value: _selectedUserId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Assign To'),
-                items: users
-                    .map(
-                      (u) => DropdownMenuItem<int>(
-                        value: u.id,
-                        child: Text('${u.email} (${u.role})'),
-                      ),
-                    )
-                    .toList(),
-                onChanged: hasUsers
-                    ? (v) => setState(() => _selectedUserId = v)
-                    : null,
-              ),
-              if (!hasUsers) ...[
-                const SizedBox(height: 8),
-                _SectionErrorBanner(
-                  message:
-                      widget.pointAssignableUsersError ??
-                      'No employees loaded. Tap refresh to reload users.',
-                ),
-              ],
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                key: const ValueKey('point-reason-dropdown'),
-                // ignore: deprecated_member_use
-                value: _selectedReason,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Reason'),
-                items: _reasonOptions
-                    .map(
-                      (opt) => DropdownMenuItem<String>(
-                        value: opt.label,
-                        child: Text(opt.label),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _selectedReason = value);
-                },
-              ),
-              if (isCustom) ...[
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _customPointsController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Custom points'),
-                ),
-              ],
-              const SizedBox(height: 10),
-              TextField(
-                controller: _descriptionController,
-                maxLines: 2,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _pickDate(context),
-                      icon: const Icon(Icons.calendar_today_rounded),
-                      label: Text(_fmtDate(_selectedDate)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: CheckboxListTile(
-                      value: _isWeekend,
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: const Text('Weekend x2'),
-                      onChanged: (value) =>
-                          setState(() => _isWeekend = value ?? false),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  key: const ValueKey('assign-points-button'),
-                  onPressed: (_submitting || !hasUsers) ? null : _submit,
-                  child: Text(_submitting ? 'Submitting...' : 'Assign Points'),
-                ),
-              ),
-              const SizedBox(height: 14),
-            ],
-            if (widget.canApprovePointRequests) ...[
-              const Text(
-                'Pending Manager Approval',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              if (widget.pointApprovalQueueError != null)
-                _SectionErrorBanner(message: widget.pointApprovalQueueError!),
-              if (widget.pointApprovalAssignments.isEmpty)
-                const Text('No pending approvals.')
-              else
-                ...widget.pointApprovalAssignments.map(
-                  (assignment) => ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      '${assignment.assignedToEmail} • +${assignment.pointsDelta}',
-                    ),
-                    subtitle: Text(
-                      '${_fmtDateRaw(assignment.assignmentDate)} • ${assignment.reason}',
-                    ),
-                    trailing: FilledButton.tonal(
-                      onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        await widget.onApprovePointAssignment(assignment.id);
-                        if (!mounted) return;
-                        messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Point request approved.'),
+            const SizedBox(height: StitchSpacing.md),
+            StitchPrimaryButton(
+              key: const ValueKey('assign-points-button'),
+              label: _submitting ? 'Submitting…' : 'Assign Points',
+              icon: Icons.send_rounded,
+              loading: _submitting,
+              onPressed: (_submitting || !hasUsers) ? null : _submit,
+            ),
+            const SizedBox(height: StitchSpacing.lg),
+          ],
+          if (widget.canApprovePointRequests) ...[
+            Text('PENDING MANAGER APPROVAL', style: StitchText.eyebrow),
+            const SizedBox(height: 10),
+            if (widget.pointApprovalQueueError != null)
+              _SectionErrorBanner(message: widget.pointApprovalQueueError!),
+            if (widget.pointApprovalAssignments.isEmpty)
+              Text('No pending approvals.', style: StitchText.body)
+            else
+              ...widget.pointApprovalAssignments.map(
+                (assignment) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: StitchCard(
+                    padding: const EdgeInsets.all(StitchSpacing.md),
+                    elevation: StitchCardElevation.subtle,
+                    ring: true,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${assignment.assignedToEmail} • +${assignment.pointsDelta}',
+                                style: StitchText.bodyStrong,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${_fmtDateRaw(assignment.assignmentDate)} • ${assignment.reason}',
+                                style: StitchText.caption,
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                      child: const Text('Approve'),
+                        ),
+                        const SizedBox(width: 10),
+                        StitchSecondaryButton(
+                          label: 'Approve',
+                          onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            await widget.onApprovePointAssignment(
+                              assignment.id,
+                            );
+                            if (!mounted) return;
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Point request approved.'),
+                              ),
+                            );
+                          },
+                          expand: false,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              const SizedBox(height: 12),
-            ],
-            if (widget.canSubmitPointRequests) ...[
-              const Text(
-                'Recent Assignments',
-                style: TextStyle(fontWeight: FontWeight.w800),
               ),
-              const SizedBox(height: 8),
-              if (widget.pointSentError != null)
-                _SectionErrorBanner(message: widget.pointSentError!),
-              if (widget.pointSentAssignments.isEmpty)
-                const Text('No assignments yet.')
-              else
-                ...widget.pointSentAssignments.take(8).map((assignment) {
-                  final statusColor =
-                      assignment.status == 'PendingManagerApproval'
-                      ? const Color(0xFF9A6700)
-                      : assignment.status == 'PendingEmployeeAcknowledgement'
-                      ? const Color(0xFF355B84)
-                      : const Color(0xFF217A3C);
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4F8FE),
-                      border: Border.all(color: const Color(0xFFB4C8E3)),
-                      borderRadius: BorderRadius.circular(
-                        AppUiTokens.cardRadius,
-                      ),
-                    ),
+            const SizedBox(height: StitchSpacing.md),
+          ],
+          if (widget.canSubmitPointRequests) ...[
+            Text('RECENT ASSIGNMENTS', style: StitchText.eyebrow),
+            const SizedBox(height: 10),
+            if (widget.pointSentError != null)
+              _SectionErrorBanner(message: widget.pointSentError!),
+            if (widget.pointSentAssignments.isEmpty)
+              Text('No assignments yet.', style: StitchText.body)
+            else
+              ...widget.pointSentAssignments.take(8).map((assignment) {
+                final StitchChipTone statusTone;
+                switch (assignment.status) {
+                  case 'PendingManagerApproval':
+                    statusTone = StitchChipTone.tertiary;
+                  case 'PendingEmployeeAcknowledgement':
+                    statusTone = StitchChipTone.secondary;
+                  default:
+                    statusTone = StitchChipTone.success;
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: StitchCard(
+                    padding: const EdgeInsets.all(StitchSpacing.md),
+                    elevation: StitchCardElevation.subtle,
+                    ring: true,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           '${assignment.assignedToEmail} • +${assignment.pointsDelta}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF163A63),
-                          ),
+                          style: StitchText.bodyStrong,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${_fmtDateRaw(assignment.assignmentDate)} • ${assignment.reason}',
+                          style: StitchText.caption,
                         ),
-                        Text(
-                          assignment.status,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        const SizedBox(height: 8),
+                        StitchChip(label: assignment.status, tone: statusTone),
                       ],
                     ),
-                  );
-                }),
-            ],
+                  ),
+                );
+              }),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -595,18 +596,28 @@ class _SectionErrorBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(StitchSpacing.md),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF4E5),
-        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-        border: Border.all(color: const Color(0xFFD77F00)),
+        color: StitchColors.errorContainer,
+        borderRadius: BorderRadius.circular(StitchRadii.md),
       ),
-      child: Text(
-        message,
-        style: const TextStyle(
-          color: Color(0xFF8C4F00),
-          fontWeight: FontWeight.w700,
-        ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            color: StitchColors.onErrorContainer,
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: StitchText.bodyStrong.copyWith(
+                color: StitchColors.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

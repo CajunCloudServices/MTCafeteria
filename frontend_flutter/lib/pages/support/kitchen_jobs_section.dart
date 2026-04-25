@@ -192,52 +192,78 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: _step == 0
-            ? _buildKitchenFlowChooser()
-            : _buildSelectedFlowView(),
-      ),
-    );
+    return _step == 0
+        ? _buildKitchenFlowChooser()
+        : _buildSelectedFlowView();
   }
 
   Widget _buildKitchenFlowChooser() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const PanelTitle(icon: Icons.restaurant_menu, title: 'Kitchen Jobs'),
-        const SizedBox(height: 10),
-        LinearProgressIndicator(
-          value: (_step + 1) / 2,
-          minHeight: 6,
-          borderRadius: BorderRadius.circular(4),
-          backgroundColor: const Color(0xFFE2ECF8),
-          color: const Color(0xFF1F5E9C),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          initialValue: _station,
-          isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Kitchen Flow'),
-          items: _stations
-              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-              .toList(),
-          onChanged: (value) => setState(() {
-            _station = value ?? _station;
-            _dessertSection = null;
-            _saladSection = null;
-          }),
-        ),
-        const SizedBox(height: 14),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: () => setState(() => _step = 1),
-            child: const Text('Next'),
+    final media = MediaQuery.of(context);
+    final minHeight =
+        (media.size.height -
+                media.padding.vertical -
+                appHeaderToolbarHeight(context) -
+                kBottomNavigationBarHeight -
+                36)
+            .clamp(0.0, media.size.height);
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: minHeight),
+          child: Align(
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: StitchSpacing.md),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const PanelTitle(
+                      icon: Icons.restaurant_menu,
+                      title: 'Kitchen Jobs',
+                    ),
+                    const SizedBox(height: StitchSpacing.sm),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(StitchRadii.sm),
+                      child: LinearProgressIndicator(
+                        value: (_step + 1) / 2,
+                        minHeight: 6,
+                        backgroundColor: StitchColors.surfaceContainer,
+                        color: StitchColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: StitchSpacing.md),
+                    DropdownButtonFormField<String>(
+                      initialValue: _station,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Kitchen Flow',
+                      ),
+                      items: _stations
+                          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                          .toList(),
+                      onChanged: (value) => setState(() {
+                        _station = value ?? _station;
+                        _dessertSection = null;
+                        _saladSection = null;
+                      }),
+                    ),
+                    const SizedBox(height: StitchSpacing.md),
+                    StitchPrimaryButton(
+                      label: 'Next',
+                      icon: Icons.arrow_forward_rounded,
+                      onPressed: () => setState(() => _step = 1),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -256,15 +282,8 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF123A64),
-          ),
-        ),
-        const SizedBox(height: 10),
+        Text(title, style: StitchText.titleLg),
+        const SizedBox(height: StitchSpacing.sm),
         DropdownButtonFormField<String?>(
           key: ValueKey<String>(
             'kitchen-$title-${selectedSection ?? 'select'}',
@@ -303,15 +322,8 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Main Dish Recipes',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF123A64),
-          ),
-        ),
-        const SizedBox(height: 10),
+        Text('Main Dish Recipes', style: StitchText.titleLg),
+        const SizedBox(height: StitchSpacing.sm),
         DropdownButtonFormField<String>(
           initialValue: _mainDishItem,
           isExpanded: true,
@@ -329,45 +341,27 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
   }
 
   Widget _buildSectionedInstructionPanel(Map<String, List<String>> sections) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4F8FD),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFBFD2EA)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final entry in sections.entries) ...[
-            Text(
-              entry.key,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF123A64),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final entry in sections.entries) ...[
+          Text(entry.key, style: StitchText.titleMd),
+          const SizedBox(height: StitchSpacing.sm),
+          for (int i = 0; i < entry.value.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                '${i + 1}. ${entry.value[i]}',
+                style: StitchText.bodyLg.copyWith(
+                  height: 1.45,
+                  color: StitchColors.onSurface,
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            ...[
-              for (int i = 0; i < entry.value.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    '${i + 1}. ${entry.value[i]}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.38,
-                      color: Color(0xFF274564),
-                    ),
-                  ),
-                ),
-            ],
-            if (entry.key != sections.keys.last) const SizedBox(height: 10),
-          ],
+          if (entry.key != sections.keys.last)
+            const SizedBox(height: StitchSpacing.sm),
         ],
-      ),
+      ],
     );
   }
 
@@ -375,6 +369,12 @@ class _KitchenJobsSectionState extends State<KitchenJobsSection> {
     final numbered = <String>[
       for (int i = 0; i < lines.length; i++) '${i + 1}. ${lines[i]}',
     ];
-    return InstructionCard(lines: numbered);
+    return InstructionCard(
+      lines: numbered,
+      textStyle: StitchText.bodyLg.copyWith(
+        height: 1.45,
+        color: StitchColors.onSurface,
+      ),
+    );
   }
 }

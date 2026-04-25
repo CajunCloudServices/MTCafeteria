@@ -18,10 +18,12 @@ class NightCustodialSection extends StatefulWidget {
 
 class _NightCustodialSectionState extends State<NightCustodialSection> {
   int _step = 0;
-  String _section = 'Daily Jobs';
+  String? _section;
   final Map<String, bool> _checks = {};
   int _lastReset = 0;
   int _lastBack = 0;
+  bool _hasPromptedForCurrentCompletion = false;
+  bool _finishPromptOpen = false;
 
   @override
   void initState() {
@@ -43,8 +45,10 @@ class _NightCustodialSectionState extends State<NightCustodialSection> {
       _lastReset = widget.resetSignal;
       setState(() {
         _step = 0;
-        _section = 'Daily Jobs';
+        _section = null;
         _checks.clear();
+        _hasPromptedForCurrentCompletion = false;
+        _finishPromptOpen = false;
       });
     }
     if (widget.backSignal != _lastBack) {
@@ -99,8 +103,10 @@ class _NightCustodialSectionState extends State<NightCustodialSection> {
   };
 
   List<LocalChecklistTask> get _activeTasks {
+    final section = _section;
+    if (section == null) return const [];
     final day = DateTime.now().weekday;
-    final raw = switch (_section) {
+    final raw = switch (section) {
       'Tile Floors' => _tileFloorsByDay[day] ?? const <String>[],
       'Rotational Jobs' => _rotationalByDay[day] ?? const <String>[],
       _ => _dailyJobs,
@@ -108,7 +114,7 @@ class _NightCustodialSectionState extends State<NightCustodialSection> {
     return [
       for (var i = 0; i < raw.length; i += 1)
         LocalChecklistTask(
-          id: 'nc-${_section.toLowerCase().replaceAll(' ', '-')}-$day-$i',
+          id: 'nc-${section.toLowerCase().replaceAll(' ', '-')}-$day-$i',
           description: raw[i],
           requiresCheckoff: true,
         ),
@@ -124,7 +130,7 @@ class _NightCustodialSectionState extends State<NightCustodialSection> {
   @override
   Widget build(BuildContext context) {
     if (_step >= 2) {
-      return const SimpleFinishCard(
+      return SimpleFinishCard(
         title: 'Night Custodial Complete',
         message: 'All custodial tasks complete. Submit final handoff report.',
       );
@@ -133,81 +139,85 @@ class _NightCustodialSectionState extends State<NightCustodialSection> {
     final activeTasks = _activeTasks;
     final sectionDone = _allChecked(activeTasks);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const PanelTitle(
-              icon: Icons.nights_stay,
-              title: 'Night Custodial Tasks',
+    void maybePromptForShiftFinish() {
+      final ready = _step == 1 && sectionDone;
+      if (!ready) {
+        _hasPromptedForCurrentCompletion = false;
+        return;
+      }
+      if (_hasPromptedForCurrentCompletion || _finishPromptOpen) return;
+      _hasPromptedForCurrentCompletion = true;
+      _finishPromptOpen = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final shouldFinish = await _showSupportShiftFinishPrompt(context);
+        _finishPromptOpen = false;
+        if (!mounted || !shouldFinish || _step != 1) return;
+        setState(() => _step = 2);
+      });
+    }
+
+    maybePromptForShiftFinish();
+
+    if (_step == 0) {
+      return StitchSelectionScreen(
+        title: 'Select Section',
+        options: [
+          for (final section in _sections)
+            StitchSelectionOption(
+              rowKey: ValueKey('night-section-$section'),
+              label: section,
+              icon: _sectionIcon(section),
+              selected: false,
+              onTap: () => setState(() {
+                _section = section;
+                _step = 1;
+              }),
             ),
-            const SizedBox(height: 10),
-            LinearProgressIndicator(
-              value: (_step + 1) / 2,
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(4),
-              backgroundColor: const Color(0xFFE2ECF8),
-              color: const Color(0xFF1F5E9C),
-            ),
-            const SizedBox(height: 12),
-            if (_step == 0) ...[
-              const Text(
-                'Step 1 of 2',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                initialValue: _section,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Section'),
-                items: _sections
-                    .map((z) => DropdownMenuItem(value: z, child: Text(z)))
-                    .toList(),
-                onChanged: (value) =>
-                    setState(() => _section = value ?? _section),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => setState(() => _step = 1),
-                  child: const Text('Next'),
-                ),
-              ),
-            ] else ...[
-              const Text(
-                'Step 2 of 2',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Complete $_section (${weekdayNameLabel(DateTime.now().weekday)}).',
-              ),
-              const SizedBox(height: 8),
-              LocalPhaseChecklist(
-                title: _section,
-                tasks: activeTasks,
-                checks: _checks,
-                onToggle: (id, checked) =>
-                    setState(() => _checks[id] = checked),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: sectionDone
-                      ? () => setState(() => _step = 2)
-                      : null,
-                  child: const Text('Finish'),
-                ),
-              ),
-            ],
-          ],
+        ],
+      );
+    }
+
+    final activeSection = _section;
+    if (activeSection == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        buildAppHeaderTitle(context, activeSection),
+        const SizedBox(height: StitchSpacing.xl),
+        LocalPhaseChecklist(
+          title: activeSection,
+          tasks: activeTasks,
+          checks: _checks,
+          onToggle: (id, checked) =>
+              setState(() => _checks[id] = checked),
         ),
-      ),
+        const SizedBox(height: StitchSpacing.md),
+        StitchPrimaryButton(
+          label: 'Finish',
+          icon: Icons.check_rounded,
+          onPressed: sectionDone
+              ? () => setState(() => _step = 2)
+              : null,
+        ),
+      ],
     );
+  }
+
+  IconData _sectionIcon(String section) {
+    switch (section) {
+      case 'Daily Jobs':
+        return Icons.cleaning_services_rounded;
+      case 'Tile Floors':
+        return Icons.grid_on_rounded;
+      case 'Rotational Jobs':
+        return Icons.autorenew_rounded;
+      default:
+        return Icons.work_outline_rounded;
+    }
   }
 }
 

@@ -1,6 +1,79 @@
 part of 'package:frontend_flutter/pages/reference_sheets_view.dart';
 
 extension _ReferenceHelpers on _ReferenceSheetsViewState {
+  Widget _buildGuideSelectionList({
+    required String title,
+    String? subtitle,
+    required List<
+      ({
+        String label,
+        String? subtitle,
+        IconData icon,
+        VoidCallback onTap,
+      })
+    >
+    options,
+    String? backLabel,
+    VoidCallback? onBack,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (title.trim().isNotEmpty) Text(title, style: StitchText.titleLg),
+        if (subtitle != null && subtitle.trim().isNotEmpty) ...[
+          const SizedBox(height: StitchSpacing.xs),
+          Text(
+            subtitle,
+            style: StitchText.body.copyWith(
+              color: StitchColors.onSurfaceVariant,
+            ),
+          ),
+        ],
+        if (title.trim().isNotEmpty ||
+            (subtitle != null && subtitle.trim().isNotEmpty))
+          const SizedBox(height: StitchSpacing.lg),
+        for (final option in options) ...[
+          StitchListRow(
+            title: option.label,
+            subtitle: option.subtitle,
+            leadingIcon: option.icon,
+            onTap: option.onTap,
+          ),
+          const SizedBox(height: StitchSpacing.md),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildGuideContentScreen({
+    required String backLabel,
+    required VoidCallback onBack,
+    required Widget child,
+  }) {
+    return child;
+  }
+
+  IconData _guideSectionIcon(String section) {
+    switch (section) {
+      case 'Line':
+        return Icons.restaurant_rounded;
+      case 'Dishroom':
+        return Icons.local_laundry_service_outlined;
+      case 'Kitchen':
+        return Icons.restaurant_menu_outlined;
+      case 'Night Custodial':
+        return Icons.cleaning_services_outlined;
+      case 'Recipes':
+        return Icons.menu_book_rounded;
+      case 'Safety':
+        return Icons.health_and_safety_outlined;
+      case 'General Information':
+        return Icons.info_outline_rounded;
+      default:
+        return Icons.chevron_right_rounded;
+    }
+  }
+
   List<Map<String, dynamic>> _lineMiscCards(Map<String, dynamic> data) {
     final section =
         data['line_misc_guides'] as Map<String, dynamic>? ?? const {};
@@ -101,41 +174,39 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
         ? const <String>[]
         : entry.items as List<String>;
 
-    return _buildReferencePanel(
-      title: panelTitle,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DropdownButtonFormField<String>(
-            key: ValueKey('$selectorKeyPrefix-$selectedCardTitle'),
-            initialValue: selectedCardTitle,
-            decoration: InputDecoration(labelText: fieldLabel),
-            isExpanded: true,
-            items: [
-              const DropdownMenuItem<String>(
-                value: 'Select',
-                child: Text('Select'),
-              ),
-              ...cardTitles.map(
-                (title) =>
-                    DropdownMenuItem<String>(value: title, child: Text(title)),
-              ),
-            ],
-            onChanged: (value) {
-              if (value == null) return;
-              _updateReferenceState(() {
-                onSelected(value);
-              });
-            },
-          ),
-          const SizedBox(height: 14),
-          if (selectedCardTitle != 'Select')
-            _buildReferenceTaskCard(
-              title: selectedCardTitle,
-              items: items,
+    if (selectedCardTitle == 'Select') {
+      final listTitle = panelTitle.trim().isNotEmpty
+          ? panelTitle
+          : fieldLabel.replaceFirst(RegExp(r'\s+section$', caseSensitive: false), '');
+      return _buildGuideSelectionList(
+        title: listTitle,
+        options: [
+          for (final title in cardTitles)
+            (
+              label: title,
+              subtitle: null,
               icon: icon,
+              onTap: () {
+                _updateReferenceState(() {
+                  onSelected(title);
+                });
+              },
             ),
         ],
+      );
+    }
+
+    return _buildGuideContentScreen(
+      backLabel: 'Back',
+      onBack: () {
+        _updateReferenceState(() {
+          onSelected('Select');
+        });
+      },
+      child: _buildReferenceTaskCard(
+        title: selectedCardTitle,
+        items: items,
+        icon: icon,
       ),
     );
   }
@@ -316,43 +387,51 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
   }
 
   Widget _buildReadableLines(List<String> lines) {
-    // Convert plain text lines into a readable hierarchy so the source JSON can
-    // stay simple while the UI still looks intentional.
+    final bodyStyle = StitchText.bodyLg.copyWith(
+      color: StitchColors.onSurface,
+      height: 1.55,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final line in lines) ...[
           if (line.isEmpty)
-            const SizedBox(height: 8)
+            const SizedBox(height: 10)
           else if (line.endsWith(':'))
             Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 6),
+              padding: const EdgeInsets.only(top: 6, bottom: 8),
               child: Text(
                 line,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF123A65),
+                style: StitchText.titleSm.copyWith(
+                  color: StitchColors.onSurface,
                 ),
               ),
             )
           else if (line.startsWith('- '))
             Padding(
-              padding: const EdgeInsets.only(bottom: 5),
+              padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '- ',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 10),
+                    child: Icon(
+                      Icons.circle,
+                      size: 6,
+                      color: StitchColors.primary,
+                    ),
                   ),
-                  Expanded(child: Text(line.substring(2))),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(line.substring(2), style: bodyStyle),
+                  ),
                 ],
               ),
             )
           else
             Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: Text(line),
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(line, style: bodyStyle),
             ),
         ],
       ],
@@ -361,26 +440,16 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
 
   Widget _buildReferencePanel({required String title, required Widget child}) {
     final hasTitle = title.trim().isNotEmpty;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppUiTokens.panelSurface,
-        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-        border: Border.all(color: AppUiTokens.shellBorderMuted),
-      ),
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.xl),
+      elevation: StitchCardElevation.subtle,
+      ring: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (hasTitle) ...[
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF123A65),
-              ),
-            ),
-            const SizedBox(height: 14),
+            Text(title, style: StitchText.titleLg),
+            const SizedBox(height: StitchSpacing.md),
           ],
           child,
         ],
@@ -393,60 +462,45 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
     required List<String> items,
     IconData icon = Icons.task_alt,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-        border: Border.all(color: AppUiTokens.shellBorder),
-        boxShadow: AppUiTokens.cardShadowSoft,
-      ),
+    final bodyStyle = StitchText.bodyLg.copyWith(
+      color: StitchColors.onSurface,
+      height: 1.55,
+    );
+    return StitchCard(
+      padding: const EdgeInsets.all(StitchSpacing.lg),
+      elevation: StitchCardElevation.subtle,
+      ring: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 18, color: const Color(0xFF1A4E8A)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF123A65),
-                    fontSize: 19,
-                  ),
-                ),
-              ),
+              Icon(icon, size: 20, color: StitchColors.primary),
+              const SizedBox(width: 10),
+              Expanded(child: Text(title, style: StitchText.titleMd)),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: StitchSpacing.sm),
           ...items.map(
             (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    height: 7,
-                    width: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1A4E8A),
-                      shape: BoxShape.circle,
+                  const Padding(
+                    padding: EdgeInsets.only(top: 10),
+                    child: Icon(
+                      Icons.circle,
+                      size: 6,
+                      color: StitchColors.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       _stripRedundantGuideBullet(item),
-                      style: const TextStyle(
-                        color: Color(0xFF244668),
-                        fontSize: 16,
-                        height: 1.35,
-                      ),
+                      style: bodyStyle,
                     ),
                   ),
                 ],
@@ -459,21 +513,7 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
   }
 
   Widget _buildReferenceSummaryChip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEAF4FF),
-        borderRadius: BorderRadius.circular(AppUiTokens.chipRadius),
-        border: Border.all(color: const Color(0xFFB6C9E4)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w700,
-          color: Color(0xFF1A4E8A),
-        ),
-      ),
-    );
+    return StitchChip(label: text, tone: StitchChipTone.secondary);
   }
 
   Widget _buildGuideSearchPanel(Map<String, dynamic> data) {
@@ -500,12 +540,10 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (results.isEmpty)
-            const Text(
+            Text(
               'No guide matches found.',
-              style: TextStyle(
-                color: Color(0xFF244668),
-                fontSize: 16,
-                height: 1.35,
+              style: StitchText.bodyLg.copyWith(
+                color: StitchColors.onSurface,
               ),
             )
           else
@@ -519,52 +557,42 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
                   : entry.items.take(4).toList();
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppUiTokens.cardRadius),
-                    border: Border.all(color: const Color(0xFFB6C9E4)),
-                  ),
+                padding: const EdgeInsets.only(bottom: StitchSpacing.md),
+                child: StitchCard(
+                  padding: const EdgeInsets.all(StitchSpacing.lg),
+                  elevation: StitchCardElevation.subtle,
+                  ring: true,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         entry.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF123A65),
-                          fontSize: 18,
+                        style: StitchText.titleMd.copyWith(
+                          color: StitchColors.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      _buildReferenceSummaryChip(entry.location),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: StitchSpacing.md),
                       ...previewItems.map(
                         (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 10),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                margin: const EdgeInsets.only(top: 6),
-                                height: 7,
-                                width: 7,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF1A4E8A),
-                                  shape: BoxShape.circle,
+                              const Padding(
+                                padding: EdgeInsets.only(top: 10),
+                                child: Icon(
+                                  Icons.circle,
+                                  size: 6,
+                                  color: StitchColors.primary,
                                 ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  item,
-                                  style: const TextStyle(
-                                    color: Color(0xFF244668),
-                                    fontSize: 16,
-                                    height: 1.35,
+                                  _stripRedundantGuideBullet(item),
+                                  style: StitchText.bodyLg.copyWith(
+                                    color: StitchColors.onSurface,
+                                    height: 1.5,
                                   ),
                                 ),
                               ),
@@ -574,9 +602,9 @@ extension _ReferenceHelpers on _ReferenceSheetsViewState {
                       ),
                       Align(
                         alignment: Alignment.centerRight,
-                        child: TextButton(
+                        child: StitchGhostButton(
+                          label: 'Open',
                           onPressed: entry.onOpen,
-                          child: const Text('Open'),
                         ),
                       ),
                     ],

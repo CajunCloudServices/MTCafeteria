@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/daily_shift_report.dart';
+import '../theme/stitch_tokens.dart';
+import 'ui/stitch_buttons.dart';
 
 /// Dynamic supervisor form for the line daily shift report.
 class SupervisorDailyShiftReportForm extends StatefulWidget {
@@ -26,8 +28,6 @@ class SupervisorDailyShiftReportForm extends StatefulWidget {
 
 class _SupervisorDailyShiftReportFormState
     extends State<SupervisorDailyShiftReportForm> {
-  // The total is computed from the individual count fields instead of being
-  // directly editable.
   static const List<String> _countComponentKeys = [
     'cafeWestCount',
     'alohaPlateCount',
@@ -60,7 +60,6 @@ class _SupervisorDailyShiftReportFormState
   void _syncFromReport() {
     final report = widget.currentReport;
     final payload = report?.payload ?? emptyLineShiftReportPayload();
-    // Ignore rebuilds that did not actually deliver a new report payload.
     final nextKey =
         '${widget.meal}|${report?.id ?? 0}|${report?.updatedAt ?? ''}|${report?.status ?? ''}';
     if (nextKey == _reportSeedKey) {
@@ -133,50 +132,85 @@ class _SupervisorDailyShiftReportFormState
       children: [
         Row(
           children: [
-            Text(
-              'Daily Shift Report',
-              style: Theme.of(context).textTheme.titleSmall,
+            Expanded(
+              child: Text('Daily Shift Report', style: StitchText.titleLg),
             ),
-            const Spacer(),
-            if (widget.currentReport?.isSubmitted ?? false)
-              const Chip(
-                label: Text('Submitted'),
-                avatar: Icon(
-                  Icons.check_circle,
-                  size: 18,
-                  color: Color(0xFF2E7D32),
+            if (isSubmitted)
+              Text(
+                'Submitted',
+                style: StitchText.bodyStrong.copyWith(
+                  color: StitchColors.primary,
                 ),
               )
             else
-              const Chip(label: Text('Draft')),
+              Text(
+                'Draft',
+                style: StitchText.bodyStrong.copyWith(
+                  color: StitchColors.onSurfaceVariant,
+                ),
+              ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: StitchSpacing.md),
         if (_reportError != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              _reportError!,
-              style: const TextStyle(
-                color: Color(0xFF9A2A2A),
-                fontWeight: FontWeight.w700,
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Container(
+              padding: const EdgeInsets.all(StitchSpacing.md),
+              decoration: BoxDecoration(
+                color: StitchColors.errorContainer,
+                borderRadius: BorderRadius.circular(StitchRadii.md),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: StitchColors.onErrorContainer,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _reportError!,
+                      style: StitchText.bodyStrong.copyWith(
+                        color: StitchColors.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         if (_reportFeedback != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              _reportFeedback!,
-              style: const TextStyle(
-                color: Color(0xFF1E5A93),
-                fontWeight: FontWeight.w700,
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Container(
+              padding: const EdgeInsets.all(StitchSpacing.md),
+              decoration: BoxDecoration(
+                color: StitchColors.secondaryContainer,
+                borderRadius: BorderRadius.circular(StitchRadii.md),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: StitchColors.primary,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _reportFeedback!,
+                      style: StitchText.bodyStrong.copyWith(
+                        color: StitchColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ...(() {
-          // Preserve the field order declared in the model so the on-screen
-          // form matches the paper report supervisors already know.
           final sectionOrder = <String>[];
           final fieldsBySection = <String, List<DailyShiftReportField>>{};
           for (final field in visibleFields) {
@@ -190,60 +224,33 @@ class _SupervisorDailyShiftReportFormState
           return sectionOrder.map((section) {
             final sectionFields = fieldsBySection[section]!;
             return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FBFF),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFB6C9E4)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      section,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF123A65),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...sectionFields.map((field) {
+              padding: const EdgeInsets.only(bottom: StitchSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(section, style: StitchText.titleMd),
+                  const SizedBox(height: StitchSpacing.md),
+                  ...sectionFields.map((field) {
                       if (field.key == 'count') {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 10),
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(StitchSpacing.lg),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEAF4FF),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: const Color(0xFFBFD0E3),
+                              color: StitchColors.secondaryContainer,
+                              borderRadius: BorderRadius.circular(
+                                StitchRadii.md,
                               ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Total',
-                                  style: TextStyle(
-                                    color: Color(0xFF4E6786),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
+                                Text('Total', style: StitchText.titleSm),
+                                const SizedBox(height: 4),
                                 Text(
                                   _reportValues['count'] ?? '0',
-                                  style: const TextStyle(
-                                    color: Color(0xFF123A65),
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 24,
-                                  ),
+                                  style: StitchText.displayXl,
                                 ),
                               ],
                             ),
@@ -258,7 +265,7 @@ class _SupervisorDailyShiftReportFormState
                           ? 1
                           : field.maxLines;
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: TextFormField(
                           key: ValueKey(
                             '${field.key}-${widget.meal}-$_reportSeedKey'
@@ -269,14 +276,13 @@ class _SupervisorDailyShiftReportFormState
                           maxLines: effectiveMaxLines,
                           readOnly: field.readOnly,
                           enabled: true,
-                          style: TextStyle(
-                            color: field.readOnly
-                                ? const Color(0xFF123A65)
-                                : const Color(0xFF243B53),
+                          style: StitchText.bodyLg.copyWith(
                             fontWeight: field.readOnly
-                                ? FontWeight.w800
+                                ? FontWeight.w700
                                 : FontWeight.w500,
-                            fontSize: field.readOnly ? 20 : 16,
+                            color: field.readOnly
+                                ? StitchColors.onSurface
+                                : StitchColors.onSurface,
                           ),
                           keyboardType:
                               field.inputType ==
@@ -301,10 +307,12 @@ class _SupervisorDailyShiftReportFormState
                             labelText: field.required
                                 ? field.label
                                 : '${field.label} (optional)',
+                            alignLabelWithHint: isLongField,
                             filled: field.readOnly,
                             fillColor: field.readOnly
-                                ? const Color(0xFFEAF4FF)
+                                ? StitchColors.surfaceContainer
                                 : null,
+                            helperStyle: StitchText.body,
                           ),
                           onChanged: (value) {
                             setState(() {
@@ -316,57 +324,56 @@ class _SupervisorDailyShiftReportFormState
                           },
                         ),
                       );
-                    }),
-                  ],
-                ),
+                  }),
+                ],
               ),
             );
           });
         })(),
-        const SizedBox(height: 6),
+        const SizedBox(height: StitchSpacing.sm),
         if (isSubmitted)
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _reportSaving
-                  ? null
-                  : () async {
-                      final confirmed = await _confirmUndoSubmission();
-                      if (!confirmed || !mounted) return;
+          StitchPrimaryButton(
+            label: _reportSaving ? 'Undoing…' : 'Undo Submission',
+            icon: Icons.undo_rounded,
+            onPressed: _reportSaving
+                ? null
+                : () async {
+                    final confirmed = await _confirmUndoSubmission();
+                    if (!confirmed || !mounted) return;
+                    setState(() {
+                      _reportSaving = true;
+                      _reportError = null;
+                      _reportFeedback = null;
+                    });
+                    try {
+                      await widget.onSave(widget.meal, _reportValues);
+                      if (!mounted) return;
                       setState(() {
-                        _reportSaving = true;
-                        _reportError = null;
-                        _reportFeedback = null;
+                        _reportFeedback =
+                            'Submission undone. Report is back in draft.';
                       });
-                      try {
-                        await widget.onSave(widget.meal, _reportValues);
-                        if (!mounted) return;
+                    } catch (_) {
+                      if (!mounted) return;
+                      setState(() {
+                        _reportError =
+                            'Could not undo submission. Try again.';
+                      });
+                    } finally {
+                      if (mounted) {
                         setState(() {
-                          _reportFeedback =
-                              'Submission undone. Report is back in draft.';
+                          _reportSaving = false;
                         });
-                      } catch (_) {
-                        if (!mounted) return;
-                        setState(() {
-                          _reportError =
-                              'Could not undo submission. Try again.';
-                        });
-                      } finally {
-                        if (mounted) {
-                          setState(() {
-                            _reportSaving = false;
-                          });
-                        }
                       }
-                    },
-              child: Text(_reportSaving ? 'Undoing...' : 'Undo Submission'),
-            ),
+                    }
+                  },
           )
         else
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: StitchSecondaryButton(
+                  label: _reportSaving ? 'Saving…' : 'Save Draft',
+                  icon: Icons.save_rounded,
                   onPressed: _reportSaving
                       ? null
                       : () async {
@@ -384,7 +391,8 @@ class _SupervisorDailyShiftReportFormState
                           } catch (_) {
                             if (!mounted) return;
                             setState(() {
-                              _reportError = 'Could not save draft. Try again.';
+                              _reportError =
+                                  'Could not save draft. Try again.';
                             });
                           } finally {
                             if (mounted) {
@@ -394,12 +402,13 @@ class _SupervisorDailyShiftReportFormState
                             }
                           }
                         },
-                  child: Text(_reportSaving ? 'Saving...' : 'Save Draft'),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: FilledButton(
+                child: StitchPrimaryButton(
+                  label: _reportSubmitting ? 'Submitting…' : 'Submit',
+                  icon: Icons.send_rounded,
                   onPressed: _reportSubmitting
                       ? null
                       : () async {
@@ -435,6 +444,7 @@ class _SupervisorDailyShiftReportFormState
                               _reportError = message.isEmpty
                                   ? 'Report submit failed. Verify required fields and try again.'
                                   : message;
+                              _reportFeedback = null;
                             });
                           } finally {
                             if (mounted) {
@@ -444,7 +454,6 @@ class _SupervisorDailyShiftReportFormState
                             }
                           }
                         },
-                  child: Text(_reportSubmitting ? 'Submitting...' : 'Submit'),
                 ),
               ),
             ],

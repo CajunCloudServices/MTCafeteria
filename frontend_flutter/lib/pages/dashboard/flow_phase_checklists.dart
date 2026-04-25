@@ -16,45 +16,52 @@ class _TrainerPhaseChecklist extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF9FB6D3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(phase, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          if (tasks.isEmpty)
-            const SizedBox.shrink()
-          else
-            ...tasks.map(
-              (task) => task.requiresCheckoff
-                  ? CheckboxListTile(
-                      dense: false,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 6),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: task.completed,
-                      title: Text(task.description),
-                      onChanged: (value) {
-                        if (value != null) {
-                          onToggle(slot, task.taskId, value);
-                        }
-                      },
-                    )
-                  : ListTile(
-                      dense: false,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 6),
-                      leading: const Icon(Icons.remove, size: 18),
-                      title: Text(task.description),
-                    ),
-            ),
-        ],
-      ),
+    if (tasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 4,
+            right: 4,
+            top: 8,
+            bottom: 12,
+          ),
+          child: Text(phase, style: StitchText.titleMd),
+        ),
+        StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.lg),
+          elevation: StitchCardElevation.card,
+          surface: StitchSurface.low,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var index = 0; index < tasks.length; index++) ...[
+                Builder(
+                  builder: (context) {
+                    final task = tasks[index];
+                    if (task.requiresCheckoff) {
+                      return StitchChecklistTile(
+                        title: task.description,
+                        checked: task.completed,
+                        onChanged: (value) => onToggle(slot, task.taskId, value),
+                      );
+                    }
+                    return StitchChecklistTile(
+                      title: task.description,
+                      readOnly: true,
+                    );
+                  },
+                ),
+                if (index < tasks.length - 1)
+                  const SizedBox(height: StitchSpacing.md),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -71,47 +78,63 @@ class _PhaseChecklist extends StatelessWidget {
   final List<TaskChecklistItem> tasks;
   final Future<void> Function(int taskId, bool completed) onTaskToggle;
 
+  int get _completed =>
+      tasks.where((t) => t.requiresCheckoff && t.completed).length;
+  int get _total => tasks.where((t) => t.requiresCheckoff).length;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF9FB6D3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(phase, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          if (tasks.isEmpty)
-            const SizedBox.shrink()
-          else
-            ...tasks.map(
-              (task) => task.requiresCheckoff
-                  ? CheckboxListTile(
-                      dense: false,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 6),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: task.completed,
-                      title: Text(task.description),
-                      onChanged: (value) {
-                        if (value != null) {
-                          onTaskToggle(task.taskId, value);
-                        }
-                      },
-                    )
-                  : ListTile(
-                      dense: false,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 6),
-                      leading: const Icon(Icons.remove, size: 18),
-                      title: Text(task.description),
-                    ),
-            ),
-        ],
-      ),
+    if (tasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.md),
+          elevation: StitchCardElevation.subtle,
+          surface: StitchSurface.low,
+          ring: true,
+          child: StitchProgressCard(
+            title: phase,
+            completed: _completed,
+            total: _total,
+            leadingIcon: Icons.checklist_rounded,
+          ),
+        ),
+        const SizedBox(height: StitchSpacing.lg),
+        StitchCard(
+          padding: const EdgeInsets.all(StitchSpacing.md),
+          elevation: StitchCardElevation.subtle,
+          surface: StitchSurface.low,
+          ring: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var index = 0; index < tasks.length; index++) ...[
+                Builder(
+                  builder: (context) {
+                    final task = tasks[index];
+                    if (task.requiresCheckoff) {
+                      return StitchChecklistTile(
+                        title: task.description,
+                        checked: task.completed,
+                        onChanged: (value) => onTaskToggle(task.taskId, value),
+                      );
+                    }
+                    return StitchChecklistTile(
+                      title: task.description,
+                      readOnly: true,
+                    );
+                  },
+                ),
+                if (index < tasks.length - 1)
+                  const SizedBox(height: StitchSpacing.md),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
